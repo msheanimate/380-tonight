@@ -905,7 +905,8 @@
     "website": "https://www.bastaic.com",
     "blurb": "Wood-fired pizza and a patio on Iowa Avenue; nicer than a slice joint, cheaper than a steakhouse, just right.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.bastaiowacity.com/dinner-menu"
   },
   {
     "name": "The Webster",

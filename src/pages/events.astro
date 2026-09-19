@@ -6,14 +6,33 @@ import { upcomingEvents, venues } from '../lib/data';
 const { dated, weekly } = upcomingEvents();
 const cats = ['game-day', 'music', 'nightlife', 'arts', 'festival'];
 const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includes(v.type));
+
+const datedJSON = JSON.stringify(dated);
+const weeklyJSON = JSON.stringify(weekly);
 ---
 <Base title="Events" current="Events">
   <p class="kicker">Events</p>
   <h1>Coming up, both cities</h1>
-  <p class="lede">Dated events first, then the weekly standing nights. Filter by type; toggle IC / CR up top.</p>
+  <p class="lede">Browse by calendar or scroll the full list below. Filter by type; toggle IC / CR up top.</p>
 
   <div class="chips" id="chips">
     {cats.map((c) => <button class="chip" type="button" data-cat={c} aria-pressed="false">{c.replace('-', ' ')}</button>)}
+  </div>
+
+  <!-- Calendar -->
+  <div class="ev-cal">
+    <div class="ev-cal-nav">
+      <button id="cal-prev" aria-label="Previous month">&#8249;</button>
+      <strong id="cal-title"></strong>
+      <button id="cal-next" aria-label="Next month">&#8250;</button>
+    </div>
+    <div class="ev-cal-dow">
+      {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <span>{d}</span>)}
+    </div>
+    <div class="ev-cal-grid" id="cal-grid"></div>
+    <div class="ev-cal-detail" id="cal-detail" hidden>
+      <div id="cal-detail-inner"></div>
+    </div>
   </div>
 
   <div id="list">
@@ -29,10 +48,178 @@ const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includ
     {bigRooms.map((v) => <li><a href={v.website} rel="noopener">{v.name}</a> — {v.city}</li>)}
   </ul>
 
+  <style is:global>
+    .ev-cal { margin: 24px 0 32px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .ev-cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+    .ev-cal-nav strong { font-size: 16px; }
+    .ev-cal-nav button { background: none; border: 1px solid var(--line); border-radius: 6px; width: 32px; height: 32px; font-size: 20px; line-height: 1; cursor: pointer; color: var(--ink); display: flex; align-items: center; justify-content: center; }
+    .ev-cal-nav button:hover { background: var(--bg); }
+    .ev-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); }
+    .ev-cal-dow span { text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); padding: 8px 0; }
+    .ev-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .ev-cal-day { min-height: 52px; padding: 6px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); cursor: default; position: relative; }
+    .ev-cal-day:nth-child(7n) { border-right: none; }
+    .ev-cal-day--empty { background: var(--bg); opacity: .4; }
+    .ev-cal-day--today .ev-cal-day-num { background: var(--green); color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .ev-cal-day--has { cursor: pointer; }
+    .ev-cal-day--has:hover { background: color-mix(in srgb, var(--green) 6%, var(--card)); }
+    .ev-cal-day--active { background: color-mix(in srgb, var(--green) 10%, var(--card)) !important; }
+    .ev-cal-day-num { font-size: 13px; font-weight: 600; color: var(--ink-2); width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .ev-cal-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+    .ev-cal-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .ev-cal-detail { border-top: 2px solid var(--green); padding: 16px 18px; }
+    .ev-cal-detail h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); margin: 0 0 12px; }
+    .ev-cal-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .ev-cal-item:last-child { border-bottom: none; }
+    .ev-cal-item-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .ev-cal-item-body strong { display: block; font-size: 14px; }
+    .ev-cal-item-body span { font-size: 12px; color: var(--ink-3); }
+    .ev-cal-item-body a { color: var(--green); text-decoration: none; font-size: 12px; }
+    .ev-cal-item-body a:hover { text-decoration: underline; }
+  </style>
+
+  <script define:vars={{ datedJSON, weeklyJSON }}>
+    const DATED = JSON.parse(datedJSON);
+    const WEEKLY = JSON.parse(weeklyJSON);
+    const WD = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+    const CAT_COLOR = {
+      'game-day': '#1a7f2e',
+      'music':    '#6c3ab3',
+      'nightlife':'#b3003b',
+      'arts':     '#b35a00',
+      'festival': '#0066b3',
+    };
+
+    let curYear = new Date().getFullYear();
+    let curMonth = new Date().getMonth();
+    let activeDay = null;
+
+    function buildMap(y, m) {
+      const map = {};
+      const add = (day, e) => { (map[day] = map[day] || []).push(e); };
+      for (const e of DATED) {
+        const d = new Date(e.date + 'T12:00:00');
+        if (d.getFullYear() === y && d.getMonth() === m) add(d.getDate(), e);
+      }
+      const days = new Date(y, m + 1, 0).getDate();
+      for (const e of WEEKLY) {
+        const wd = WD[e.weekday];
+        for (let day = 1; day <= days; day++) {
+          if (new Date(y, m, day).getDay() === wd) add(day, e);
+        }
+      }
+      return map;
+    }
+
+    function render() {
+      const y = curYear, m = curMonth;
+      document.getElementById('cal-title').textContent =
+        new Date(y, m, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+      const map = buildMap(y, m);
+      const firstDow = new Date(y, m, 1).getDay();
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const today = new Date();
+      const grid = document.getElementById('cal-grid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDow; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'ev-cal-day ev-cal-day--empty';
+        grid.appendChild(cell);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const events = map[day] || [];
+        const isToday = today.getDate() === day && today.getMonth() === m && today.getFullYear() === y;
+        const cell = document.createElement('div');
+        cell.className = 'ev-cal-day' +
+          (isToday ? ' ev-cal-day--today' : '') +
+          (events.length ? ' ev-cal-day--has' : '') +
+          (activeDay === day ? ' ev-cal-day--active' : '');
+
+        const num = document.createElement('div');
+        num.className = 'ev-cal-day-num';
+        num.textContent = day;
+        cell.appendChild(num);
+
+        if (events.length) {
+          const dots = document.createElement('div');
+          dots.className = 'ev-cal-dots';
+          const seen = new Set();
+          for (const e of events) {
+            if (!seen.has(e.category)) {
+              seen.add(e.category);
+              const dot = document.createElement('span');
+              dot.className = 'ev-cal-dot';
+              dot.style.background = CAT_COLOR[e.category] || '#888';
+              dots.appendChild(dot);
+            }
+          }
+          cell.appendChild(dots);
+          cell.addEventListener('click', () => showDetail(day, events, cell));
+        }
+
+        grid.appendChild(cell);
+      }
+
+      if (activeDay !== null) {
+        const existing = map[activeDay];
+        if (existing) {
+          const cells = grid.querySelectorAll('.ev-cal-day');
+          showDetail(activeDay, existing, cells[firstDow + activeDay - 1]);
+        } else {
+          hideDetail();
+        }
+      }
+    }
+
+    function showDetail(day, events, cell) {
+      document.querySelectorAll('.ev-cal-day--active').forEach(c => c.classList.remove('ev-cal-day--active'));
+      cell.classList.add('ev-cal-day--active');
+      activeDay = day;
+
+      const label = new Date(curYear, curMonth, day).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+      const detail = document.getElementById('cal-detail');
+      const inner = document.getElementById('cal-detail-inner');
+      inner.innerHTML = `<h3>${label}</h3>` + events.map(e => `
+        <div class="ev-cal-item">
+          <div class="ev-cal-item-dot" style="background:${CAT_COLOR[e.category]||'#888'}"></div>
+          <div class="ev-cal-item-body">
+            <strong>${e.title}</strong>
+            <span>${e.city} · ${e.time} · ${e.price}</span>
+            ${e.source ? `<br><a href="${e.source}" target="_blank" rel="noopener">Details ↗</a>` : ''}
+          </div>
+        </div>`).join('');
+      detail.hidden = false;
+      detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function hideDetail() {
+      document.getElementById('cal-detail').hidden = true;
+      activeDay = null;
+    }
+
+    document.getElementById('cal-prev').addEventListener('click', () => {
+      curMonth--; if (curMonth < 0) { curMonth = 11; curYear--; }
+      activeDay = null;
+      hideDetail();
+      render();
+    });
+    document.getElementById('cal-next').addEventListener('click', () => {
+      curMonth++; if (curMonth > 11) { curMonth = 0; curYear++; }
+      activeDay = null;
+      hideDetail();
+      render();
+    });
+
+    render();
+  </script>
+
   <script>
-    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('#chips .chip'));
-    const cards = Array.from(document.querySelectorAll<HTMLElement>('#list .card'));
-    const active = new Set<string>();
+    const chips = Array.from(document.querySelectorAll('#chips .chip'));
+    const cards = Array.from(document.querySelectorAll('#list .card'));
+    const active = new Set();
     function run() {
       const side = document.documentElement.dataset.side || 'all';
       for (const c of cards) {
@@ -41,7 +228,7 @@ const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includ
       }
     }
     chips.forEach((b) => b.addEventListener('click', () => {
-      const t = b.dataset.cat!;
+      const t = b.dataset.cat;
       active.has(t) ? active.delete(t) : active.add(t);
       b.setAttribute('aria-pressed', String(active.has(t)));
       run();

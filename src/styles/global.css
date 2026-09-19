@@ -404,3 +404,6 @@ a.vc-en-badge {
 .hs-result strong { display: block; font-size: 14px; font-weight: 700; color: #111; line-height: 1.3; }
 .hs-result span { display: block; font-size: 11px; color: #aaa; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
 .hs-no-results { padding: 16px; font-size: 13px; color: #bbb; text-align: center; }
+.vg-counter{display:none}
+button#vg-next{display:none}
+button#vg-prev{display:none}

@@ -8,11 +8,67 @@ import { iconSvg } from '../../lib/art';
 export function getStaticPaths() {
   return venues.map((v) => ({ params: { slug: v.slug }, props: { venue: v } }));
 }
-const { venue: v } = Astro.props as { venue: (typeof venues)[number] & { photos?: string[] } };
+const { venue: v } = Astro.props as { venue: (typeof venues)[number] & { photos?: string[], shows?: any[], apis?: string[] } };
 const d = districtBySlug(v.district);
 const here = events.filter((e) => e.venue_slug === v.slug);
 const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.name + ' ' + v.address)}`;
 const site = v.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+// Convert events.json entries into the Show format VenueCalendar expects.
+// Weekly recurring events are expanded to the next 13 occurrences from today.
+interface Show { date: string; time?: string; artist: string; url?: string; }
+
+function parseTime(t?: string): string | undefined {
+  if (!t) return undefined;
+  const m = t.match(/(\d+)(?::(\d+))?\s*(am|pm|a\.m\.|p\.m\.)/i);
+  if (!m) return undefined;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const isPm = /p/i.test(m[3]);
+  if (isPm && h !== 12) h += 12;
+  if (!isPm && h === 12) h = 0;
+  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+}
+
+const WD: Record<string, number> = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+
+function eventsToShows(evs: typeof here): Show[] {
+  const shows: Show[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (const e of evs) {
+    if (e.date === 'weekly') {
+      const wd = WD[e.weekday as string];
+      if (wd === undefined) continue;
+      // Find first upcoming occurrence
+      const start = new Date(today);
+      const daysUntil = (wd - start.getDay() + 7) % 7;
+      start.setDate(start.getDate() + daysUntil);
+      for (let i = 0; i < 13; i++) {
+        shows.push({
+          date: start.toISOString().slice(0, 10),
+          time: parseTime(e.time),
+          artist: e.title,
+          url: e.source ?? undefined,
+        });
+        start.setDate(start.getDate() + 7);
+      }
+    } else {
+      shows.push({
+        date: e.date,
+        time: parseTime(e.time),
+        artist: e.title,
+        url: e.source ?? undefined,
+      });
+    }
+  }
+  return shows;
+}
+
+const venueShows: Show[] = [...(v.shows ?? []), ...eventsToShows(here)];
+const showCalendar = v.type === 'music-venue' || v.type === 'theater' || v.type === 'arena'
+  || v.tags?.includes('live-music') || venueShows.length > 0;
 ---
 <Base title={v.name} description={v.blurb}>
   <VenueGallery slug={v.slug} name={v.name} photos={v.photos} />
@@ -36,14 +92,8 @@ const site = v.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
   <div class="tags">{v.tags.map((t) => <span class="tag">{t.replace('-', ' ')}</span>)}</div>
   {v.verify && <p class="verify">Seeded from <a href={v.source} rel="noopener">a public listing</a> and not yet walked by us. Hours and specials change; check before you go.</p>}
 
-  {here.length > 0 && (
-    <>
-      <h2>Here</h2>
-      <ul>{here.map((e) => <li><strong>{e.title}</strong> — {e.date === 'weekly' ? `${e.weekday}s` : e.date} · {e.time}</li>)}</ul>
-    </>
-  )}
-  {(v.type === 'music-venue' || v.type === 'theater' || v.type === 'arena' || v.tags?.includes('live-music')) && (
-    <VenueCalendar slug={v.slug} name={v.name} shows={(v as any).shows} apis={(v as any).apis} />
+  {showCalendar && (
+    <VenueCalendar slug={v.slug} name={v.name} shows={venueShows} apis={v.apis} />
   )}
   <p><a href="/drink/">← Drink</a> · <a href="/eat/">Eat</a> · <a href="/neighborhoods/">Neighborhoods</a></p>
 </Base>

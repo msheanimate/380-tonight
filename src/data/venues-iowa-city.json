@@ -1788,12 +1788,12 @@
     "name": "Good Vibes Caf\u00e9",
     "city": "Solon",
     "district": "solon",
-    "type": "restaurant",
+    "type": "cafe",
     "address": "121 W Main St Unit 104, Solon, IA 52333",
     "tags": [
-      "cafe",
       "brunch",
       "coffee",
+      "cafe",
       "all-ages"
     ],
     "happy_hour": null,
@@ -3287,5 +3287,45 @@
     "blurb": "Coralville's reliable coffee stop on 2nd Avenue. Solid espresso and plenty of seating \u2014 the morning anchor the neighborhood needed.",
     "source": "https://www.mycoffeeexplorer.com/iowa-city",
     "verify": true
+  },
+  {
+    "name": "Midnight Coffee",
+    "slug": "midnight-coffee-north-liberty",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "cafe",
+    "address": "710 Pacha Pkwy, North Liberty, IA 52317",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "espresso",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.midnight-coffee.com",
+    "blurb": "North Liberty's late-night-named coffee shop on Pacha Parkway. Solid espresso and a local following that keeps coming back.",
+    "source": "https://thinkiowacity.com/listing/midnight-coffee-north-liberty-pacha-parkway/",
+    "verify": true
+  },
+  {
+    "name": "Bluebird Cafe Solon",
+    "slug": "bluebird-cafe-solon",
+    "city": "Solon",
+    "district": "north-liberty",
+    "type": "cafe",
+    "address": "112 E Main St, Solon, IA 52333",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "breakfast",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://bluebird.cafe",
+    "blurb": "The Solon outpost of the beloved Iowa City Bluebird. Same great coffee and breakfast in a smaller downtown setting.",
+    "source": "https://www.toasttab.com/local/bluebird-diner-solon-112-e-main-st/",
+    "verify": false
   }
 ]

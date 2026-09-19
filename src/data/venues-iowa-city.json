@@ -449,7 +449,8 @@
     "website": "https://www.airlineriowacity.com",
     "blurb": "Across from the Pentacrest since 1944 with pizza, pitchers and a rooftop; it's a Hawkeye landmark for a reason.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.chomp.delivery/glue/the-airliner-menu/99871"
   },
   {
     "name": "Big Grove Brewery & Taproom",

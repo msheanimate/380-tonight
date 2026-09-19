@@ -849,7 +849,8 @@
     "website": "https://www.bluebirddiner.com",
     "blurb": "Retro diner brunch with big portions and bigger coffee; the Northside's best hangover cure not named Hamburg Inn.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://bluebird.cafe/wp-content/uploads/2025/02/66845-Bluebird-Diner-Menu_PROOF.pdf"
   },
   {
     "name": "Oasis Falafel",

@@ -72,7 +72,8 @@
     "website": "https://thedandylionic.com",
     "blurb": "Southern-leaning brunch, local coffee and real cocktails on the Ped Mall; the go-to when last night needs fixing.",
     "source": "https://thinkiowacity.com/listing/the-dandy-lion/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.thedandylionic.com/menu"
   },
   {
     "name": "Brothers Bar & Grill",
@@ -91,7 +92,8 @@
     "website": "https://www.brothersbar.com",
     "blurb": "Big, loud and packed on game day; Brothers is where the undergrad energy peaks and the pitchers keep coming.",
     "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.brothersbar.com/menu-iowacity"
   },
   {
     "name": "The Summit Restaurant & Bar",
@@ -148,7 +150,8 @@
     "website": "https://www.sportscolumnbar.com/",
     "blurb": "Two floors of TVs and Hawkeye fans; the Column is chaos on Saturdays and honestly that's the appeal.",
     "source": "https://www.sportscolumnbar.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.sportscolumnbar.com/the-kitchen.html"
   },
   {
     "name": "Micky's Irish Pub & Grill",
@@ -167,7 +170,8 @@
     "website": "https://mickysirishpub.com/iowa-city/",
     "blurb": "Dark wood, decent pub food and a patio that's perfect for people-watching Dubuque Street; a solid Irish standby.",
     "source": "https://mickysirishpub.com/iowa-city/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://mickysirishpub.com/iowa-city-menu/"
   },
   {
     "name": "Elray's Live & Dive",
@@ -278,7 +282,8 @@
     "website": "https://dcsiowacity.com/",
     "blurb": "Big windows, big patio, wings and burgers under $12; DC's is the easy answer for a game-day lunch that never ends.",
     "source": "https://dcsiowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://dcsiowacity.com/#menu"
   },
   {
     "name": "Coa Cantina",
@@ -296,7 +301,8 @@
     "website": "https://coacantinaiowacity.com/",
     "blurb": "Two levels, three bars and 200-plus tequilas with a DJ on weekends; tacos early, margaritas late, regrets Sunday.",
     "source": "https://coacantinaiowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://coacantinaiowacity.com/iowa-city-coa-cantina-iowa-city-food-menu"
   },
   {
     "name": "Studio 13",
@@ -422,7 +428,8 @@
     "website": "https://www.thestuffedolive.com",
     "blurb": "A martini menu longer than your reading list; sweet, boozy and the right call before a show at the Englert.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.thestuffedolive.com/location/iowacity/"
   },
   {
     "name": "The Airliner",
@@ -480,7 +487,8 @@
     "website": "https://www.reunionbrewery.com",
     "blurb": "House beers and brewpub food right on the Ped Mall; a good middle ground between a dive and a dinner.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://reunionbrewery.com/iowacitymenu"
   },
   {
     "name": "ReUnion Brewery – Coralville",
@@ -498,7 +506,8 @@
     "website": "https://www.reunionbrewery.com",
     "blurb": "The Coralville sibling with the same beers, more parking and a calmer crowd; ideal for a weeknight pint.",
     "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://reunionbrewery.com/menu"
   },
   {
     "name": "Wildwood Smokehouse & Saloon",
@@ -876,7 +885,8 @@
     "website": "https://www.trumpetblossom.com",
     "blurb": "All-vegan menu, craft cocktails and the occasional show; even committed carnivores leave impressed.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.trumpetblossom.com/new-folder"
   },
   {
     "name": "Basta Pizzeria Ristorante",
@@ -930,7 +940,8 @@
     "website": "https://www.formosaiowacity.com",
     "blurb": "Sushi and cocktails in a dim, clubby room on College Street; the dinner that slides straight into going out.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.formosaiowacity.com/menu"
   },
   {
     "name": "Englert Theatre",
@@ -1529,7 +1540,8 @@
     "website": "https://30hop.com",
     "blurb": "Rooftop patio, a long tap list and comfort food with some flair; the anchor of Iowa River Landing nights.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://30hop.com/menus"
   },
   {
     "name": "Tribute Eatery & Bar",
@@ -1719,7 +1731,8 @@
     "website": "http://www.redsalehouse.com",
     "blurb": "18 rotating taps, flatbreads and one of the area's best patios; the reason people in North Liberty stay in North Liberty.",
     "source": "https://thinkiowacity.com/listing/reds-alehouse/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.toasttab.com/redsalehouse"
   },
   {
     "name": "Rayo Mexican Bar & Grill",

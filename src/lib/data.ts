@@ -24,7 +24,7 @@ export const events: Event[] = eventsRaw as Event[];
 export const games: Game[] = (gamesRaw as { games: Game[] }).games;
 export const gamesMeta = gamesRaw as { season: number; source: string; note: string };
 
-const IC_CITIES = new Set(['Iowa City', 'Coralville', 'North Liberty']);
+const IC_CITIES = new Set(['Iowa City', 'Coralville', 'North Liberty', 'Solon']);
 export const sideOf = (city: string): 'ic' | 'cr' => (IC_CITIES.has(city) ? 'ic' : 'cr');
 export const sideLabel = (side: 'ic' | 'cr') => (side === 'ic' ? 'Iowa City side' : 'Cedar Rapids side');
 

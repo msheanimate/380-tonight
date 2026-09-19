@@ -1722,6 +1722,89 @@
     "verify": true
   },
   {
+    "slug": "big-grove-solon",
+    "name": "Big Grove Brewpub",
+    "city": "Solon",
+    "district": "solon",
+    "type": "brewery",
+    "address": "101 W Main St, Solon, IA 52333",
+    "tags": [
+      "craft-beer",
+      "patio",
+      "game-day",
+      "happy-hour"
+    ],
+    "happy_hour": "Mon–Fri 3–6 PM",
+    "hours_note": null,
+    "website": "https://biggrove.com/pages/solon-brewpub",
+    "blurb": "The original Big Grove location — open since 2013 — with house-brewed ales and stouts, globally inspired bistro fare, a patio, and the best game-day energy in Solon.",
+    "source": "https://biggrove.com/pages/solon-brewpub",
+    "verify": false,
+    "menu_url": "https://cdn.shopify.com/s/files/1/0604/5551/8396/files/Solon-FullMenu-July2026-Online.pdf"
+  },
+  {
+    "slug": "els-sol-mexican-cuisine",
+    "name": "El's Sol Mexican Cuisine",
+    "city": "Solon",
+    "district": "solon",
+    "type": "restaurant",
+    "address": "240 E Main St, Solon, IA 52333",
+    "tags": [
+      "mexican",
+      "margaritas",
+      "full-bar",
+      "family-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.tripadvisor.com/Restaurant_Review-g38406-d3400453-Reviews-El_s_Sol_Mexican_Cuisine-Solon_Iowa.html",
+    "blurb": "Family-owned Mexican restaurant on Solon's Main Street, beloved for traditional dishes, strong margaritas, and a full bar.",
+    "source": "https://www.tripadvisor.com/Restaurant_Review-g38406-d3400453-Reviews-El_s_Sol_Mexican_Cuisine-Solon_Iowa.html",
+    "verify": true,
+    "menu_url": null
+  },
+  {
+    "slug": "eastwoods-sports-bar",
+    "name": "Eastwood's Sports Bar & Grill",
+    "city": "Solon",
+    "district": "solon",
+    "type": "bar",
+    "address": "106 E Main St, Solon, IA 52333",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "casual"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://eastwoodssoloniowa.weebly.com/",
+    "blurb": "Cozy Solon sports bar with table service, a solid beer selection, cocktails, and a laid-back atmosphere for game days.",
+    "source": "https://eastwoodssoloniowa.weebly.com/",
+    "verify": true,
+    "menu_url": null
+  },
+  {
+    "slug": "good-vibes-cafe-solon",
+    "name": "Good Vibes Café",
+    "city": "Solon",
+    "district": "solon",
+    "type": "restaurant",
+    "address": "121 W Main St Unit 104, Solon, IA 52333",
+    "tags": [
+      "cafe",
+      "brunch",
+      "coffee",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.goodvibescoffeecafe.com/",
+    "blurb": "Sisters-owned community café with breakfast, lunch, board games, and a chalkboard wall — the kind of spot where you linger.",
+    "source": "https://www.goodvibescoffeecafe.com/",
+    "verify": false,
+    "menu_url": null
+  },
+  {
     "name": "Reds Alehouse",
     "slug": "reds-alehouse",
     "city": "North Liberty",
@@ -2711,5 +2794,112 @@
         "away": true
       }
     ]
+  },
+  {
+    "slug": "copper-boar",
+    "name": "Copper Boar American Pub",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "restaurant",
+    "address": "575 Cameron Way Unit C, North Liberty, IA 52317",
+    "tags": [
+      "pub",
+      "craft-beer",
+      "patio",
+      "brunch",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://copperboar.com/",
+    "blurb": "Contemporary American pub serving elevated scratch-made comfort food, creative cocktails, and a curated wine list — with fire pit patio seating.",
+    "source": "https://copperboar.com/",
+    "verify": false,
+    "menu_url": "https://copperboar.com/menu"
+  },
+  {
+    "slug": "tin-roost",
+    "name": "Tin Roost",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "restaurant",
+    "address": "840 W Penn St, North Liberty, IA 52317",
+    "tags": [
+      "american",
+      "smoked-meats",
+      "patio",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.tinroost.com/",
+    "blurb": "Locally owned scratch kitchen famous for cheese curds, smoked meats, burgers, and tenderloins — seating for 400 plus a fire-lit patio.",
+    "source": "https://www.tinroost.com/",
+    "verify": false,
+    "menu_url": null
+  },
+  {
+    "slug": "field-day-brewing",
+    "name": "Field Day Brewing Co.",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "brewery",
+    "address": "925 Liberty Way, North Liberty, IA 52317",
+    "tags": [
+      "craft-beer",
+      "family-friendly",
+      "bowling",
+      "all-ages",
+      "patio"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://fielddaybrewing.com/",
+    "blurb": "North Liberty's community brewery with duckpin bowling, a full scratch kitchen, a kids' park, and a lineup of craft beers, spirits, ciders, and non-alcoholic drinks for all ages.",
+    "source": "https://fielddaybrewing.com/",
+    "verify": false,
+    "menu_url": "https://fielddaybrewing.com/wp-content/uploads/2026/01/Final_FDBC-Menu.pdf"
+  },
+  {
+    "slug": "j-and-a-tap",
+    "name": "J & A Tap",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "bar",
+    "address": "440 N Dubuque St, North Liberty, IA 52317",
+    "tags": [
+      "live-music",
+      "karaoke",
+      "dive",
+      "sand-volleyball"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.jatap.net/",
+    "blurb": "Family-owned neighborhood bar with live music on Friday nights, karaoke Thursday and Saturday, and sand volleyball out back.",
+    "source": "https://www.jatap.net/",
+    "verify": false,
+    "menu_url": "https://www.jatap.net/menu"
+  },
+  {
+    "slug": "mirabitos-italian",
+    "name": "Mirabito's Italian",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "restaurant",
+    "address": "40 Sugar Creek Lane, North Liberty, IA 52317",
+    "tags": [
+      "italian",
+      "pizza",
+      "pasta",
+      "family-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.mirabitos.com/",
+    "blurb": "North Liberty Italian restaurant with classic pasta, pizza, and catering — a neighborhood staple for date nights and family dinners.",
+    "source": "https://www.mirabitos.com/",
+    "verify": false,
+    "menu_url": "https://www.mirabitos.com/menu"
   }
 ]

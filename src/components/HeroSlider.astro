@@ -22,11 +22,11 @@ interface Props {
 const { slides } = Astro.props;
 
 function sideOf(city: string) {
-  return ['Iowa City', 'Coralville', 'North Liberty'].includes(city) ? 'ic' : 'cr';
+  return ['Iowa City', 'Coralville', 'North Liberty', 'Solon'].includes(city) ? 'ic' : 'cr';
 }
 
 function cityLabel(city: string) {
-  if (city === 'Iowa City' || city === 'Coralville' || city === 'North Liberty') return 'Iowa City';
+  if (city === 'Iowa City' || city === 'Coralville' || city === 'North Liberty' || city === 'Solon') return 'Iowa City';
   if (city === 'Marion') return 'Marion / CR';
   return 'Cedar Rapids';
 }

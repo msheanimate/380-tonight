@@ -66,11 +66,11 @@ const searchable = allVenues.map((v) => ({
   let activeType = '';
 
   function sideOf(city) {
-    return ['Iowa City','Coralville','North Liberty'].includes(city) ? 'ic' : 'cr';
+    return ['Iowa City','Coralville','North Liberty','Solon'].includes(city) ? 'ic' : 'cr';
   }
 
   function cityLabel(city) {
-    if (['Iowa City','Coralville','North Liberty'].includes(city)) return 'Iowa City';
+    if (['Iowa City','Coralville','North Liberty','Solon'].includes(city)) return 'Iowa City';
     if (city === 'Marion') return 'Marion';
     return 'Cedar Rapids';
   }

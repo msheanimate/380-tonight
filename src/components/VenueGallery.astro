@@ -15,7 +15,7 @@ interface Props {
 }
 const { slug, name, photos } = Astro.props;
 
-// Build image URLs: manual override > Google Places refs > placeholders
+// Build image URLs: manual override > Google Places refs > nothing (no placeholders)
 const photoData = venuePhotos as Record<string, string[]>;
 const refs = photoData[slug] ?? [];
 
@@ -23,9 +23,10 @@ const imgs: string[] = photos?.length
   ? photos
   : refs.length
   ? refs.map(name => `https://places.googleapis.com/v1/${name}/media?maxWidthPx=900&key=${PLACES_KEY}`)
-  : Array.from({ length: 4 }, (_, i) => `https://picsum.photos/seed/${slug}-${i + 1}/900/500`);
+  : [];
 ---
 
+{imgs.length > 0 && (
 <div class="vg" id="vg" aria-label={`Photos of ${name}`}>
   <div class="vg-track" id="vg-track">
     {imgs.map((src, i) => (
@@ -52,6 +53,7 @@ const imgs: string[] = photos?.length
     </>
   )}
 </div>
+)}
 
 <style>
   .vg {

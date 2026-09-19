@@ -2917,7 +2917,8 @@
       "bar",
       "veteran-owned",
       "lgbtq-friendly"
-    ]
+    ],
+    "blurb": "Veteran-owned Mexican bar and grill in North Liberty serving up bold flavors, large portions, and a festive atmosphere."
   },
   {
     "slug": "xolo-mexican-cuisine",
@@ -2933,7 +2934,8 @@
       "mexican",
       "margaritas",
       "lunch-buffet"
-    ]
+    ],
+    "blurb": "Lively Mexican restaurant on Jordan Street in North Liberty with a lunch buffet, sizzling fajitas, and handcrafted margaritas."
   },
   {
     "slug": "bobbers-grill",
@@ -2952,7 +2954,8 @@
       "patio",
       "volleyball",
       "american"
-    ]
+    ],
+    "blurb": "Lakeside bar and grill on Scales Bend Road with a big patio, live music, karaoke, volleyball, and American comfort food."
   },
   {
     "slug": "andale-cantina",
@@ -2969,7 +2972,8 @@
       "bar",
       "drive-through",
       "lgbtq-friendly"
-    ]
+    ],
+    "blurb": "Well-loved Mexican cantina on Community Drive with drive-through convenience, a full bar, and crowd-pleasing classics."
   },
   {
     "slug": "ruscianos",
@@ -2987,6 +2991,7 @@
       "wood-fired",
       "dinner-only",
       "lgbtq-friendly"
-    ]
+    ],
+    "blurb": "Intimate Italian restaurant in Penn Landing with a wood-fired pizza oven, fresh pasta, and a consistently exceptional kitchen."
   }
 ]

@@ -3347,5 +3347,26 @@
     "blurb": "Downtown Iowa City outpost of the I-380 corridor coffee chain. Solid espresso and a familiar face on East Market Street.",
     "source": "https://downtowniowacity.com/venue/coffee-emporium/",
     "verify": true
+  },
+  {
+    "name": "The Green House",
+    "slug": "green-house-ic",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "505 E Washington St, Iowa City, IA 52240",
+    "phone": "(319) 259-7404",
+    "tags": [
+      "cocktails",
+      "coffee",
+      "plant-themed",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours at thegreenhouseic.com.",
+    "website": "https://www.thegreenhouseic.com",
+    "blurb": "Plant-themed cocktail lounge and coffee bar on East Washington. Craft drinks surrounded by greenery \u2014 equally good for a morning latte or an evening pour.",
+    "source": "https://www.yelp.com/biz/the-green-house-iowa-city-2",
+    "verify": false
   }
 ]

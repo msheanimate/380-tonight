@@ -32,7 +32,7 @@
     "happy_hour": null,
     "hours_note": "Open daily; check website for current hours.",
     "website": "https://fieldhouseiowacity.com",
-    "blurb": "Two floors of Iowa City nightlife \u2014 game-day sports bar downstairs, dance floor and DJ upstairs. A go-to spot on Hawkeye game days and weekend nights.",
+    "blurb": "Two floors of Iowa City nightlife — game-day sports bar downstairs, dance floor and DJ upstairs. A go-to spot on Hawkeye game days and weekend nights.",
     "source": "https://downtowniowacity.com/listings/fieldhouse/",
     "verify": true
   },
@@ -274,7 +274,7 @@
       "late-night"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Fri 2pm\u20132am; Sat\u2013Sun 11am\u20132am. Daily drink specials posted on social.",
+    "hours_note": "Mon–Fri 2pm–2am; Sat–Sun 11am–2am. Daily drink specials posted on social.",
     "website": "https://dcsiowacity.com/",
     "blurb": "Big windows, big patio, wings and burgers under $12; DC's is the easy answer for a game-day lunch that never ends.",
     "source": "https://dcsiowacity.com/",
@@ -292,7 +292,7 @@
       "late-night"
     ],
     "happy_hour": null,
-    "hours_note": "Bar Mon\u2013Wed 4pm\u20132am, Thu\u2013Sat 11am\u20132am, Sun 8pm\u20132am; kitchen closes 9pm, closed Sun.",
+    "hours_note": "Bar Mon–Wed 4pm–2am, Thu–Sat 11am–2am, Sun 8pm–2am; kitchen closes 9pm, closed Sun.",
     "website": "https://coacantinaiowacity.com/",
     "blurb": "Two levels, three bars and 200-plus tequilas with a DJ on weekends; tacos early, margaritas late, regrets Sunday.",
     "source": "https://coacantinaiowacity.com/",
@@ -386,7 +386,8 @@
     "website": "https://pullmandiner.com",
     "blurb": "Elevated diner food and stiff cocktails in a slick booth-lined room; the brunch line is long for a reason.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://pullmandiner.com/food-drink/"
   },
   {
     "name": "Brix Cheese Shop & Wine Bar",
@@ -464,7 +465,7 @@
     "verify": true
   },
   {
-    "name": "ReUnion Brewery \u2013 Iowa City",
+    "name": "ReUnion Brewery – Iowa City",
     "slug": "reunion-brewery-iowa-city",
     "city": "Iowa City",
     "district": "downtown",
@@ -482,7 +483,7 @@
     "verify": true
   },
   {
-    "name": "ReUnion Brewery \u2013 Coralville",
+    "name": "ReUnion Brewery – Coralville",
     "slug": "reunion-brewery-coralville",
     "city": "Coralville",
     "district": "iowa-river-landing",
@@ -634,7 +635,7 @@
       {
         "date": "2026-10-31",
         "time": "20:00",
-        "artist": "Southbound & Winterland \u2014 Halloween Show",
+        "artist": "Southbound & Winterland — Halloween Show",
         "url": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390"
       },
       {
@@ -679,7 +680,7 @@
       {
         "date": "2026-11-21",
         "time": "20:00",
-        "artist": "Whiplash \u2014 Tribute to Metallica",
+        "artist": "Whiplash — Tribute to Metallica",
         "url": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390"
       },
       {
@@ -819,7 +820,8 @@
     "website": "https://www.pagliaispizza.com",
     "blurb": "Thin-crust, square-cut, sausage-heavy pizza since 1969; Pagliai's is the Northside's most-argued-about slice.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.pagliaispizza.com/menu"
   },
   {
     "name": "Bluebird Diner",
@@ -854,7 +856,8 @@
     "website": "https://www.oasisfalafel.com",
     "blurb": "Fast, cheap, excellent falafel and shawarma on Linn Street; the smart move between afternoon beers and evening beers.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.oasisfalafel.com/menu"
   },
   {
     "name": "Trumpet Blossom Cafe",
@@ -1046,7 +1049,7 @@
       {
         "date": "2026-10-31",
         "time": "19:30",
-        "artist": "Heads In Motion \u2014 Talking Heads Tribute",
+        "artist": "Heads In Motion — Talking Heads Tribute",
         "url": "https://purchase.englert.org/EventAvailability?EventId=3001"
       },
       {
@@ -1413,7 +1416,7 @@
       {
         "date": "2026-10-15",
         "time": "19:30",
-        "artist": "B\u00e9la Fleck & Abigail Washburn",
+        "artist": "Béla Fleck & Abigail Washburn",
         "url": "https://hancher.uiowa.edu"
       },
       {
@@ -1439,12 +1442,12 @@
       {
         "date": "2026-12-03",
         "time": "19:30",
-        "artist": "A Charlie Brown Christmas \u2014 Live on Stage"
+        "artist": "A Charlie Brown Christmas — Live on Stage"
       },
       {
         "date": "2026-12-10",
         "time": "19:30",
-        "artist": "Handel's Messiah \u2014 UI Symphony Orchestra"
+        "artist": "Handel's Messiah — UI Symphony Orchestra"
       },
       {
         "date": "2027-01-14",
@@ -1522,7 +1525,7 @@
       "sports-bar"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Thu 11am\u201310pm; Fri 11am\u2013midnight; Sat 10am\u2013midnight; Sun 10am\u201310pm.",
+    "hours_note": "Mon–Thu 11am–10pm; Fri 11am–midnight; Sat 10am–midnight; Sun 10am–10pm.",
     "website": "https://30hop.com",
     "blurb": "Rooftop patio, a long tap list and comfort food with some flair; the anchor of Iowa River Landing nights.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1541,7 +1544,7 @@
       "cocktails"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Thu 11am\u20139pm; Fri 11am\u201310pm; Sat 9am\u201310pm; Sun 9am\u20139pm; brunch Sat\u2013Sun 9am\u20133pm.",
+    "hours_note": "Mon–Thu 11am–9pm; Fri 11am–10pm; Sat 9am–10pm; Sun 9am–9pm; brunch Sat–Sun 9am–3pm.",
     "website": "https://thinkiowacity.com/attractions/iowa-river-landing/",
     "blurb": "Chef-driven plates, wine and cocktails with a patio; the grown-up dinner spot in the Landing.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1561,7 +1564,7 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Sun\u2013Thu 11am\u20139pm; Fri\u2013Sat 11am\u2013midnight.",
+    "hours_note": "Sun–Thu 11am–9pm; Fri–Sat 11am–midnight.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Tavern pizza, wings and arcade games attached to Xtream Arena; a sports bar built for before and after the game.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1579,7 +1582,7 @@
       "cocktails"
     ],
     "happy_hour": null,
-    "hours_note": "Tue\u2013Thu 3pm\u20139pm; Fri 3pm\u201310pm; Sat 11am\u201310pm; closed Sun\u2013Mon per source.",
+    "hours_note": "Tue–Thu 3pm–9pm; Fri 3pm–10pm; Sat 11am–10pm; closed Sun–Mon per source.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Elevated comfort food and globally inspired plates with a patio; Vesta is the Landing's low-key gem.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1597,7 +1600,7 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Sun\u2013Thu 11am\u20139pm; Fri\u2013Sat 11am\u201310pm.",
+    "hours_note": "Sun–Thu 11am–9pm; Fri–Sat 11am–10pm.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Wood-fired pizza and homemade pasta in the Landing; easy, crowd-pleasing and fine for a pre-arena dinner.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1614,7 +1617,7 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Sat 11:30am\u20139pm; Sun 11:30am\u20138:30pm.",
+    "hours_note": "Mon–Sat 11:30am–9pm; Sun 11:30am–8:30pm.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Rich, proper ramen next to the arena; the warm bowl you want after a cold walk from the parking ramp.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1737,7 +1740,7 @@
     "verify": true
   },
   {
-    "name": "Bluebird Cafe \u2013 North Liberty",
+    "name": "Bluebird Cafe – North Liberty",
     "slug": "bluebird-cafe-north-liberty",
     "city": "North Liberty",
     "district": "north-liberty",
@@ -1855,7 +1858,7 @@
       {
         "date": "2026-10-31",
         "time": "12:00",
-        "artist": "Iowa vs Wisconsin (Football \u2014 Homecoming)",
+        "artist": "Iowa vs Wisconsin (Football — Homecoming)",
         "url": "https://seatgeek.com/iowa-hawkeyes-football-tickets"
       },
       {
@@ -1868,7 +1871,7 @@
       {
         "date": "2026-11-14",
         "time": "14:00",
-        "artist": "Iowa vs Purdue (Football \u2014 Military Appreciation)",
+        "artist": "Iowa vs Purdue (Football — Military Appreciation)",
         "url": "https://seatgeek.com/iowa-hawkeyes-football-tickets"
       },
       {
@@ -1881,7 +1884,7 @@
       {
         "date": "2026-11-27",
         "time": "11:00",
-        "artist": "Iowa vs Nebraska (Football \u2014 Senior Day)",
+        "artist": "Iowa vs Nebraska (Football — Senior Day)",
         "url": "https://seatgeek.com/iowa-hawkeyes-football-tickets"
       },
       {
@@ -2012,13 +2015,13 @@
       {
         "date": "2026-12-09",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Women's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Women's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
       },
       {
         "date": "2026-12-10",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Men's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Men's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
       },
       {
@@ -2348,7 +2351,7 @@
       {
         "date": "2026-12-10",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Men's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Men's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
       },
       {
@@ -2561,7 +2564,7 @@
       {
         "date": "2026-12-09",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Women's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Women's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
       },
       {

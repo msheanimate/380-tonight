@@ -7,7 +7,7 @@ import gamesRaw from '../data/games.json';
 export type Venue = {
   name: string; slug: string; city: string; district: string; type: string;
   address: string; tags: string[]; happy_hour: string | null; hours_note: string | null;
-  website: string; blurb: string; source: string; verify: boolean;
+  website: string; blurb: string; source: string; verify: boolean; menu_url?: string | null;
 };
 export type District = {
   slug: string; name: string; city: string; side: 'ic' | 'cr'; scene: string; practical: string; events: string[];

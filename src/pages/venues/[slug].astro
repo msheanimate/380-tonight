@@ -24,6 +24,7 @@ const site = v.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
   <div class="actions">
     <a class="btn" href={maps} rel="noopener">Directions</a>
     <a class="btn secondary" href={v.website} rel="noopener">Website</a>
+    {v.menu_url && <a class="btn secondary" href={v.menu_url} rel="noopener" target="_blank">Menu</a>}
   </div>
 
   <div class="facts">

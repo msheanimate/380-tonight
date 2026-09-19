@@ -67,11 +67,12 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Tue\u2013Wed 4\u201310pm; Thu\u2013Sat 11am\u201310pm; Sun 11am\u20138pm; closed Mondays.",
+    "hours_note": "Tue–Wed 4–10pm; Thu–Sat 11am–10pm; Sun 11am–8pm; closed Mondays.",
     "website": "https://www.lionbridgebrewing.com",
     "blurb": "Czech Village's anchor brewery: solid lagers, a real food menu, and a patio built for lazy Sunday afternoons.",
     "source": "https://www.lionbridgebrewing.com/contact",
-    "verify": true
+    "verify": true,
+    "menu_url": "http://www.lionbridgebrewing.com/beer"
   },
   {
     "name": "Parlor City Pub & Eatery",
@@ -109,7 +110,8 @@
     "website": "https://brewhemia.com",
     "blurb": "Coffeehouse-meets-cafe in a historic NewBo block, where brunch, espresso, and the occasional cocktail all coexist.",
     "source": "https://brewhemia.com/menu/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://brewhemia.com/menu/"
   },
   {
     "name": "The Ideal Theater & Bar",
@@ -481,7 +483,7 @@
       "late-night"
     ],
     "happy_hour": null,
-    "hours_note": "Wed\u2013Thu 3\u20139pm; Fri 3\u201311pm; Sat 11am\u201311pm; Sun 11am\u20138pm; kitchen closes 10pm Fri\u2013Sat.",
+    "hours_note": "Wed–Thu 3–9pm; Fri 3–11pm; Sat 11am–11pm; Sun 11am–8pm; kitchen closes 10pm Fri–Sat.",
     "website": "https://www.thequarterbarrel.com",
     "blurb": "House beer, pizza, and a wall of pinball and arcade cabinets; the nerdiest good time downtown.",
     "source": "https://www.thequarterbarrel.com/location",
@@ -596,7 +598,7 @@
     "verify": true
   },
   {
-    "name": "Big Grove Brewery & Taproom \u2013 Cedar Rapids",
+    "name": "Big Grove Brewery & Taproom – Cedar Rapids",
     "slug": "big-grove-cedar-rapids",
     "city": "Cedar Rapids",
     "district": "kingston-village",
@@ -703,7 +705,8 @@
     "website": "https://www.goldfinchtap.com",
     "blurb": "Uptown Marion's nicest room: craft cocktails, an elevated menu, and a patio that fills up fast.",
     "source": "https://www.uptownmarion.com/food_drink.html",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.goldfinchtap.com/restaurant-menus"
   },
   {
     "name": "Uptown Snug",
@@ -754,7 +757,7 @@
       "brunch"
     ],
     "happy_hour": "Happy hour offered; times not published on site",
-    "hours_note": "Mon\u2013Thu 11am\u201310pm; Fri\u2013Sat 11am\u2013late; Sun 11am\u201310pm per funnotfancy.com.",
+    "hours_note": "Mon–Thu 11am–10pm; Fri–Sat 11am–late; Sun 11am–10pm per funnotfancy.com.",
     "website": "https://www.funnotfancy.com/the-hip-stir",
     "blurb": "Playful cocktails and a menu that's better than it needs to be, in the old Ramsey's Wine Bistro space.",
     "source": "https://www.uptownmarion.com/food_drink.html",

@@ -210,4 +210,27 @@ const imgs: string[] = photos?.length
   });
 
   goTo(0);
+
+  // Auto-scroll every 5 seconds; pauses on hover/focus
+  let autoTimer: ReturnType<typeof setInterval> | null = null;
+
+  function startAuto() {
+    stopAuto();
+    if (total > 1) autoTimer = setInterval(() => goTo(cur + 1), 5000);
+  }
+
+  function stopAuto() {
+    if (autoTimer !== null) { clearInterval(autoTimer); autoTimer = null; }
+  }
+
+  prev?.addEventListener('click', startAuto);
+  next?.addEventListener('click', startAuto);
+  dots.forEach(d => d.addEventListener('click', startAuto));
+
+  vg?.addEventListener('mouseenter', stopAuto);
+  vg?.addEventListener('mouseleave', startAuto);
+  vg?.addEventListener('focusin', stopAuto);
+  vg?.addEventListener('focusout', startAuto);
+
+  startAuto();
 </script>

@@ -764,12 +764,14 @@ const { slug, name, shows = [], apis } = Astro.props;
           const sgEv = evs.find(e => e.source === 'SeatGeek' || (e.url && e.url.includes('seatgeek.com')));
           const tmLogo = tmEv ? `<a class="vc-tm-badge" href="${tmEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">TM</a>` : '';
           const sgLogo = sgEv ? `<a class="vc-sg-badge" href="${sgEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">SG</a>` : '';
+          const enEv = evs.find(e => e.url && e.url.includes('englert.org'));
+          const enLogo = enEv ? `<a class="vc-en-badge" href="${enEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">EN</a>` : '';
           const firstAway = evs[0].away;
           const firstWomens = evs[0].headline.includes("Women's");
           showsHtml = `<div class="vc-cell-shows">
             <div class="vc-cell-show${firstAway ? ' away' : ''}${firstWomens ? ' womens' : ''}">${evs[0].headline}</div>
             ${evs.length > 1 ? `<div class="vc-cell-more">+${evs.length - 1} more</div>` : ''}
-            ${tmLogo}${sgLogo}
+            ${tmLogo}${sgLogo}${enLogo}
           </div>`;
         }
 

@@ -2266,5 +2266,413 @@
         "away": true
       }
     ]
+  },
+  {
+    "slug": "iowa-mens-basketball",
+    "name": "Iowa Men's Basketball",
+    "type": "arena",
+    "city": "Iowa City",
+    "district": "university",
+    "address": "Carver-Hawkeye Arena, Iowa City, IA 52242",
+    "blurb": "Iowa Hawkeyes men's basketball home and away schedule at Carver-Hawkeye Arena.",
+    "tags": [
+      "mens-basketball",
+      "iowa-hawkeyes",
+      "big-ten",
+      "basketball"
+    ],
+    "hours": {},
+    "happy_hour": null,
+    "apis": [
+      "seatgeek"
+    ],
+    "shows": [
+      {
+        "date": "2026-11-03",
+        "time": "19:00",
+        "artist": "Iowa vs Lipscomb (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-06",
+        "time": "19:00",
+        "artist": "Iowa vs Eastern Illinois (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-20",
+        "time": "19:00",
+        "artist": "Iowa at Xavier (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2026-11-24",
+        "time": "19:00",
+        "artist": "Iowa vs UMBC (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-28",
+        "time": "14:00",
+        "artist": "Iowa vs Prairie View A&M (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-01",
+        "time": "19:00",
+        "artist": "Iowa at Purdue (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2026-12-07",
+        "time": "19:00",
+        "artist": "Iowa vs Indiana (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-10",
+        "time": "19:00",
+        "artist": "Iowa vs Iowa State (Men's Basketball \u2014 Cy-Hawk)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-13",
+        "time": "17:00",
+        "artist": "Iowa vs Western Illinois (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-17",
+        "time": "19:00",
+        "artist": "Iowa vs Bethune-Cookman (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-29",
+        "time": "19:00",
+        "artist": "Iowa vs South Dakota (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-02",
+        "time": "14:00",
+        "artist": "Iowa vs Ohio State (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-06",
+        "time": "19:00",
+        "artist": "Iowa vs Wisconsin (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-09",
+        "time": "14:00",
+        "artist": "Iowa vs Maryland (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-12",
+        "time": "19:00",
+        "artist": "Iowa at Rutgers (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-16",
+        "time": "14:00",
+        "artist": "Iowa at Nebraska (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-23",
+        "time": "14:00",
+        "artist": "Iowa vs Penn State (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-26",
+        "time": "19:00",
+        "artist": "Iowa at Ohio State (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-30",
+        "time": "14:00",
+        "artist": "Iowa vs Nebraska (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-03",
+        "time": "21:00",
+        "artist": "Iowa at USC (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-06",
+        "time": "21:00",
+        "artist": "Iowa at UCLA (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-10",
+        "time": "19:00",
+        "artist": "Iowa vs Oregon (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-13",
+        "time": "14:00",
+        "artist": "Iowa at Northwestern (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-16",
+        "time": "19:00",
+        "artist": "Iowa vs Michigan State (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-20",
+        "time": "14:00",
+        "artist": "Iowa at Michigan (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-24",
+        "time": "19:00",
+        "artist": "Iowa at Wisconsin (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-27",
+        "time": "14:00",
+        "artist": "Iowa vs Minnesota (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-03-02",
+        "time": "19:00",
+        "artist": "Iowa vs Washington (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
+      },
+      {
+        "date": "2027-03-06",
+        "time": "14:00",
+        "artist": "Iowa at Illinois (Men's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
+        "away": true
+      }
+    ]
+  },
+  {
+    "slug": "iowa-womens-basketball",
+    "name": "Iowa Women's Basketball",
+    "type": "arena",
+    "city": "Iowa City",
+    "district": "university",
+    "address": "Carver-Hawkeye Arena, Iowa City, IA 52242",
+    "blurb": "Iowa Hawkeyes women's basketball home and away schedule at Carver-Hawkeye Arena.",
+    "tags": [
+      "womens-basketball",
+      "iowa-hawkeyes",
+      "big-ten",
+      "basketball"
+    ],
+    "hours": {},
+    "happy_hour": null,
+    "apis": [
+      "seatgeek"
+    ],
+    "shows": [
+      {
+        "date": "2026-10-29",
+        "time": "19:00",
+        "artist": "Iowa vs Maryville (Women's Basketball Exhibition)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-02",
+        "time": "19:00",
+        "artist": "Iowa vs Towson (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-05",
+        "time": "19:00",
+        "artist": "Iowa vs Eastern Illinois (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-08",
+        "time": "14:00",
+        "artist": "Iowa at UConn (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2026-11-12",
+        "time": "19:00",
+        "artist": "Iowa vs Northern Iowa (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-11-19",
+        "time": "19:00",
+        "artist": "Iowa vs Montana State (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-01",
+        "time": "19:00",
+        "artist": "Iowa at Drake (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2026-12-05",
+        "time": "14:00",
+        "artist": "Iowa vs Nebraska (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-09",
+        "time": "19:00",
+        "artist": "Iowa vs Iowa State (Women's Basketball \u2014 Cy-Hawk)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-13",
+        "time": "12:00",
+        "artist": "Iowa vs Southern (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-20",
+        "time": "14:00",
+        "artist": "Iowa vs Northern Illinois (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2026-12-29",
+        "time": "19:00",
+        "artist": "Iowa at Illinois (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-01",
+        "time": "14:00",
+        "artist": "Iowa at Michigan State (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-05",
+        "time": "19:00",
+        "artist": "Iowa vs Rutgers (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-09",
+        "time": "14:00",
+        "artist": "Iowa at Minnesota (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-14",
+        "time": "19:00",
+        "artist": "Iowa vs Northwestern (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-17",
+        "time": "14:00",
+        "artist": "Iowa vs Indiana (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-01-24",
+        "time": "16:00",
+        "artist": "Iowa at Oregon (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-27",
+        "time": "21:00",
+        "artist": "Iowa at Washington (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-01-31",
+        "time": "14:00",
+        "artist": "Iowa vs Wisconsin (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-04",
+        "time": "19:00",
+        "artist": "Iowa at Nebraska (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-07",
+        "time": "14:00",
+        "artist": "Iowa at Michigan (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-11",
+        "time": "19:00",
+        "artist": "Iowa vs USC (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-14",
+        "time": "14:00",
+        "artist": "Iowa vs UCLA (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-18",
+        "time": "19:00",
+        "artist": "Iowa at Penn State (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      },
+      {
+        "date": "2027-02-21",
+        "time": "14:00",
+        "artist": "Iowa vs Purdue (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-25",
+        "time": "19:00",
+        "artist": "Iowa vs Maryland (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
+      },
+      {
+        "date": "2027-02-28",
+        "time": "14:00",
+        "artist": "Iowa at Ohio State (Women's Basketball)",
+        "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
+        "away": true
+      }
+    ]
   }
 ]

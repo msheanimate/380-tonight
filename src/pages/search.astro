@@ -129,7 +129,7 @@ const searchable = allVenues.map((v) => ({
       const matchQ    = !q ||
         v.name.toLowerCase().includes(q) ||
         v.blurb.toLowerCase().includes(q) ||
-        v.tags.some(t => t.includes(q)) ||
+        v.tags.some(t => t.replace(/-/g, ' ').includes(q)) ||
         v.type.includes(q) ||
         v.city.toLowerCase().includes(q) ||
         v.district.includes(q) ||

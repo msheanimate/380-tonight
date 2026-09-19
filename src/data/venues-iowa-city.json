@@ -924,7 +924,8 @@
     "website": "https://www.thewebstericc.com",
     "blurb": "Fine dining without stuffiness; tasting-menu energy and a bar worth sitting at on its own.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.thewebsteric.com/menu-dinner"
   },
   {
     "name": "Formosa",

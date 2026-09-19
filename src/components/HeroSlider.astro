@@ -1,0 +1,359 @@
+---
+/** HeroSlider — Time Out–style editorial hero for the Tonight page.
+ *  Accepts venue objects (or any slice of the venues array).
+ *  Slides auto-advance every 6 s, pause on hover, support touch swipe,
+ *  and respect the IC / CR city toggle (skips slides from the hidden side). */
+import { gradientFor } from '../lib/art';
+
+interface Venue {
+  slug: string;
+  name: string;
+  blurb: string;
+  type: string;
+  city: string;
+  district: string;
+  photo?: string;
+}
+
+interface Props {
+  slides: Venue[];
+}
+
+const { slides } = Astro.props;
+
+function sideOf(city: string) {
+  return ['Iowa City', 'Coralville', 'North Liberty'].includes(city) ? 'ic' : 'cr';
+}
+
+function cityLabel(city: string) {
+  if (city === 'Iowa City' || city === 'Coralville' || city === 'North Liberty') return 'Iowa City';
+  if (city === 'Marion') return 'Marion / CR';
+  return 'Cedar Rapids';
+}
+
+function typeLabel(type: string) {
+  const map: Record<string, string> = {
+    bar: 'Bar', brewery: 'Brewery', restaurant: 'Restaurant',
+    'music-venue': 'Music Venue', theater: 'Theater', cinema: 'Cinema',
+    arena: 'Arena', other: 'Venue',
+  };
+  return map[type] ?? 'Venue';
+}
+---
+
+<div class="hero-slider" id="hero-slider" aria-label="Tonight's featured picks" aria-roledescription="carousel">
+  <div class="slider-track" id="slider-track" aria-live="polite">
+    {slides.map((slide, i) => {
+      const side = sideOf(slide.city);
+      const bg = slide.photo
+        ? `background-image:url(${slide.photo});background-size:cover;background-position:center`
+        : `background:${gradientFor(slide.slug)}`;
+      return (
+        <div
+          class="slide"
+          data-side={side}
+          data-index={String(i)}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${i + 1} of ${slides.length}: ${slide.name}`}
+          aria-hidden={i !== 0 ? 'true' : undefined}
+        >
+          <div class="slide-art" style={bg}>
+            <div class="slide-overlay" />
+            <div class="slide-content">
+              <p class="slide-eyebrow">
+                <span class={`badge ${side}`}>{cityLabel(slide.city)}</span>
+                <span class="pick-label">{typeLabel(slide.type)} · Tonight's Pick</span>
+              </p>
+              <h2 class="slide-title">{slide.name}</h2>
+              <p class="slide-blurb">{slide.blurb}</p>
+              <a href={`/venues/${slide.slug}/`} class="slide-cta">
+                Visit →
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+
+  <button class="slider-btn slider-prev" id="slider-prev" aria-label="Previous slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 19l-7-7 7-7"/></svg>
+  </button>
+  <button class="slider-btn slider-next" id="slider-next" aria-label="Next slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+
+  <div class="slider-dots" id="slider-dots" role="tablist" aria-label="Slides">
+    {slides.map((s, i) => (
+      <button
+        class="dot"
+        role="tab"
+        data-index={String(i)}
+        aria-label={s.name}
+        aria-selected={i === 0 ? 'true' : 'false'}
+      />
+    ))}
+  </div>
+</div>
+
+<style>
+  .hero-slider {
+    position: relative;
+    border-radius: var(--radius-lg, 16px);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    background: var(--surface);
+    /* height is driven by .slide-art */
+  }
+
+  /* ── track ── */
+  .slider-track {
+    display: flex;
+    will-change: transform;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── individual slide ── */
+  .slide {
+    flex: 0 0 100%;
+    min-width: 0;
+  }
+
+  .slide-art {
+    position: relative;
+    height: 420px;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  @media (max-width: 640px) {
+    .slide-art { height: 300px; }
+  }
+
+  /* gradient overlay so text reads on any gradient or photo */
+  .slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.05) 0%,
+      rgba(0,0,0,0.2) 40%,
+      rgba(0,0,0,0.72) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* ── content ── */
+  .slide-content {
+    position: relative;
+    z-index: 1;
+    padding: 1.5rem 1.75rem 1.75rem;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  @media (max-width: 640px) {
+    .slide-content { padding: 1rem 1.1rem 1.25rem; }
+  }
+
+  .slide-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .pick-label {
+    color: rgba(255,255,255,0.75);
+  }
+
+  .slide-title {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.55rem, 4vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: #fff;
+    text-wrap: balance;
+  }
+
+  .slide-blurb {
+    margin: 0 0 1.1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.82);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (max-width: 640px) {
+    .slide-blurb { display: none; }
+  }
+
+  .slide-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.55rem 1.2rem;
+    background: #fff;
+    color: #111;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.15s;
+  }
+
+  .slide-cta:hover {
+    background: var(--green, #1fb865);
+    color: #fff;
+    transform: translateX(2px);
+  }
+
+  /* ── arrows ── */
+  .slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    padding: 0;
+  }
+
+  .slider-btn:hover { background: rgba(255,255,255,0.32); }
+  .slider-btn svg { width: 20px; height: 20px; display: block; }
+  .slider-prev { left: 0.75rem; }
+  .slider-next { right: 0.75rem; }
+
+  @media (max-width: 480px) {
+    .slider-btn { display: none; }
+  }
+
+  /* ── dots ── */
+  .slider-dots {
+    position: absolute;
+    bottom: 0.9rem;
+    right: 1.1rem;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    background: rgba(255,255,255,0.45);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .dot[aria-selected="true"] {
+    background: #fff;
+    transform: scale(1.3);
+  }
+</style>
+
+<script>
+  const slider = document.getElementById('hero-slider');
+  const track = document.getElementById('slider-track') as HTMLElement;
+  const prevBtn = document.getElementById('slider-prev');
+  const nextBtn = document.getElementById('slider-next');
+  const dotsEl = document.getElementById('slider-dots');
+
+  const slides = Array.from(track?.querySelectorAll<HTMLElement>('.slide') ?? []);
+  const dots   = Array.from(dotsEl?.querySelectorAll<HTMLButtonElement>('.dot') ?? []);
+  const total  = slides.length;
+
+  let current = 0;
+  let autoTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Which slides are visible for the current IC/CR side?
+  function visibleIndices(side: string): number[] {
+    if (side === 'all') return slides.map((_, i) => i);
+    return slides.reduce<number[]>((acc, s, i) => {
+      if (s.dataset.side === side) acc.push(i);
+      return acc;
+    }, []);
+  }
+
+  function goTo(index: number) {
+    current = (index + total) % total;
+    if (track) track.style.transform = `translateX(-${current * 100}%)`;
+    slides.forEach((s, i) => s.setAttribute('aria-hidden', String(i !== current)));
+    dots.forEach((d, i) => d.setAttribute('aria-selected', String(i === current)));
+  }
+
+  function nextVisible(direction: 1 | -1) {
+    const side = document.documentElement.dataset.side || 'all';
+    const vis  = visibleIndices(side);
+    if (vis.length === 0) return;
+    const pos = vis.indexOf(current);
+    if (pos === -1) { goTo(vis[0]); return; }
+    const next = vis[(pos + direction + vis.length) % vis.length];
+    goTo(next);
+  }
+
+  function startAuto() {
+    stopAuto();
+    autoTimer = setInterval(() => nextVisible(1), 6000);
+  }
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  }
+
+  prevBtn?.addEventListener('click', () => { nextVisible(-1); startAuto(); });
+  nextBtn?.addEventListener('click', () => { nextVisible(1);  startAuto(); });
+
+  dots.forEach((d) => d.addEventListener('click', () => {
+    goTo(Number(d.dataset.index));
+    startAuto();
+  }));
+
+  slider?.addEventListener('mouseenter', stopAuto);
+  slider?.addEventListener('mouseleave', startAuto);
+
+  // Touch / swipe
+  let touchStartX = 0;
+  slider?.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  slider?.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) { nextVisible(dx < 0 ? 1 : -1); startAuto(); }
+  }, { passive: true });
+
+  // Keyboard: left / right arrows when slider is focused
+  slider?.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { nextVisible(-1); startAuto(); }
+    if (e.key === 'ArrowRight') { nextVisible(1); startAuto(); }
+  });
+
+  // Sync with city toggle
+  document.addEventListener('sidechange', (e) => {
+    const side = (e as CustomEvent<string>).detail;
+    const vis  = visibleIndices(side);
+    if (vis.length > 0 && !vis.includes(current)) goTo(vis[0]);
+  });
+
+  // Initialise
+  goTo(0);
+  startAuto();
+</script>

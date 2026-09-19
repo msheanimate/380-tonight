@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import VenueCard from '../components/VenueCard.astro';
+import { games, gamesMeta, venues, fmtDate, sideOf } from '../lib/data';
+
+const isoToday = new Date().toISOString().slice(0, 10);
+const next = games.find((g) => g.date >= isoToday);
+const watchIC = venues.filter((v) => sideOf(v.city) === 'ic' && v.tags.includes('game-day'));
+const watchCR = venues.filter((v) => sideOf(v.city) === 'cr' && v.tags.includes('game-day'));
+---
+<Base title="Game Day" current="Game Day">
+  <p class="kicker">Game Day</p>
+  <h1>Every Hawkeye Saturday, both cities</h1>
+  <p class="lede">Where to watch if you don't have a ticket, where to eat before, and what still has a table after.</p>
+
+  <div class="nowbar">
+    <div>
+      {next ? (
+        <>Next up: {next.home ? `${next.opponent} at Kinnick` : `Iowa ${next.opponent}`}
+        <small>{fmtDate(next.date)} · kickoff {next.time}</small></>
+      ) : (
+        <>Season's over. <small>Wrestling at Carver and Heartlanders hockey take over the winter.</small></>
+      )}
+    </div>
+  </div>
+
+  <h2>{gamesMeta.season} schedule</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Opponent</th><th>Kick</th></tr></thead>
+    <tbody>
+      {games.map((g) => (
+        <tr class={g.home ? 'home' : ''}>
+          <td>{fmtDate(g.date)}</td>
+          <td>{g.home ? `${g.opponent} · Kinnick` : g.opponent}</td>
+          <td>{g.time}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p class="verify">Schedule from <a href={gamesMeta.source}>hawkeyesports.com</a>. {gamesMeta.note}</p>
+
+  <h2>Home Saturday playbook (Iowa City)</h2>
+  <ol>
+    <li><strong>Before 9 a.m.:</strong> park. Downtown ramps fill; the Court Street and Chauncey Swan ramps are the last to go. Or park in Coralville and bus in.</li>
+    <li><strong>Tailgate:</strong> Melrose Avenue lots are the classic; the bars downtown open by 10 for noon games.</li>
+    <li><strong>After the game:</strong> Big Grove Iowa City absorbs the Kinnick walk-out crowd; downtown bars are a wall by 5.</li>
+    <li><strong>Late:</strong> the Airliner and Pagliai's for pizza; George's when you want it quiet.</li>
+  </ol>
+
+    <div class="split">
+    <section data-side="ic">
+      <h2><span class="badge ic">Iowa City</span> Where to watch</h2>
+      {watchIC.map((v) => <VenueCard venue={v} media={false} />)}
+    </section>
+    <section data-side="cr">
+      <h2><span class="badge cr">Cedar Rapids</span> Where to watch</h2>
+      {watchCR.map((v) => <VenueCard venue={v} media={false} />)}
+    </section>
+  </div>
+</Base>

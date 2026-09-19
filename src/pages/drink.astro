@@ -1,0 +1,76 @@
+---
+import Base from '../layouts/Base.astro';
+import VenueCard from '../components/VenueCard.astro';
+import { venues, districts } from '../lib/data';
+
+const drinkTypes = new Set(['bar', 'brewery', 'music-venue']);
+const list = venues.filter((v) => drinkTypes.has(v.type) || v.tags.includes('cocktails'));
+const withHH = list.filter((v) => v.happy_hour);
+const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cocktails', 'dive', 'sports-bar', 'game-day'];
+---
+<Base title="Drink" current="Drink">
+  <p class="kicker">Drink</p>
+  <h1>Every bar, taproom and brewery worth knowing</h1>
+  <p class="lede">{list.length} spots across both cities. Filter by what you're after; toggle IC / CR up top.</p>
+
+  <section class="hh" id="happy-hour">
+    <p class="kicker">Happy Hour Finder</p>
+    <h3>Where's happy hour right now?</h3>
+    <p>Published happy hours logged so far: <strong>{withHH.length}</strong> of {list.length}. Collecting these venue by venue is the first data job; until the count is real, the "cocktails" and "dive" chips below are the cheapest routes.</p>
+    {withHH.map((v) => (
+      <div class="hh-result"><a href={`/venues/${v.slug}/`}>{v.name}</a><span class="when">{v.happy_hour}</span></div>
+    ))}
+  </section>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search bars…" aria-label="Search" />
+    <select id="district" aria-label="Neighborhood">
+      <option value="">All neighborhoods</option>
+      {districts.map((d) => <option value={d.slug}>{d.name}</option>)}
+    </select>
+  </div>
+  <div class="chips" id="chips">
+    {chips.map((c) => <button class="chip" type="button" data-tag={c} aria-pressed="false">{c.replace('-', ' ')}</button>)}
+  </div>
+
+  <div id="list">
+    {list.map((v) => <VenueCard venue={v} />)}
+  </div>
+  <p class="empty hidden" id="empty">Nothing matches. Loosen a filter.</p>
+
+  <script>
+    const q = document.getElementById('q') as HTMLInputElement;
+    const district = document.getElementById('district') as HTMLSelectElement;
+    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('#chips .chip'));
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('#list .card'));
+    const empty = document.getElementById('empty')!;
+    const active = new Set<string>();
+
+    function run() {
+      const side = document.documentElement.dataset.side || 'all';
+      const text = q.value.trim().toLowerCase();
+      let shown = 0;
+      for (const c of cards) {
+        const tags = (c.dataset.tags || '').split(' ');
+        const ok =
+          (side === 'all' || c.dataset.side === side) &&
+          (!text || (c.dataset.name || '').includes(text) || c.textContent!.toLowerCase().includes(text)) &&
+          (!district.value || c.dataset.district === district.value) &&
+          [...active].every((t) => tags.includes(t));
+        c.classList.toggle('hidden', !ok);
+        if (ok) shown++;
+      }
+      empty.classList.toggle('hidden', shown > 0);
+    }
+    q.addEventListener('input', run);
+    district.addEventListener('change', run);
+    chips.forEach((b) => b.addEventListener('click', () => {
+      const t = b.dataset.tag!;
+      active.has(t) ? active.delete(t) : active.add(t);
+      b.setAttribute('aria-pressed', String(active.has(t)));
+      run();
+    }));
+    document.addEventListener('sidechange', run);
+    run();
+  </script>
+</Base>

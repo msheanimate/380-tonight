@@ -1,0 +1,31 @@
+---
+import Base from '../../layouts/Base.astro';
+import VenueCard from '../../components/VenueCard.astro';
+import { districts, venuesInDistrict } from '../../lib/data';
+
+export function getStaticPaths() {
+  return districts.map((d) => ({ params: { slug: d.slug }, props: { district: d } }));
+}
+const { district: d } = Astro.props;
+const spots = venuesInDistrict(d.slug);
+const order = ['bar', 'brewery', 'music-venue', 'restaurant', 'theater', 'cinema', 'arena', 'other'];
+spots.sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type));
+---
+<Base title={d.name} current="Neighborhoods">
+  <p class="kicker">{d.city}</p>
+  <h1>{d.name}</h1>
+  <p class="lede">{d.scene}</p>
+
+  <section class="card">
+    <h3>The practical layer</h3>
+    <p>{d.practical}</p>
+  </section>
+  <section class="card">
+    <h3>What belongs to this district</h3>
+    <ul>{d.events.map((e) => <li>{e}</li>)}</ul>
+  </section>
+
+  <h2>The spots ({spots.length})</h2>
+  {spots.map((v) => <VenueCard venue={v} />)}
+  <p><a href="/neighborhoods/">← All neighborhoods</a></p>
+</Base>

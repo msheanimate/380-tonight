@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import EventCard from '../components/EventCard.astro';
+import { upcomingEvents, venues } from '../lib/data';
+
+const { dated, weekly } = upcomingEvents();
+const cats = ['game-day', 'music', 'nightlife', 'arts', 'festival'];
+const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includes(v.type));
+---
+<Base title="Events" current="Events">
+  <p class="kicker">Events</p>
+  <h1>Coming up, both cities</h1>
+  <p class="lede">Dated events first, then the weekly standing nights. Filter by type; toggle IC / CR up top.</p>
+
+  <div class="chips" id="chips">
+    {cats.map((c) => <button class="chip" type="button" data-cat={c} aria-pressed="false">{c.replace('-', ' ')}</button>)}
+  </div>
+
+  <div id="list">
+    <h2>Dated</h2>
+    {dated.length ? dated.map((e) => <EventCard event={e} />) : <p class="empty">Nothing dated on the calendar yet.</p>}
+    <h2>Every week</h2>
+    {weekly.map((e) => <EventCard event={e} />)}
+  </div>
+
+  <h2>Where the big shows are</h2>
+  <p class="lede">These rooms publish their own calendars; the plan is to pull their feeds in here. Until then, links.</p>
+  <ul>
+    {bigRooms.map((v) => <li><a href={v.website} rel="noopener">{v.name}</a> — {v.city}</li>)}
+  </ul>
+
+  <script>
+    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('#chips .chip'));
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('#list .card'));
+    const active = new Set<string>();
+    function run() {
+      const side = document.documentElement.dataset.side || 'all';
+      for (const c of cards) {
+        const ok = (side === 'all' || c.dataset.side === side) && (active.size === 0 || active.has(c.dataset.category || ''));
+        c.classList.toggle('hidden', !ok);
+      }
+    }
+    chips.forEach((b) => b.addEventListener('click', () => {
+      const t = b.dataset.cat!;
+      active.has(t) ? active.delete(t) : active.add(t);
+      b.setAttribute('aria-pressed', String(active.has(t)));
+      run();
+    }));
+    document.addEventListener('sidechange', run);
+    run();
+  </script>
+</Base>

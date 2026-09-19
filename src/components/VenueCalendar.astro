@@ -1,0 +1,805 @@
+---
+/**
+ * VenueCalendar — multi-source show calendar.
+ * Pulls from Songkick, Eventbrite, and Ticketmaster in parallel.
+ * Each source is optional — add the keys you have and the rest are skipped.
+ *
+ * GET FREE KEYS:
+ *   Songkick    → https://www.songkick.com/developer
+ *   Eventbrite  → https://www.eventbrite.com/platform/api  (instant)
+ *   Ticketmaster→ https://developer.ticketmaster.com        (instant)
+ */
+const SK_KEY  = 'YOUR_SONGKICK_KEY';        // Songkick Discovery API
+const EB_KEY  = 'KLIP436R4F7XWQI26B';    // Eventbrite private token
+const TM_KEY  = 'dsgzb0keuiCyQkvysxsxZmvICLzmdB6t';    // Ticketmaster Discovery API
+const SG_KEY  = 'YOUR_SEATGEEK_CLIENT_ID'; // SeatGeek API client ID
+
+interface Show {
+  date: string;        // YYYY-MM-DD
+  time?: string;       // HH:MM  (24h, optional)
+  artist: string;
+  url?: string;
+}
+
+interface Props {
+  slug:   string;
+  name:   string;
+  shows?: Show[];      // manually-listed shows from venue JSON
+}
+const { slug, name, shows = [] } = Astro.props;
+---
+
+<section
+  class="vc"
+  data-slug={slug}
+  data-name={name}
+  data-sk={SK_KEY}
+  data-eb={EB_KEY}
+  data-tm={TM_KEY}
+  data-sg={SG_KEY}
+  data-shows={JSON.stringify(shows)}
+  aria-label={`Upcoming shows at ${name}`}
+>
+  <div class="vc-head">
+    <div class="vc-head-left">
+      <h2 class="vc-title">Upcoming Shows</h2>
+      <div class="vc-sources" id="vc-sources"></div>
+    </div>
+    <div class="vc-nav">
+      <button class="vc-navbtn" id="vc-prev" aria-label="Previous month">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="vc-monthlabel" id="vc-monthlabel"> </span>
+      <button class="vc-navbtn" id="vc-next" aria-label="Next month">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="vc-dow" aria-hidden="true">
+    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span>
+    <span>Thu</span><span>Fri</span><span>Sat</span>
+  </div>
+
+  <div class="vc-grid" id="vc-grid" role="grid" aria-live="polite"></div>
+
+  <div class="vc-panel" id="vc-panel" hidden>
+    <p class="vc-pdate" id="vc-pdate"></p>
+    <ul class="vc-plist" id="vc-plist"></ul>
+  </div>
+</section>
+
+<style>
+  .vc {
+    background: var(--card, #fff);
+    border-radius: var(--radius, 18px);
+    box-shadow: var(--shadow, 0 1px 4px rgba(0,0,0,.08));
+    overflow: hidden;
+    margin: 1.5rem 0;
+    font-family: var(--font, system-ui, sans-serif);
+    color: var(--ink, #101418);
+  }
+
+  .vc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem 0.85rem;
+    border-bottom: 1px solid var(--line, #e6eaee);
+    gap: 0.75rem;
+  }
+
+  .vc-head-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .vc-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .vc-sources {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .vc-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--line, #e6eaee);
+    color: var(--ink-3, #8a95a1);
+  }
+
+  .vc-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .vc-navbtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--line, #e6eaee);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--ink, #101418);
+    transition: background 0.15s;
+  }
+  .vc-navbtn:hover    { background: var(--bg, #f5f7f9); }
+  .vc-navbtn:disabled { opacity: 0.3; cursor: default; }
+  .vc-navbtn:disabled:hover { background: transparent; }
+  .vc-navbtn svg { width: 15px; height: 15px; display: block; }
+
+  .vc-monthlabel {
+    font-size: 0.8rem;
+    font-weight: 700;
+    min-width: 116px;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+
+  .vc-dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 0.5rem 0 0;
+  }
+  .vc-dow span {
+    text-align: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3, #8a95a1);
+    padding: 0.2rem 0;
+  }
+
+  .vc-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1px solid var(--line, #e6eaee);
+    border-left: 1px solid var(--line, #e6eaee);
+    border-radius: 0 0 var(--radius, 18px) var(--radius, 18px);
+    overflow: hidden;
+  }
+
+  .vc-cell {
+    background: var(--card, #fff);
+    min-height: 8em;
+    padding: 0.4rem 0.35rem 0.3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    cursor: default;
+    transition: background 0.12s;
+    user-select: none;
+    border-right: 1px solid var(--line, #e6eaee);
+    border-bottom: 1px solid var(--line, #e6eaee);
+  }
+
+  .vc-cell.empty   { background: var(--bg, #f5f7f9); }
+  .vc-cell.has-events { cursor: pointer; }
+  .vc-cell.has-events:hover { background: rgba(31,184,101,0.07); }
+  .vc-cell.selected { background: rgba(31,184,101,0.12); }
+
+  .vc-daynum {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-2, #4a5560);
+    line-height: 1;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .vc-cell.today .vc-daynum {
+    background: var(--green, #1fb865);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .vc-cell.past .vc-daynum { color: var(--ink-3, #8a95a1); }
+
+  .vc-cell-shows {
+    margin-top: 3px;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .vc-cell-show {
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: var(--green, #1fb865);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  .vc-cell-more {
+    font-size: 0.56rem;
+    color: var(--ink-3, #8a95a1);
+  }
+
+  /* skeleton */
+  .vc-tm-logo {
+    display: block;
+    height: 14px;
+    width: auto;
+    margin-top: auto;
+    opacity: 0.7;
+  }
+  .vc-tm-badge {
+    display: block;
+    margin-top: auto;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #026CDF;
+    letter-spacing: 0.04em;
+  }
+
+  .vc-cell.skel .vc-daynum {
+    background: var(--line, #e6eaee);
+    color: transparent;
+    border-radius: 4px;
+    animation: vc-shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes vc-shimmer {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1;   }
+  }
+
+  .vc-panel {
+    padding: 0.9rem 1.25rem 1rem;
+    border-top: 1px solid var(--line, #e6eaee);
+  }
+
+  .vc-pdate {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--green, #1fb865);
+    margin: 0 0 0.6rem;
+  }
+
+  .vc-plist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .vc-pitem { display: flex; flex-direction: column; gap: 0.12rem; }
+
+  .vc-pitem-main {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+
+  .vc-ptime {
+    font-size: 0.72rem;
+    color: var(--ink-3, #8a95a1);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .vc-pitem a {
+    color: var(--ink, #101418);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .vc-pitem a:hover { color: var(--green, #1fb865); }
+
+  .vc-psupport {
+    font-size: 0.75rem;
+    color: var(--ink-3, #8a95a1);
+  }
+
+  .vc-psource {
+    font-size: 0.62rem;
+    color: var(--ink-3, #8a95a1);
+    letter-spacing: 0.03em;
+  }
+
+  .vc-empty-state {
+    grid-column: 1 / -1;
+    padding: 2rem 1.25rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--ink-3, #8a95a1);
+    line-height: 1.7;
+  }
+  .vc-empty-state a { color: var(--green, #1fb865); }
+  .vc-empty-state code {
+    background: var(--bg, #f5f7f9);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 420px) {
+    .vc-cell { min-height: 46px; padding: 0.3rem 0.2rem; }
+    .vc-dow span { font-size: 0.58rem; }
+    .vc-cell-show { display: none; }
+  }
+</style>
+
+<script>
+  const section = document.querySelector<HTMLElement>('.vc');
+  if (section) {
+    const slug   = section.dataset.slug ?? '';
+    const name   = section.dataset.name ?? '';
+    const SK_KEY = section.dataset.sk   ?? '';
+    const EB_KEY = section.dataset.eb   ?? '';
+    const TM_KEY = section.dataset.tm   ?? '';
+    const SG_KEY = section.dataset.sg     ?? '';
+
+    const PLACEHOLDER = ['YOUR_SONGKICK_KEY','YOUR_EVENTBRITE_TOKEN','YOUR_TICKETMASTER_KEY'];
+    const skActive = SK_KEY && !PLACEHOLDER.includes(SK_KEY);
+    const ebActive = EB_KEY && !PLACEHOLDER.includes(EB_KEY);
+    const tmActive = TM_KEY && !PLACEHOLDER.includes(TM_KEY);
+
+    // Manual shows from venue JSON
+    interface ManualShow { date: string; time?: string; artist: string; url?: string; }
+    let manualShows: ManualShow[] = [];
+    try { manualShows = JSON.parse(section.dataset.shows ?? '[]'); } catch {}
+
+    const grid       = document.getElementById('vc-grid')       as HTMLElement | null;
+    const panel      = document.getElementById('vc-panel')      as HTMLElement | null;
+    const pdate      = document.getElementById('vc-pdate')      as HTMLElement | null;
+    const plist      = document.getElementById('vc-plist')      as HTMLElement | null;
+    const monthLabel = document.getElementById('vc-monthlabel') as HTMLElement | null;
+    const prevBtn    = document.getElementById('vc-prev')       as HTMLButtonElement | null;
+    const nextBtn    = document.getElementById('vc-next')       as HTMLButtonElement | null;
+    const sourcesEl  = document.getElementById('vc-sources')    as HTMLElement | null;
+
+    // Show which sources are active
+    if (sourcesEl) {
+      const active = [
+        manualShows.length > 0  && 'Listed',
+        skActive                && 'Songkick',
+        ebActive                && 'Eventbrite',
+        tmActive                && 'Ticketmaster',
+      ].filter(Boolean) as string[];
+      sourcesEl.innerHTML = active.map(s =>
+        `<span class="vc-badge">${s}</span>`
+      ).join('');
+    }
+
+    const MONTHS   = ['January','February','March','April','May','June',
+                      'July','August','September','October','November','December'];
+    const MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun',
+                      'Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    let curYear = 0, curMonth = 0;
+    let monthEventsMap = new Map<number, Event[]>();
+    let selectedDay: number | null = null;
+
+    interface Event {
+      headline: string;
+      support:  string;
+      url:      string;
+      date:     string;      // YYYY-MM-DD
+      time:     string|null; // HH:MM:SS or null
+      source:   string;
+    }
+
+    function todayParts() {
+      const d = new Date();
+      return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() };
+    }
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    /* ───────────── SONGKICK ───────────── */
+    async function skFindVenueId(): Promise<number|null> {
+      const ck = `sk-vid-${slug}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 30*24*3_600_000) return hit.id;
+      } catch {}
+      const r = await fetch(
+        `https://api.songkick.com/api/3.0/search/venues.json`
+        + `?query=${encodeURIComponent(name)}&apikey=${SK_KEY}`
+      );
+      if (!r.ok) return null;
+      const data = await r.json();
+      const venues: any[] = data.resultsPage?.results?.venue ?? [];
+      const match = venues.find((v: any) =>
+        v.city?.state?.displayName === 'Iowa' &&
+        (v.city?.displayName ?? '').toLowerCase().includes('iowa city')
+      ) ?? venues[0] ?? null;
+      if (!match) return null;
+      try { localStorage.setItem(ck, JSON.stringify({id: match.id, ts: Date.now()})); } catch {}
+      return match.id;
+    }
+
+    async function fetchSongkick(year: number, month: number): Promise<Event[]> {
+      if (!skActive) return [];
+      const ck = `sk-ev-${slug}-${year}-${month}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 3_600_000) return hit.events;
+      } catch {}
+      const vid = await skFindVenueId();
+      if (!vid) return [];
+      const lastDay = new Date(year, month, 0).getDate();
+      const r = await fetch(
+        `https://api.songkick.com/api/3.0/venues/${vid}/calendar.json`
+        + `?min_date=${year}-${pad(month)}-01&max_date=${year}-${pad(month)}-${lastDay}`
+        + `&per_page=50&apikey=${SK_KEY}`
+      );
+      if (!r.ok) return [];
+      const data = await r.json();
+      const raw: any[] = data.resultsPage?.results?.event ?? [];
+      const events: Event[] = raw.map((e: any) => {
+        const perfs: any[] = e.performance ?? [];
+        const hl = perfs.find((p: any) => p.billing === 'headline') ?? perfs[0];
+        return {
+          headline: hl?.displayName ?? e.displayName ?? 'Show',
+          support:  perfs.filter((p: any) => p.billing !== 'headline')
+                        .map((p: any) => p.displayName).join(', '),
+          url:    e.uri ?? '#',
+          date:   e.start?.date  ?? '',
+          time:   e.start?.time  ?? null,
+          source: 'Songkick',
+        };
+      }).filter(e => e.date);
+      try { localStorage.setItem(ck, JSON.stringify({events, ts: Date.now()})); } catch {}
+      return events;
+    }
+
+    /* ───────────── EVENTBRITE ───────────── */
+    async function ebFindVenueId(): Promise<string|null> {
+      const ck = `eb-vid-${slug}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 30*24*3_600_000) return hit.id;
+      } catch {}
+      const r = await fetch(
+        `https://www.eventbriteapi.com/v3/venues/search/`
+        + `?query=${encodeURIComponent(name)}`
+        + `&location.city=Iowa+City&location.region=IA&location.country=US`
+        + `&token=${EB_KEY}`
+      );
+      if (!r.ok) return null;
+      const data = await r.json();
+      const venues: any[] = data.venues ?? [];
+      const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const target = norm(name);
+      const match = venues.find((v: any) => norm(v.name ?? '').includes(target.slice(0,6)))
+                    ?? venues[0] ?? null;
+      if (!match) return null;
+      try { localStorage.setItem(ck, JSON.stringify({id: match.id, ts: Date.now()})); } catch {}
+      return match.id;
+    }
+
+    async function fetchEventbrite(year: number, month: number): Promise<Event[]> {
+      if (!ebActive) return [];
+      const ck = `eb-ev-${slug}-${year}-${month}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 3_600_000) return hit.events;
+      } catch {}
+      const vid = await ebFindVenueId();
+      const lastDay = new Date(year, month, 0).getDate();
+      const start   = `${year}-${pad(month)}-01T00:00:00`;
+      const end     = `${year}-${pad(month)}-${lastDay}T23:59:59`;
+
+      // Try venue-specific endpoint first, fall back to keyword search
+      let raw: any[] = [];
+      if (vid) {
+        const r = await fetch(
+          `https://www.eventbriteapi.com/v3/events/search/`
+          + `?venue_id=${vid}`
+          + `&start_date.range_start=${start}&start_date.range_end=${end}`
+          + `&expand=venue&page_size=50&token=${EB_KEY}`
+        );
+        if (r.ok) raw = (await r.json()).events ?? [];
+      }
+      if (!raw.length) {
+        const r = await fetch(
+          `https://www.eventbriteapi.com/v3/events/search/`
+          + `?q=${encodeURIComponent(name)}`
+          + `&location.city=Iowa+City&location.region=IA`
+          + `&start_date.range_start=${start}&start_date.range_end=${end}`
+          + `&expand=venue&page_size=50&token=${EB_KEY}`
+        );
+        if (r.ok) {
+          const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g,'');
+          const target = norm(name);
+          const all: any[] = (await r.json()).events ?? [];
+          raw = all.filter((e: any) => norm(e.venue?.name ?? '').includes(target.slice(0,5)));
+        }
+      }
+      const events: Event[] = raw.map((e: any) => {
+        const dt = e.start?.local ?? '';   // "2026-09-15T20:00:00"
+        const [datePart, timePart] = dt.split('T');
+        return {
+          headline: e.name?.text ?? 'Event',
+          support:  '',
+          url:      e.url ?? '#',
+          date:     datePart ?? '',
+          time:     timePart ? timePart + ':00' : null,
+          source:   'Eventbrite',
+        };
+      }).filter(e => e.date);
+      try { localStorage.setItem(ck, JSON.stringify({events, ts: Date.now()})); } catch {}
+      return events;
+    }
+
+    /* ───────────── TICKETMASTER ───────────── */
+    async function tmFindVenueId(): Promise<string|null> {
+      const ck = `tm-vid-${slug}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 30*24*3_600_000) return hit.id;
+      } catch {}
+      const r = await fetch(
+        `https://app.ticketmaster.com/discovery/v2/venues.json`
+        + `?keyword=${encodeURIComponent(name)}`
+        + `&stateCode=IA&countryCode=US&size=5&apikey=${TM_KEY}`
+      );
+      if (!r.ok) return null;
+      const data = await r.json();
+      const venues: any[] = data._embedded?.venues ?? [];
+      const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const target = norm(name);
+      const match = venues.find((v: any) =>
+        norm(v.name ?? '').includes(target.slice(0,5)) &&
+        (v.city?.name ?? '').toLowerCase().includes('iowa')
+      ) ?? venues[0] ?? null;
+      if (!match) return null;
+      try { localStorage.setItem(ck, JSON.stringify({id: match.id, ts: Date.now()})); } catch {}
+      return match.id;
+    }
+
+    async function fetchTicketmaster(year: number, month: number): Promise<Event[]> {
+      if (!tmActive) return [];
+      const ck = `tm-ev-${slug}-${year}-${month}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 3_600_000) return hit.events;
+      } catch {}
+      const lastDay = new Date(year, month, 0).getDate();
+      const start   = `${year}-${pad(month)}-01T00:00:00Z`;
+      const end     = `${year}-${pad(month)}-${lastDay}T23:59:59Z`;
+
+      // Try venue-ID search first (more precise), fall back to keyword
+      const vid = await tmFindVenueId();
+      const baseParams = `&startDateTime=${start}&endDateTime=${end}&countryCode=US&size=50&apikey=${TM_KEY}`;
+      const searchUrl  = vid
+        ? `https://app.ticketmaster.com/discovery/v2/events.json?venueId=${vid}${baseParams}`
+        : `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${encodeURIComponent(name)}&stateCode=IA${baseParams}`;
+
+      const r = await fetch(searchUrl);
+      if (!r.ok) return [];
+      const data = await r.json();
+      const raw: any[] = data._embedded?.events ?? [];
+      const events: Event[] = raw.map((e: any) => ({
+        headline: e.name ?? 'Event',
+        support:  '',
+        url:      e.url ?? '#',
+        date:     e.dates?.start?.localDate ?? '',
+        time:     e.dates?.start?.localTime ?? null,
+        source:   'Ticketmaster',
+      })).filter(e => e.date);
+      try { localStorage.setItem(ck, JSON.stringify({events, ts: Date.now()})); } catch {}
+      return events;
+    }
+
+    /* ───────────── MANUAL SHOWS ───────────── */
+    function fetchManual(year: number, month: number): Event[] {
+      const prefix = `${year}-${pad(month)}-`;
+      return manualShows
+        .filter(s => s.date.startsWith(prefix))
+        .map(s => ({
+          headline: s.artist,
+          support:  '',
+          url:      s.url ?? '#',
+          date:     s.date,
+          time:     s.time ? (s.time.length === 5 ? s.time + ':00' : s.time) : null,
+          source:   'Listed',
+        }));
+    }
+
+    /* ───────────── MERGE & DEDUP ───────────── */
+    function normalise(s: string) {
+      return s.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function areDupes(a: Event, b: Event): boolean {
+      if (a.date !== b.date) return false;
+      const na = normalise(a.headline), nb = normalise(b.headline);
+      if (na === nb) return true;
+      // word-overlap > 60%
+      const wa = new Set(na.split(' ')), wb = nb.split(' ');
+      const overlap = wb.filter(w => wa.has(w)).length;
+      return overlap / Math.max(wa.size, wb.length) > 0.6;
+    }
+
+    function mergeEvents(arrays: Event[][]): Event[] {
+      const all = arrays.flat();
+      const kept: Event[] = [];
+      for (const ev of all) {
+        if (!kept.some(k => areDupes(k, ev))) kept.push(ev);
+      }
+      return kept.sort((a, b) => {
+        if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+        if (!a.time) return 1;
+        if (!b.time) return -1;
+        return a.time < b.time ? -1 : 1;
+      });
+    }
+
+    /* ───────────── RENDER ───────────── */
+    function renderSkeleton(year: number, month: number) {
+      if (!grid) return;
+      const firstDow = new Date(year, month - 1, 1).getDay();
+      const days     = new Date(year, month, 0).getDate();
+      let html = '';
+      for (let i = 0; i < firstDow; i++) html += '<div class="vc-cell empty"></div>';
+      for (let d = 1; d <= days; d++)
+        html += `<div class="vc-cell skel"><span class="vc-daynum">${d}</span></div>`;
+      grid.innerHTML = html;
+    }
+
+    function renderCalendar(year: number, month: number, events: Event[]) {
+      if (!grid) return;
+      monthEventsMap = new Map();
+      events.forEach(e => {
+        const parts = (e.date ?? '').split('-');
+        if (parts.length < 3) return;
+        const d = parseInt(parts[2], 10);
+        if (!monthEventsMap.has(d)) monthEventsMap.set(d, []);
+        monthEventsMap.get(d)!.push(e);
+      });
+
+      const firstDow = new Date(year, month - 1, 1).getDay();
+      const days     = new Date(year, month, 0).getDate();
+      const t        = todayParts();
+      const isCurMo  = year === t.y && month === t.m;
+
+      let html = '';
+      for (let i = 0; i < firstDow; i++) html += '<div class="vc-cell empty"></div>';
+
+      for (let d = 1; d <= days; d++) {
+        const evs     = monthEventsMap.get(d);
+        const hasEvs  = !!evs;
+        const isToday = isCurMo && d === t.d;
+        const isPast  = year < t.y || (year === t.y && month < t.m) || (isCurMo && d < t.d);
+
+        let showsHtml = '';
+        if (evs) {
+          const tmEv = evs.find(e => e.source === 'Ticketmaster');
+          const tmLogo = tmEv ? `<a class="vc-tm-badge" href="${tmEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">TM</a>` : '';
+          showsHtml = `<div class="vc-cell-shows">
+            <div class="vc-cell-show">${evs[0].headline}</div>
+            ${evs.length > 1 ? `<div class="vc-cell-more">+${evs.length - 1} more</div>` : ''}
+            ${tmLogo}
+          </div>`;
+        }
+
+        html += `<div class="vc-cell${hasEvs?' has-events':''}${isToday?' today':''}${isPast?' past':''}" data-day="${d}">
+          <span class="vc-daynum">${d}</span>${showsHtml}
+        </div>`;
+      }
+      grid.innerHTML = html;
+
+      grid.querySelectorAll<HTMLElement>('.vc-cell.has-events').forEach(cell => {
+        cell.addEventListener('click', () => {
+          const d = parseInt(cell.dataset.day ?? '0', 10);
+          if (selectedDay === d) {
+            selectedDay = null;
+            if (panel) panel.hidden = true;
+            cell.classList.remove('selected');
+            return;
+          }
+          grid!.querySelectorAll('.vc-cell.selected').forEach(c => c.classList.remove('selected'));
+          cell.classList.add('selected');
+          selectedDay = d;
+          showPanel(year, month, d);
+        });
+      });
+    }
+
+    function renderNoSources() {
+      if (!grid) return;
+      grid.innerHTML = `<div class="vc-empty-state">
+        Add API keys to <code>VenueCalendar.astro</code> to show live shows here.<br>
+        <a href="https://www.songkick.com/developer" target="_blank" rel="noopener">Songkick</a> · 
+        <a href="https://www.eventbrite.com/platform/api" target="_blank" rel="noopener">Eventbrite</a> · 
+        <a href="https://developer.ticketmaster.com" target="_blank" rel="noopener">Ticketmaster</a>
+      </div>`;
+    }
+
+    function showPanel(year: number, month: number, day: number) {
+      if (!panel || !pdate || !plist) return;
+      const evs = monthEventsMap.get(day) ?? [];
+      pdate.textContent = `${MONTHS_S[month - 1]} ${day}, ${year}`;
+
+      plist.innerHTML = evs.map(e => {
+        let timeStr = '';
+        if (e.time) {
+          const [hh, mm] = e.time.split(':').map(Number);
+          const ampm = hh >= 12 ? 'PM' : 'AM';
+          timeStr = `<span class="vc-ptime">${((hh % 12) || 12)}:${String(mm).padStart(2,'0')} ${ampm}</span>`;
+        }
+        const hasUrl = e.url && e.url !== '#';
+        const nameEl = hasUrl
+          ? `<a href="${e.url}" target="_blank" rel="noopener">${e.headline}</a>`
+          : `<span>${e.headline}</span>`;
+        return `<li class="vc-pitem">
+          <div class="vc-pitem-main">
+            ${timeStr}${nameEl}
+          </div>
+          ${e.support ? `<div class="vc-psupport">with ${e.support}</div>` : ''}
+          <div class="vc-psource">${e.source}</div>
+        </li>`;
+      }).join('');
+
+      panel.hidden = false;
+    }
+
+    /* ───────────── NAVIGATION ───────────── */
+    async function goToMonth(year: number, month: number) {
+      if (month < 1)  { year--;  month = 12; }
+      if (month > 12) { year++;  month = 1;  }
+      curYear = year; curMonth = month;
+      selectedDay = null;
+      if (panel) panel.hidden = true;
+
+      if (monthLabel) monthLabel.textContent = `${MONTHS[month - 1]} ${year}`;
+      const t = todayParts();
+      if (prevBtn) prevBtn.disabled = year < t.y || (year === t.y && month <= t.m);
+
+      const manual = fetchManual(year, month);
+      if (!skActive && !ebActive && !tmActive) {
+        if (manual.length) { renderCalendar(year, month, manual); return; }
+        renderNoSources(); return;
+      }
+
+      renderSkeleton(year, month);
+      const [sk, eb, tm] = await Promise.all([
+        fetchSongkick(year, month).catch(() => [] as Event[]),
+        fetchEventbrite(year, month).catch(() => [] as Event[]),
+        fetchTicketmaster(year, month).catch(() => [] as Event[]),
+      ]);
+      renderCalendar(year, month, mergeEvents([manual, sk, eb, tm]));
+    }
+
+    prevBtn?.addEventListener('click', () => goToMonth(curYear, curMonth - 1));
+    nextBtn?.addEventListener('click', () => goToMonth(curYear, curMonth + 1));
+
+    const t = todayParts();
+    goToMonth(t.y, t.m);
+  }
+</script>

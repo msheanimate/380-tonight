@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+import { districts, venuesInDistrict } from '../../lib/data';
+---
+<Base title="Neighborhoods" current="Neighborhoods">
+  <p class="kicker">Neighborhoods</p>
+  <h1>Ten districts, one guide each</h1>
+  <p class="lede">Written for someone who lives 30 minutes away, not a tourist: the scene, the anchors, where to park, and what's on.</p>
+  {districts.map((d) => (
+    <article class="card" data-side={d.side}>
+      <div class="meta"><span class:list={['badge', d.side]}>{d.city}</span><span>{venuesInDistrict(d.slug).length} spots</span></div>
+      <h3><a href={`/neighborhoods/${d.slug}/`}>{d.name}</a></h3>
+      <p>{d.scene}</p>
+    </article>
+  ))}
+</Base>

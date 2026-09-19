@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import VenueCard from '../components/VenueCard.astro';
+import EventCard from '../components/EventCard.astro';
+import { venues, upcomingEvents, games, fmtDate, sideOf } from '../lib/data';
+import HeroSlider from '../components/HeroSlider.astro';
+
+const today = new Date();
+const { dated, weekly } = upcomingEvents(today);
+const next = dated.slice(0, 4);
+const isoToday = today.toISOString().slice(0, 10);
+const nextGame = games.find((g) => g.date >= isoToday);
+const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const dow = today.getDay();
+const tonightWeekly = weekly.filter((e) => e.weekday === weekdayNames[dow]);
+const dateLine = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+// Tonight's picks: editor-chosen slugs per side. Swap these weekly.
+const picksIC = ['gabes', 'coa-cantina', 'big-grove-iowa-city', 'studio-13', 'vue-rooftop'];
+const picksCR = ['csps-hall', 'parlor-city-pub', 'quarter-barrel-arcade-brewery', 'goldfinch-tap-eatery', 'lion-bridge-brewing'];
+const pick = (slugs: string[]) => slugs.map((s) => venues.find((v) => v.slug === s)).filter(Boolean);
+const lateIC = venues.filter((v) => sideOf(v.city) === 'ic' && v.tags.includes('late-night')).slice(0, 4);
+const lateCR = venues.filter((v) => sideOf(v.city) === 'cr' && v.tags.includes('late-night')).slice(0, 4);
+const sliderSlugs = [picksIC[0], picksCR[0], picksIC[1], picksCR[1], picksIC[2], picksCR[2]];
+const sliderVenues = sliderSlugs.map((s) => venues.find((v) => v.slug === s)).filter(Boolean) as typeof venues;
+---
+<Base title="Tonight" current="Tonight">
+  <section class="hero">
+    <HeroSlider slides={sliderVenues} />
+  </section>
+
+  <div class="nowbar">
+    <div>
+      {nextGame ? (
+        <>Next Hawkeye game: {nextGame.home ? `${nextGame.opponent} at Kinnick` : nextGame.opponent}
+        <small>{fmtDate(nextGame.date)} · kickoff {nextGame.time}</small></>
+      ) : (
+        <>Football season is over. <small>Wrestling and basketball picks live on the Events page.</small></>
+      )}
+    </div>
+    <a class="btn secondary" href="/game-day/" style="background:#fff;color:var(--green-dark)">Game Day</a>
+  </div>
+
+  <section data-side="ic">
+    <h2><span class="badge ic">Iowa City</span> Tonight's picks <a class="more" href="/drink/">All bars →</a></h2>
+    <div class="row">{pick(picksIC).map((v) => <VenueCard venue={v!} pick />)}</div>
+  </section>
+  <section data-side="cr">
+    <h2><span class="badge cr">Cedar Rapids</span> Tonight's picks <a class="more" href="/drink/">All bars →</a></h2>
+    <div class="row">{pick(picksCR).map((v) => <VenueCard venue={v!} pick />)}</div>
+  </section>
+
+  {tonightWeekly.length > 0 && (
+    <section>
+      <h2>Every {weekdayNames[dow]}</h2>
+      {tonightWeekly.map((e) => <EventCard event={e} />)}
+    </section>
+  )}
+
+  <section>
+    <h2>Coming up <a class="more" href="/events/">All events →</a></h2>
+    {next.map((e) => <EventCard event={e} />)}
+  </section>
+
+  <section>
+    <h2>Still open late</h2>
+    <div class="split">
+      <div data-side="ic">{lateIC.map((v) => <VenueCard venue={v} media={false} />)}</div>
+      <div data-side="cr">{lateCR.map((v) => <VenueCard venue={v} media={false} />)}</div>
+    </div>
+  </section>
+
+  <div class="signup">
+    <p class="kicker">The Weekend</p>
+    <strong>Five picks per city, every Thursday. Free.</strong>
+    <form action="#" method="post" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Hook up your email tool';">
+      <input type="email" placeholder="you@example.com" aria-label="Email" required />
+      <button type="submit">Sign up</button>
+    </form>
+    <p class="verify">Wire this form to Beehiiv or Mailchimp before launch (see README).</p>
+  </div>
+</Base>

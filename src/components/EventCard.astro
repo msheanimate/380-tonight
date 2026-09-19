@@ -1,0 +1,32 @@
+---
+import { sideOf, venueBySlug, type Event } from '../lib/data';
+interface Props { event: Event }
+const { event: e } = Astro.props;
+const side = sideOf(e.city);
+const venue = venueBySlug(e.venue_slug);
+const weekly = e.date === 'weekly';
+const d = weekly ? null : new Date(e.date + 'T12:00:00');
+const day = d ? d.getDate() : e.weekday;
+const mon = d ? d.toLocaleDateString('en-US', { month: 'short' }) : 'weekly';
+const endStr = e.end_date ? ' – ' + new Date(e.end_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+---
+<article class:list={['card', 'event', { pick: e.pick }]} data-side={side} data-category={e.category}>
+  <div class:list={['date-chip', { weekly }]}>
+    <span class="d">{day}</span>
+    <span class="m">{mon}</span>
+  </div>
+  <div>
+    <div class="meta">
+      <span class:list={['badge', side]}>{e.city}</span>
+      <span class="badge">{e.category.replace('-', ' ')}</span>
+      {e.pick && <span class="badge pick">Pick</span>}
+    </div>
+    <h3>{e.title}</h3>
+    <p class="meta" style="margin-top:2px">
+      {venue ? <a href={`/venues/${venue.slug}/`}>{venue.name}</a> : e.city}
+      <span>{weekly ? `${e.weekday}s` : ''}{endStr} · {e.time} · {e.price}</span>
+    </p>
+    <p>{e.blurb}</p>
+    {e.verify && <p class="verify">Details unconfirmed — check with the venue.</p>}
+  </div>
+</article>

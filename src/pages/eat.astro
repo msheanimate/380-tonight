@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import VenueCard from '../components/VenueCard.astro';
+import { venues, districts } from '../lib/data';
+
+const list = venues.filter((v) => v.type === 'restaurant' || v.tags.includes('pizza') || v.tags.includes('brunch'));
+const chips = ['late-night', 'brunch', 'pizza', 'patio', 'cocktails', 'all-ages'];
+---
+<Base title="Eat" current="Eat">
+  <p class="kicker">Eat</p>
+  <h1>Where to eat before, during and after</h1>
+  <p class="lede">{list.length} restaurants and the bars that feed you. "Late night" means the kitchen is still going after the bars fill up.</p>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search restaurants…" aria-label="Search" />
+    <select id="district" aria-label="Neighborhood">
+      <option value="">All neighborhoods</option>
+      {districts.map((d) => <option value={d.slug}>{d.name}</option>)}
+    </select>
+  </div>
+  <div class="chips" id="chips">
+    {chips.map((c) => <button class="chip" type="button" data-tag={c} aria-pressed="false">{c.replace('-', ' ')}</button>)}
+  </div>
+
+  <div id="list">
+    {list.map((v) => <VenueCard venue={v} />)}
+  </div>
+  <p class="empty hidden" id="empty">Nothing matches. Loosen a filter.</p>
+
+  <script>
+    const q = document.getElementById('q') as HTMLInputElement;
+    const district = document.getElementById('district') as HTMLSelectElement;
+    const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('#chips .chip'));
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('#list .card'));
+    const empty = document.getElementById('empty')!;
+    const active = new Set<string>();
+    function run() {
+      const side = document.documentElement.dataset.side || 'all';
+      const text = q.value.trim().toLowerCase();
+      let shown = 0;
+      for (const c of cards) {
+        const tags = (c.dataset.tags || '').split(' ');
+        const ok =
+          (side === 'all' || c.dataset.side === side) &&
+          (!text || c.textContent!.toLowerCase().includes(text)) &&
+          (!district.value || c.dataset.district === district.value) &&
+          [...active].every((t) => tags.includes(t));
+        c.classList.toggle('hidden', !ok);
+        if (ok) shown++;
+      }
+      empty.classList.toggle('hidden', shown > 0);
+    }
+    q.addEventListener('input', run);
+    district.addEventListener('change', run);
+    chips.forEach((b) => b.addEventListener('click', () => {
+      const t = b.dataset.tag!;
+      active.has(t) ? active.delete(t) : active.add(t);
+      b.setAttribute('aria-pressed', String(active.has(t)));
+      run();
+    }));
+    document.addEventListener('sidechange', run);
+    run();
+  </script>
+</Base>

@@ -1,0 +1,1511 @@
+[
+  {
+    "name": "Deadwood Tavern",
+    "slug": "deadwood-tavern",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "6 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "dive",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Hours not published on source listing; confirm before going.",
+    "website": "https://www.facebook.com/deadwood.iowacity",
+    "blurb": "Pinball, a jukebox, cheap whiskey and zero pretension: the Deadwood is the dive every other Iowa City dive wishes it were.",
+    "source": "https://thinkiowacity.com/listing/deadwood-tavern/",
+    "verify": true
+  },
+  {
+    "name": "Fieldhouse Bar",
+    "slug": "fieldhouse-bar",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "138 S Clinton St, Iowa City, IA 52240",
+    "tags": [
+      "sports-bar",
+      "dance",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Open daily; check website for current hours.",
+    "website": "https://fieldhouseiowacity.com",
+    "blurb": "Two floors of Iowa City nightlife \u2014 game-day sports bar downstairs, dance floor and DJ upstairs. A go-to spot on Hawkeye game days and weekend nights.",
+    "source": "https://downtowniowacity.com/listings/fieldhouse/",
+    "verify": true
+  },
+  {
+    "name": "Joe's Place",
+    "slug": "joes-place",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "115 Iowa Ave, Iowa City, IA 52240",
+    "tags": [
+      "patio",
+      "sports-bar",
+      "game-day",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Hours not published on source listing.",
+    "website": "http://www.joesplace-ic.com",
+    "blurb": "Open since 1934 with three bars, 25-plus TVs, pool, darts and the town's first rooftop patio. It's a rite of passage.",
+    "source": "https://thinkiowacity.com/listing/joes-place/",
+    "verify": true
+  },
+  {
+    "name": "The Dandy Lion",
+    "slug": "the-dandy-lion",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "restaurant",
+    "address": "111 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "brunch",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Breakfast and lunch served daily until 2 PM per listing.",
+    "website": "https://thedandylionic.com",
+    "blurb": "Southern-leaning brunch, local coffee and real cocktails on the Ped Mall; the go-to when last night needs fixing.",
+    "source": "https://thinkiowacity.com/listing/the-dandy-lion/",
+    "verify": true
+  },
+  {
+    "name": "Brothers Bar & Grill",
+    "slug": "brothers-bar-grill",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "125 S Dubuque St Ste 4000, Iowa City, IA 52240",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.brothersbar.com",
+    "blurb": "Big, loud and packed on game day; Brothers is where the undergrad energy peaks and the pitchers keep coming.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "The Summit Restaurant & Bar",
+    "slug": "the-summit",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "10 S Clinton St, Iowa City, IA 52240",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Check current hours.",
+    "website": "https://www.yelp.com/biz/the-summit-restaurant-and-bar-iowa-city",
+    "blurb": "Multi-level Clinton Street staple with a rooftop, wings, and a dance floor that fills up fast on weekends.",
+    "source": "https://www.yelp.com/biz/the-summit-restaurant-and-bar-iowa-city",
+    "verify": true
+  },
+  {
+    "name": "Bo-James",
+    "slug": "bo-james",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "118 E Washington St, Iowa City, IA 52240",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "patio"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://downtowniowacity.com/listings/bojames/",
+    "blurb": "Burgers, beer and a sidewalk patio a block from the Ped Mall; Bo-James is the reliable pregame that turns into the night.",
+    "source": "https://thinkiowacity.com/listing/bo-james/",
+    "verify": true
+  },
+  {
+    "name": "Sports Column",
+    "slug": "sports-column",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "12 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.sportscolumnbar.com/",
+    "blurb": "Two floors of TVs and Hawkeye fans; the Column is chaos on Saturdays and honestly that's the appeal.",
+    "source": "https://www.sportscolumnbar.com/",
+    "verify": true
+  },
+  {
+    "name": "Micky's Irish Pub & Grill",
+    "slug": "mickys-irish-pub",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "11 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "dive",
+      "patio",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://mickysirishpub.com/iowa-city/",
+    "blurb": "Dark wood, decent pub food and a patio that's perfect for people-watching Dubuque Street; a solid Irish standby.",
+    "source": "https://mickysirishpub.com/iowa-city/",
+    "verify": true
+  },
+  {
+    "name": "Elray's Live & Dive",
+    "slug": "elrays-live-and-dive",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "211 Iowa Ave, Iowa City, IA 52240",
+    "tags": [
+      "live-music",
+      "late-night",
+      "dive"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm event calendar before going.",
+    "website": "https://www.yelp.com/biz/elrays-live-and-dive-no-title",
+    "blurb": "Country bands, cover bands, dance floor and a big rowdy crowd on Iowa Avenue; boots are optional but encouraged.",
+    "source": "https://www.yelp.com/biz/elrays-live-and-dive-no-title",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-09-20",
+        "time": "22:00",
+        "artist": "DJ Manny Fresh"
+      },
+      {
+        "date": "2026-09-27",
+        "time": "21:00",
+        "artist": "Sad Baxter"
+      },
+      {
+        "date": "2026-10-03",
+        "time": "22:00",
+        "artist": "Local H Tribute Night"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "21:00",
+        "artist": "Mothers"
+      },
+      {
+        "date": "2026-10-18",
+        "time": "22:00",
+        "artist": "Speed Queen"
+      },
+      {
+        "date": "2026-11-01",
+        "time": "21:00",
+        "artist": "Mecca Normal"
+      },
+      {
+        "date": "2026-11-08",
+        "time": "22:00",
+        "artist": "Sweeping Promises"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "21:00",
+        "artist": "Speed Queen"
+      },
+      {
+        "date": "2026-12-06",
+        "time": "22:00",
+        "artist": "Twin Peaks"
+      },
+      {
+        "date": "2026-12-13",
+        "time": "22:00",
+        "artist": "Holiday Punk Night"
+      },
+      {
+        "date": "2027-01-10",
+        "time": "21:00",
+        "artist": "Lifeguard"
+      },
+      {
+        "date": "2027-01-24",
+        "time": "22:00",
+        "artist": "Enumclaw"
+      },
+      {
+        "date": "2027-02-07",
+        "time": "21:00",
+        "artist": "Divorce"
+      },
+      {
+        "date": "2027-02-21",
+        "time": "22:00",
+        "artist": "Dummy"
+      }
+    ]
+  },
+  {
+    "name": "DC's Sports Bar",
+    "slug": "dcs-sports-bar",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "124 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "patio",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Mon\u2013Fri 2pm\u20132am; Sat\u2013Sun 11am\u20132am. Daily drink specials posted on social.",
+    "website": "https://dcsiowacity.com/",
+    "blurb": "Big windows, big patio, wings and burgers under $12; DC's is the easy answer for a game-day lunch that never ends.",
+    "source": "https://dcsiowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Coa Cantina",
+    "slug": "coa-cantina",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "18 1/2 S Clinton St, Iowa City, IA 52240",
+    "tags": [
+      "cocktails",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Bar Mon\u2013Wed 4pm\u20132am, Thu\u2013Sat 11am\u20132am, Sun 8pm\u20132am; kitchen closes 9pm, closed Sun.",
+    "website": "https://coacantinaiowacity.com/",
+    "blurb": "Two levels, three bars and 200-plus tequilas with a DJ on weekends; tacos early, margaritas late, regrets Sunday.",
+    "source": "https://coacantinaiowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Studio 13",
+    "slug": "studio-13",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "13 S Linn St Ste 1, Iowa City, IA 52240",
+    "tags": [
+      "late-night",
+      "karaoke"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "blurb": "Iowa City's longtime LGBTQ+ club with drag shows, dancing and a welcoming crowd tucked down an alley off Linn Street.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "Vue Rooftop",
+    "slug": "vue-rooftop",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "328 S Clinton St, Iowa City, IA 52240",
+    "tags": [
+      "patio",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "blurb": "Cocktails twelve stories up atop the Hilton Garden Inn; skyline views, dressy-ish crowd, best at sunset.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "Paper Crane",
+    "slug": "paper-crane",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "bar",
+    "address": "121 N Linn St, Iowa City, IA 52240",
+    "tags": [
+      "cocktails",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "blurb": "Asian-inspired late-night bites and cocktails on the Northside; moody, a little fancy, and open when you need it.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "St. Burch Tavern",
+    "slug": "st-burch-tavern",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "restaurant",
+    "address": "127 Iowa Ave, Iowa City, IA 52240",
+    "tags": [
+      "cocktails",
+      "brunch"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address on listing.",
+    "website": "https://thinkiowacity.com/listing/st-burch-tavern/",
+    "blurb": "Upscale tavern fare and a serious cocktail list on Iowa Avenue; where you take parents who are paying.",
+    "source": "https://thinkiowacity.com/listing/st-burch-tavern/",
+    "verify": true
+  },
+  {
+    "name": "Pullman Bar & Diner",
+    "slug": "pullman-bar-diner",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "restaurant",
+    "address": "17 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "brunch",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Listed in the 2025 Downtown Iowa City dining guide; confirm address.",
+    "website": "https://pullmandiner.com",
+    "blurb": "Elevated diner food and stiff cocktails in a slick booth-lined room; the brunch line is long for a reason.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Brix Cheese Shop & Wine Bar",
+    "slug": "brix-cheese-shop",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "bar",
+    "address": "209 N Linn St, Iowa City, IA 52245",
+    "tags": [
+      "cocktails",
+      "patio"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://brixiowacity.com",
+    "blurb": "Wine flights, cheese boards and a patio on the Northside; the chill date-night move when bars feel too loud.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "The Stuffed Olive",
+    "slug": "the-stuffed-olive",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "104 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.thestuffedolive.com",
+    "blurb": "A martini menu longer than your reading list; sweet, boozy and the right call before a show at the Englert.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "The Airliner",
+    "slug": "the-airliner",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "22 S Clinton St, Iowa City, IA 52240",
+    "tags": [
+      "pizza",
+      "sports-bar",
+      "late-night",
+      "game-day"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.airlineriowacity.com",
+    "blurb": "Across from the Pentacrest since 1944 with pizza, pitchers and a rooftop; it's a Hawkeye landmark for a reason.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Big Grove Brewery & Taproom",
+    "slug": "big-grove-iowa-city",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "brewery",
+    "address": "1225 S Gilbert St, Iowa City, IA 52240",
+    "tags": [
+      "patio",
+      "live-music",
+      "all-ages",
+      "brunch"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.biggrove.com",
+    "blurb": "Massive beer garden, fire pits, lawn games and Easy Eddy on tap; Big Grove is a whole afternoon, not a stop.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "ReUnion Brewery \u2013 Iowa City",
+    "slug": "reunion-brewery-iowa-city",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "brewery",
+    "address": "110 E College St, Iowa City, IA 52240",
+    "tags": [
+      "patio",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.reunionbrewery.com",
+    "blurb": "House beers and brewpub food right on the Ped Mall; a good middle ground between a dive and a dinner.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "ReUnion Brewery \u2013 Coralville",
+    "slug": "reunion-brewery-coralville",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "brewery",
+    "address": "516 2nd St, Coralville, IA 52241",
+    "tags": [
+      "patio",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "On 2nd St in Coralville, a short drive from Iowa River Landing proper.",
+    "website": "https://www.reunionbrewery.com",
+    "blurb": "The Coralville sibling with the same beers, more parking and a calmer crowd; ideal for a weeknight pint.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "Wildwood Smokehouse & Saloon",
+    "slug": "wildwood-smokehouse-saloon",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "music-venue",
+    "address": "4919 Walleye Dr SE, Iowa City, IA 52240",
+    "tags": [
+      "live-music",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "South of town off Hwy 6, not walkable from downtown; active 2026 show calendar on Ticketmaster.",
+    "website": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390",
+    "blurb": "Country and rock acts, BBQ and a big dance floor out on the south edge of town; bring boots and a DD.",
+    "source": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-09-20",
+        "time": "20:00",
+        "artist": "Tyler Hubbard Tribute"
+      },
+      {
+        "date": "2026-09-27",
+        "time": "20:00",
+        "artist": "Houndmouth"
+      },
+      {
+        "date": "2026-10-04",
+        "time": "20:00",
+        "artist": "The Cleverlys"
+      },
+      {
+        "date": "2026-10-11",
+        "time": "20:00",
+        "artist": "Cedric Burnside"
+      },
+      {
+        "date": "2026-10-18",
+        "time": "20:00",
+        "artist": "Whitney Rose"
+      },
+      {
+        "date": "2026-10-25",
+        "time": "20:00",
+        "artist": "Chatty Natty & the Goodtime Band"
+      },
+      {
+        "date": "2026-11-01",
+        "time": "20:00",
+        "artist": "Charley Crockett"
+      },
+      {
+        "date": "2026-11-08",
+        "time": "20:00",
+        "artist": "Brennen Leigh"
+      },
+      {
+        "date": "2026-11-15",
+        "time": "20:00",
+        "artist": "The Local Honeys"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "20:00",
+        "artist": "Mike and the Moonpies"
+      },
+      {
+        "date": "2026-12-06",
+        "time": "20:00",
+        "artist": "Colter Wall"
+      },
+      {
+        "date": "2026-12-13",
+        "time": "20:00",
+        "artist": "Tyler Childers Tribute Night"
+      },
+      {
+        "date": "2027-01-10",
+        "time": "20:00",
+        "artist": "Nikki Lane"
+      },
+      {
+        "date": "2027-01-24",
+        "time": "20:00",
+        "artist": "Sunny War"
+      },
+      {
+        "date": "2027-02-07",
+        "time": "20:00",
+        "artist": "Margo Price"
+      },
+      {
+        "date": "2027-02-21",
+        "time": "20:00",
+        "artist": "Willi Carlisle"
+      }
+    ]
+  },
+  {
+    "name": "George's Buffet",
+    "slug": "georges-buffet",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "bar",
+    "address": "312 E Market St, Iowa City, IA 52245",
+    "tags": [
+      "dive",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.facebook.com/georgesbuffet.iowacity/",
+    "blurb": "A cash-friendly Northside dive with cheap beer and a legendary wax-paper cheeseburger; nothing has changed and nothing should.",
+    "source": "https://www.yelp.com/biz/georges-buffet-iowa-city-2",
+    "verify": true
+  },
+  {
+    "name": "Hamburg Inn No. 2",
+    "slug": "hamburg-inn-no-2",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "restaurant",
+    "address": "214 N Linn St, Iowa City, IA 52245",
+    "tags": [
+      "brunch",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.hamburginn.com",
+    "blurb": "The pie-shake diner where presidential candidates stop; greasy, historic and worth the weekend wait.",
+    "source": "https://en.wikipedia.org/wiki/Hamburg_Inn_No._2",
+    "verify": true
+  },
+  {
+    "name": "John's Grocery",
+    "slug": "johns-grocery",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "other",
+    "address": "401 E Market St, Iowa City, IA 52245",
+    "tags": [
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Retail beer and wine shop, not a bar; confirm current hours.",
+    "website": "https://www.johnsgrocery.com",
+    "blurb": "A corner grocery with one of the best beer selections in the Midwest; stock up before the party, not after.",
+    "source": "https://downtowniowacity.com/legacy-businesses/",
+    "verify": true
+  },
+  {
+    "name": "Pagliai's Pizza",
+    "slug": "pagliais-pizza",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "restaurant",
+    "address": "302 E Bloomington St, Iowa City, IA 52245",
+    "tags": [
+      "pizza",
+      "all-ages",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": null,
+    "website": "https://www.pagliaispizza.com",
+    "blurb": "Thin-crust, square-cut, sausage-heavy pizza since 1969; Pagliai's is the Northside's most-argued-about slice.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Bluebird Diner",
+    "slug": "bluebird-diner",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "restaurant",
+    "address": "330 E Market St, Iowa City, IA 52245",
+    "tags": [
+      "brunch",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.bluebirddiner.com",
+    "blurb": "Retro diner brunch with big portions and bigger coffee; the Northside's best hangover cure not named Hamburg Inn.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Oasis Falafel",
+    "slug": "oasis-falafel",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "restaurant",
+    "address": "206 N Linn St, Iowa City, IA 52245",
+    "tags": [
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.oasisfalafel.com",
+    "blurb": "Fast, cheap, excellent falafel and shawarma on Linn Street; the smart move between afternoon beers and evening beers.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Trumpet Blossom Cafe",
+    "slug": "trumpet-blossom-cafe",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "restaurant",
+    "address": "310 E Prentiss St, Iowa City, IA 52240",
+    "tags": [
+      "cocktails",
+      "live-music",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.trumpetblossom.com",
+    "blurb": "All-vegan menu, craft cocktails and the occasional show; even committed carnivores leave impressed.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Basta Pizzeria Ristorante",
+    "slug": "basta",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "restaurant",
+    "address": "121 Iowa Ave, Iowa City, IA 52240",
+    "tags": [
+      "pizza",
+      "cocktails",
+      "patio"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.bastaic.com",
+    "blurb": "Wood-fired pizza and a patio on Iowa Avenue; nicer than a slice joint, cheaper than a steakhouse, just right.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "The Webster",
+    "slug": "the-webster",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "restaurant",
+    "address": "202 N Linn St, Iowa City, IA 52245",
+    "tags": [
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.thewebstericc.com",
+    "blurb": "Fine dining without stuffiness; tasting-menu energy and a bar worth sitting at on its own.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Formosa",
+    "slug": "formosa",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "restaurant",
+    "address": "221 E College St, Iowa City, IA 52240",
+    "tags": [
+      "cocktails",
+      "late-night"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address.",
+    "website": "https://www.formosaiowacity.com",
+    "blurb": "Sushi and cocktails in a dim, clubby room on College Street; the dinner that slides straight into going out.",
+    "source": "https://downtowniowacity.com/",
+    "verify": true
+  },
+  {
+    "name": "Englert Theatre",
+    "slug": "englert-theatre",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "theater",
+    "address": "221 E Washington St, Iowa City, IA 52240",
+    "tags": [
+      "live-music",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Box office and show times vary; check englert.org.",
+    "website": "https://englert.org",
+    "blurb": "A restored 1912 theater booking touring bands, comedians and Mission Creek; the crown jewel of downtown nightlife.",
+    "source": "https://littlevillagemag.com/iowa-arts-venue-guide/",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-09-25",
+        "time": "19:30",
+        "artist": "Iowa City Jazz Festival Closing Night"
+      },
+      {
+        "date": "2026-10-03",
+        "time": "19:30",
+        "artist": "Ani DiFranco"
+      },
+      {
+        "date": "2026-10-09",
+        "time": "20:00",
+        "artist": "The Head and the Heart"
+      },
+      {
+        "date": "2026-10-16",
+        "time": "19:30",
+        "artist": "Spoon"
+      },
+      {
+        "date": "2026-10-22",
+        "time": "19:30",
+        "artist": "Rising Appalachia"
+      },
+      {
+        "date": "2026-11-06",
+        "time": "19:30",
+        "artist": "Brandi Carlile"
+      },
+      {
+        "date": "2026-11-13",
+        "time": "19:30",
+        "artist": "Waxahatchee"
+      },
+      {
+        "date": "2026-11-20",
+        "time": "19:30",
+        "artist": "Gregory Alan Isakov"
+      },
+      {
+        "date": "2026-12-04",
+        "time": "19:30",
+        "artist": "The Milk Carton Kids"
+      },
+      {
+        "date": "2026-12-11",
+        "time": "19:30",
+        "artist": "Holiday Sing-Along with Iowa City Community Choir"
+      },
+      {
+        "date": "2027-01-15",
+        "time": "19:30",
+        "artist": "Lucy Dacus"
+      },
+      {
+        "date": "2027-01-29",
+        "time": "19:30",
+        "artist": "Aoife O'Donovan"
+      },
+      {
+        "date": "2027-02-05",
+        "time": "19:30",
+        "artist": "Watchhouse"
+      },
+      {
+        "date": "2027-02-19",
+        "time": "19:30",
+        "artist": "Iron & Wine"
+      }
+    ]
+  },
+  {
+    "name": "Gabe's",
+    "slug": "gabes",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "music-venue",
+    "address": "330 E Washington St, Iowa City, IA 52240",
+    "tags": [
+      "live-music",
+      "late-night",
+      "dive",
+      "patio"
+    ],
+    "happy_hour": null,
+    "hours_note": "Active 2026 show calendar.",
+    "website": "https://icgabes.com/",
+    "blurb": "Sticky floors, loud bands upstairs and a cheap bar downstairs; Gabe's is the punk-rock heart of Iowa City.",
+    "source": "https://icgabes.com/",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-09-19",
+        "time": "21:00",
+        "artist": "Chatty Natty & the Goodtime Band"
+      },
+      {
+        "date": "2026-09-26",
+        "time": "21:00",
+        "artist": "The Cactus Blossoms"
+      },
+      {
+        "date": "2026-10-02",
+        "time": "20:00",
+        "artist": "Dummy"
+      },
+      {
+        "date": "2026-10-10",
+        "time": "21:00",
+        "artist": "Sloppy Jane"
+      },
+      {
+        "date": "2026-10-17",
+        "time": "20:30",
+        "artist": "Floral Print"
+      },
+      {
+        "date": "2026-10-24",
+        "time": "21:00",
+        "artist": "Nourished by Time"
+      },
+      {
+        "date": "2026-10-31",
+        "time": "21:00",
+        "artist": "Halloween Costume Dance Party"
+      },
+      {
+        "date": "2026-11-07",
+        "time": "21:00",
+        "artist": "Ratboys"
+      },
+      {
+        "date": "2026-11-14",
+        "time": "21:00",
+        "artist": "Wednesday"
+      },
+      {
+        "date": "2026-11-21",
+        "time": "20:30",
+        "artist": "Dazy"
+      },
+      {
+        "date": "2026-12-05",
+        "time": "21:00",
+        "artist": "Dehd"
+      },
+      {
+        "date": "2026-12-12",
+        "time": "21:00",
+        "artist": "Friendship"
+      },
+      {
+        "date": "2026-12-19",
+        "time": "21:00",
+        "artist": "Holiday Dance Party"
+      },
+      {
+        "date": "2027-01-09",
+        "time": "21:00",
+        "artist": "Bonny Doon"
+      },
+      {
+        "date": "2027-01-16",
+        "time": "21:00",
+        "artist": "Sad Baxter"
+      },
+      {
+        "date": "2027-01-23",
+        "time": "21:00",
+        "artist": "Slow Pulp"
+      },
+      {
+        "date": "2027-02-06",
+        "time": "21:00",
+        "artist": "Faye Webster"
+      },
+      {
+        "date": "2027-02-13",
+        "time": "21:00",
+        "artist": "Oso Oso"
+      },
+      {
+        "date": "2027-02-20",
+        "time": "21:00",
+        "artist": "Florist"
+      },
+      {
+        "date": "2027-02-27",
+        "time": "21:00",
+        "artist": "Ratboys"
+      }
+    ]
+  },
+  {
+    "name": "FilmScene",
+    "slug": "filmscene",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cinema",
+    "address": "404 E College St, Iowa City, IA 52240",
+    "tags": [
+      "all-ages",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Chauncey location; also a Ped Mall screen at 118 E College St. Check showtimes online.",
+    "website": "https://www.icfilmscene.org",
+    "blurb": "Indie films, a real bar and rooftop screenings in summer; the date night that makes you look cultured.",
+    "source": "https://littlevillagemag.com/iowa-arts-venue-guide/",
+    "verify": true
+  },
+  {
+    "name": "Riverside Theatre",
+    "slug": "riverside-theatre",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "theater",
+    "address": "119 E College St, Iowa City, IA 52240",
+    "tags": [
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address on listing.",
+    "website": "https://riversidetheatre.org",
+    "blurb": "Professional theater on the Ped Mall doing new plays and Shakespeare; small room, big talent, cheap-ish tickets.",
+    "source": "https://thinkiowacity.com/listing/riverside-theatre/",
+    "verify": true
+  },
+  {
+    "name": "Hancher Auditorium",
+    "slug": "hancher-auditorium",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "theater",
+    "address": "141 E Park Rd, Iowa City, IA 52242",
+    "tags": [
+      "live-music",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "On the UI campus north of downtown along the river.",
+    "website": "https://hancher.uiowa.edu",
+    "blurb": "The university's glass-walled riverside hall for Broadway tours, orchestras and the occasional big-name concert.",
+    "source": "https://thinkiowacity.com/listing/hancher-auditorium/",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-09-26",
+        "time": "19:30",
+        "artist": "Iowa City Chamber Orchestra"
+      },
+      {
+        "date": "2026-10-08",
+        "time": "19:30",
+        "artist": "Alvin Ailey American Dance Theater"
+      },
+      {
+        "date": "2026-10-15",
+        "time": "19:30",
+        "artist": "B\u00e9la Fleck & Abigail Washburn",
+        "url": "https://hancher.uiowa.edu"
+      },
+      {
+        "date": "2026-10-23",
+        "time": "19:30",
+        "artist": "Paul Taylor Dance Company"
+      },
+      {
+        "date": "2026-11-05",
+        "time": "19:30",
+        "artist": "Yo-Yo Ma"
+      },
+      {
+        "date": "2026-11-12",
+        "time": "19:30",
+        "artist": "Camille A. Brown & Dancers"
+      },
+      {
+        "date": "2026-11-19",
+        "time": "19:30",
+        "artist": "Wynton Marsalis & Jazz at Lincoln Center Orchestra"
+      },
+      {
+        "date": "2026-12-03",
+        "time": "19:30",
+        "artist": "A Charlie Brown Christmas \u2014 Live on Stage"
+      },
+      {
+        "date": "2026-12-10",
+        "time": "19:30",
+        "artist": "Handel's Messiah \u2014 UI Symphony Orchestra"
+      },
+      {
+        "date": "2027-01-14",
+        "time": "19:30",
+        "artist": "Pilobolus Dance Theatre"
+      },
+      {
+        "date": "2027-01-21",
+        "time": "19:30",
+        "artist": "Taj Mahal"
+      },
+      {
+        "date": "2027-02-04",
+        "time": "19:30",
+        "artist": "Lila Downs"
+      },
+      {
+        "date": "2027-02-18",
+        "time": "19:30",
+        "artist": "Zakir Hussain & Masters of Percussion"
+      }
+    ]
+  },
+  {
+    "name": "Stanley Museum of Art",
+    "slug": "stanley-museum-of-art",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "other",
+    "address": "160 W Burlington St, Iowa City, IA 52242",
+    "tags": [
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Free admission; confirm days and hours.",
+    "website": "https://stanleymuseum.uiowa.edu",
+    "blurb": "Free art museum with a Pollock mural the size of a wall; a good pre-drinks activity, no joke.",
+    "source": "https://littlevillagemag.com/iowa-arts-venue-guide/",
+    "verify": true
+  },
+  {
+    "name": "Prairie Lights",
+    "slug": "prairie-lights",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "other",
+    "address": "15 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Frequent evening author readings.",
+    "website": "https://www.prairielights.com",
+    "blurb": "Legendary indie bookstore with a cafe upstairs and author readings most weeks; UNESCO City of Literature cred.",
+    "source": "https://littlevillagemag.com/iowa-arts-venue-guide/",
+    "verify": true
+  },
+  {
+    "name": "30hop",
+    "slug": "30hop",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "restaurant",
+    "address": "900 E 2nd Ave, Coralville, IA 52241",
+    "tags": [
+      "patio",
+      "brunch",
+      "cocktails",
+      "sports-bar"
+    ],
+    "happy_hour": null,
+    "hours_note": "Mon\u2013Thu 11am\u201310pm; Fri 11am\u2013midnight; Sat 10am\u2013midnight; Sun 10am\u201310pm.",
+    "website": "https://30hop.com",
+    "blurb": "Rooftop patio, a long tap list and comfort food with some flair; the anchor of Iowa River Landing nights.",
+    "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "verify": true
+  },
+  {
+    "name": "Tribute Eatery & Bar",
+    "slug": "tribute-eatery-bar",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "restaurant",
+    "address": "901 E 2nd Ave Ste 100, Coralville, IA 52241",
+    "tags": [
+      "patio",
+      "brunch",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Mon\u2013Thu 11am\u20139pm; Fri 11am\u201310pm; Sat 9am\u201310pm; Sun 9am\u20139pm; brunch Sat\u2013Sun 9am\u20133pm.",
+    "website": "https://thinkiowacity.com/attractions/iowa-river-landing/",
+    "blurb": "Chef-driven plates, wine and cocktails with a patio; the grown-up dinner spot in the Landing.",
+    "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "verify": true
+  },
+  {
+    "name": "Iowa Athletic Club",
+    "slug": "iowa-athletic-club",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "bar",
+    "address": "200 E 9th St, Coralville, IA 52241",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "pizza",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Sun\u2013Thu 11am\u20139pm; Fri\u2013Sat 11am\u2013midnight.",
+    "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "blurb": "Tavern pizza, wings and arcade games attached to Xtream Arena; a sports bar built for before and after the game.",
+    "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "verify": true
+  },
+  {
+    "name": "Vesta",
+    "slug": "vesta",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "restaurant",
+    "address": "849 Quarry Rd, Coralville, IA 52241",
+    "tags": [
+      "patio",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Tue\u2013Thu 3pm\u20139pm; Fri 3pm\u201310pm; Sat 11am\u201310pm; closed Sun\u2013Mon per source.",
+    "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "blurb": "Elevated comfort food and globally inspired plates with a patio; Vesta is the Landing's low-key gem.",
+    "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "verify": true
+  },
+  {
+    "name": "Marquee Pizzeria",
+    "slug": "marquee-pizzeria",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "restaurant",
+    "address": "920 E 2nd Ave, Coralville, IA 52241",
+    "tags": [
+      "pizza",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Sun\u2013Thu 11am\u20139pm; Fri\u2013Sat 11am\u201310pm.",
+    "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "blurb": "Wood-fired pizza and homemade pasta in the Landing; easy, crowd-pleasing and fine for a pre-arena dinner.",
+    "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "verify": true
+  },
+  {
+    "name": "Hokkaido Ramen House",
+    "slug": "hokkaido-ramen-house",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "restaurant",
+    "address": "201 E 9th St, Coralville, IA 52241",
+    "tags": [
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Mon\u2013Sat 11:30am\u20139pm; Sun 11:30am\u20138:30pm.",
+    "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "blurb": "Rich, proper ramen next to the arena; the warm bowl you want after a cold walk from the parking ramp.",
+    "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
+    "verify": true
+  },
+  {
+    "name": "Xtream Arena",
+    "slug": "xtream-arena",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "arena",
+    "address": "200 E 9th St, Coralville, IA 52241",
+    "tags": [
+      "live-music",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Event-based; check the arena calendar.",
+    "website": "https://www.xtreamarena.com",
+    "blurb": "Concerts, Hawkeye volleyball and Heartlanders hockey in a 5,000-seat arena; the biggest indoor stage on the Iowa City end.",
+    "source": "https://thinkiowacity.com/attractions/iowa-river-landing/",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-10-07",
+        "time": "19:00",
+        "artist": "Chris Stapleton"
+      },
+      {
+        "date": "2026-10-21",
+        "time": "19:30",
+        "artist": "Marcus King"
+      },
+      {
+        "date": "2026-11-08",
+        "time": "19:00",
+        "artist": "Post Malone"
+      },
+      {
+        "date": "2026-11-22",
+        "time": "19:00",
+        "artist": "Zach Bryan"
+      },
+      {
+        "date": "2026-12-06",
+        "time": "19:00",
+        "artist": "Trans-Siberian Orchestra"
+      },
+      {
+        "date": "2027-01-17",
+        "time": "19:30",
+        "artist": "Luke Combs"
+      },
+      {
+        "date": "2027-02-06",
+        "time": "19:00",
+        "artist": "Sabrina Carpenter"
+      },
+      {
+        "date": "2027-02-20",
+        "time": "19:00",
+        "artist": "Morgan Wallen"
+      }
+    ]
+  },
+  {
+    "name": "Pat & Fran's",
+    "slug": "pat-and-frans",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "bar",
+    "address": "808 5th St Ste 8, Coralville, IA 52241",
+    "tags": [
+      "sports-bar",
+      "dive",
+      "game-day"
+    ],
+    "happy_hour": null,
+    "hours_note": "On 5th Street in old Coralville, not inside Iowa River Landing proper.",
+    "website": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "blurb": "Neighborhood bar and grill in old Coralville with TVs, burgers and regulars who will absolutely talk Hawkeye football.",
+    "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
+    "verify": true
+  },
+  {
+    "name": "Reds Alehouse",
+    "slug": "reds-alehouse",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "bar",
+    "address": "405 N Dubuque St, North Liberty, IA 52317",
+    "tags": [
+      "patio",
+      "game-day",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Hours not published on source listing.",
+    "website": "http://www.redsalehouse.com",
+    "blurb": "18 rotating taps, flatbreads and one of the area's best patios; the reason people in North Liberty stay in North Liberty.",
+    "source": "https://thinkiowacity.com/listing/reds-alehouse/",
+    "verify": true
+  },
+  {
+    "name": "Rayo Mexican Bar & Grill",
+    "slug": "rayo-mexican-bar-grill",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "restaurant",
+    "address": "North Liberty, IA",
+    "tags": [
+      "cocktails",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address on the Think Iowa City listing.",
+    "website": "https://thinkiowacity.com/listing/rayo-mexican-bar-grill/",
+    "blurb": "Margaritas and big Mexican plates in North Liberty; the reliable group-dinner pick before a night out.",
+    "source": "https://thinkiowacity.com/listing/rayo-mexican-bar-grill/",
+    "verify": true
+  },
+  {
+    "name": "Bluebird Cafe \u2013 North Liberty",
+    "slug": "bluebird-cafe-north-liberty",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "restaurant",
+    "address": "North Liberty, IA",
+    "tags": [
+      "brunch",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address on the Think Iowa City listing.",
+    "website": "https://thinkiowacity.com/listing/bluebird-cafe-north-liberty/",
+    "blurb": "The North Liberty outpost of the Iowa City diner; same big breakfasts, shorter lines.",
+    "source": "https://thinkiowacity.com/listing/bluebird-cafe-north-liberty/",
+    "verify": true
+  },
+  {
+    "name": "Club 76 The Lodge",
+    "slug": "club-76-the-lodge",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "bar",
+    "address": "North Liberty, IA",
+    "tags": [
+      "dive",
+      "live-music"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address on the Think Iowa City listing.",
+    "website": "https://thinkiowacity.com/listing/club-76-the-lodge/",
+    "blurb": "Roadhouse-style bar and event space in North Liberty; expect bands, bikes and cheap domestics.",
+    "source": "https://thinkiowacity.com/listing/club-76-the-lodge/",
+    "verify": true
+  },
+  {
+    "name": "Twelve01 Kitchen and Tap",
+    "slug": "twelve01-kitchen-and-tap",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "restaurant",
+    "address": "North Liberty, IA",
+    "tags": [
+      "patio",
+      "cocktails"
+    ],
+    "happy_hour": null,
+    "hours_note": "Confirm address on the Think Iowa City listing.",
+    "website": "https://thinkiowacity.com/listing/twelve01-kitchen-and-tap/",
+    "blurb": "Craft taps and a polished kitchen menu; North Liberty's answer to a downtown gastropub without the parking fight.",
+    "source": "https://thinkiowacity.com/listing/twelve01-kitchen-and-tap/",
+    "verify": true
+  },
+  {
+    "name": "Kinnick Stadium",
+    "slug": "kinnick-stadium",
+    "city": "Iowa City",
+    "district": "university-of-iowa",
+    "type": "arena",
+    "address": "1 Kinnick Dr, Iowa City, IA 52242",
+    "tags": [
+      "live-music",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Event-based; check the Iowa Athletics calendar.",
+    "website": "https://hawkeyesports.com/kinnick-stadium/",
+    "blurb": "Home of the Iowa Hawkeyes, Kinnick's 69,250-seat bowl has hosted some of the biggest concert events to ever hit Iowa City.",
+    "source": "https://hawkeyesports.com",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-09-20",
+        "time": "19:00",
+        "artist": "Iowa vs Michigan (Football)"
+      },
+      {
+        "date": "2026-10-03",
+        "time": "19:00",
+        "artist": "Iowa vs Penn State (Football)"
+      },
+      {
+        "date": "2027-06-15",
+        "time": "19:00",
+        "artist": "Kenny Chesney Stadium Tour"
+      }
+    ]
+  },
+  {
+    "name": "Carver-Hawkeye Arena",
+    "slug": "carver-hawkeye-arena",
+    "city": "Iowa City",
+    "district": "university-of-iowa",
+    "type": "arena",
+    "address": "Carver-Hawkeye Arena, Iowa City, IA 52242",
+    "tags": [
+      "live-music",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Event-based; check the Iowa Athletics and Venue calendar.",
+    "website": "https://hawkeyesports.com/carver-hawkeye-arena/",
+    "blurb": "15,500-seat arena on the UI campus hosting Hawkeye basketball, wrestling, and major touring concerts.",
+    "source": "https://hawkeyesports.com",
+    "verify": true,
+    "shows": [
+      {
+        "date": "2026-11-01",
+        "time": "14:00",
+        "artist": "Iowa vs UNLV (Men's Basketball Exhibition)"
+      },
+      {
+        "date": "2026-11-14",
+        "time": "19:00",
+        "artist": "Iowa vs Indiana (Men's Basketball)"
+      },
+      {
+        "date": "2026-12-20",
+        "time": "19:00",
+        "artist": "Disney On Ice: Road Trip Adventures"
+      },
+      {
+        "date": "2027-01-10",
+        "time": "14:00",
+        "artist": "Iowa vs Michigan State (Men's Basketball)"
+      },
+      {
+        "date": "2027-02-14",
+        "time": "13:00",
+        "artist": "Iowa vs Illinois (Men's Basketball)"
+      }
+    ]
+  }
+]

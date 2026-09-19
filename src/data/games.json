@@ -1,0 +1,19 @@
+{
+  "season": 2026,
+  "source": "https://hawkeyesports.com/news/2026/01/27/big-ten-announces-2026-football-schedule",
+  "note": "Kickoff times are announced by the Big Ten 6–12 days out; update `time` as they land.",
+  "games": [
+    {"date":"2026-09-05","opponent":"Northern Illinois","home":true,"time":"TBA"},
+    {"date":"2026-09-12","opponent":"Iowa State","home":true,"time":"TBA"},
+    {"date":"2026-09-19","opponent":"UNI","home":true,"time":"TBA"},
+    {"date":"2026-09-26","opponent":"at Michigan","home":false,"time":"TBA"},
+    {"date":"2026-10-03","opponent":"Ohio State","home":true,"time":"TBA"},
+    {"date":"2026-10-10","opponent":"at Washington","home":false,"time":"TBA"},
+    {"date":"2026-10-24","opponent":"at Minnesota","home":false,"time":"TBA"},
+    {"date":"2026-10-31","opponent":"Wisconsin","home":true,"time":"TBA"},
+    {"date":"2026-11-07","opponent":"at Northwestern","home":false,"time":"TBA"},
+    {"date":"2026-11-14","opponent":"Purdue","home":true,"time":"TBA"},
+    {"date":"2026-11-21","opponent":"at Illinois","home":false,"time":"TBA"},
+    {"date":"2026-11-27","opponent":"Nebraska","home":true,"time":"TBA"}
+  ]
+}

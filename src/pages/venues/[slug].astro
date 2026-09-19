@@ -1,0 +1,48 @@
+---
+import Base from '../../layouts/Base.astro';
+import VenueGallery from '../../components/VenueGallery.astro';
+import VenueCalendar from '../../components/VenueCalendar.astro';
+import { venues, districtBySlug, TYPE_LABEL, events } from '../../lib/data';
+import { iconSvg } from '../../lib/art';
+
+export function getStaticPaths() {
+  return venues.map((v) => ({ params: { slug: v.slug }, props: { venue: v } }));
+}
+const { venue: v } = Astro.props as { venue: (typeof venues)[number] & { photos?: string[] } };
+const d = districtBySlug(v.district);
+const here = events.filter((e) => e.venue_slug === v.slug);
+const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v.name + ' ' + v.address)}`;
+const site = v.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
+---
+<Base title={v.name} description={v.blurb}>
+  <VenueGallery slug={v.slug} name={v.name} photos={v.photos} />
+
+  <p class="kicker">{TYPE_LABEL[v.type] ?? v.type} · {d ? <a href={`/neighborhoods/${d.slug}/`} style="text-decoration:none">{d.name}</a> : v.city}</p>
+  <h1>{v.name}</h1>
+  <p class="lede">{v.blurb}</p>
+
+  <div class="actions">
+    <a class="btn" href={maps} rel="noopener">Directions</a>
+    <a class="btn secondary" href={v.website} rel="noopener">Website</a>
+  </div>
+
+  <div class="facts">
+    <div class="fact"><b>Address</b>{v.address}</div>
+    {v.hours_note && <div class="fact"><b>Hours</b>{v.hours_note}</div>}
+    {v.happy_hour && <div class="fact"><b>Happy hour</b>{v.happy_hour}</div>}
+    <div class="fact"><b>Web</b>{site}</div>
+  </div>
+  <div class="tags">{v.tags.map((t) => <span class="tag">{t.replace('-', ' ')}</span>)}</div>
+  {v.verify && <p class="verify">Seeded from <a href={v.source} rel="noopener">a public listing</a> and not yet walked by us. Hours and specials change; check before you go.</p>}
+
+  {here.length > 0 && (
+    <>
+      <h2>Here</h2>
+      <ul>{here.map((e) => <li><strong>{e.title}</strong> — {e.date === 'weekly' ? `${e.weekday}s` : e.date} · {e.time}</li>)}</ul>
+    </>
+  )}
+  {(v.type === 'music-venue' || v.type === 'theater' || v.type === 'arena' || v.tags?.includes('live-music')) && (
+    <VenueCalendar slug={v.slug} name={v.name} shows={(v as any).shows} />
+  )}
+  <p><a href="/drink/">← Drink</a> · <a href="/eat/">Eat</a> · <a href="/neighborhoods/">Neighborhoods</a></p>
+</Base>

@@ -1,0 +1,29 @@
+---
+import { sideOf, TYPE_LABEL, districtBySlug, type Venue } from '../lib/data';
+import { gradientFor, iconSvg } from '../lib/art';
+interface Props { venue: Venue & { photo?: string }; pick?: boolean; note?: string; media?: boolean }
+const { venue: v, pick = false, note, media = true } = Astro.props;
+const side = sideOf(v.city);
+const district = districtBySlug(v.district);
+---
+<article class:list={['card', { pick }]} data-side={side} data-tags={v.tags.join(' ')} data-type={v.type} data-district={v.district} data-name={v.name.toLowerCase()}>
+  {media && (
+    <div class="media">
+      {v.photo ? (
+        <img src={v.photo} alt="" loading="lazy" />
+      ) : (
+        <div class="art" style={`background:${gradientFor(v.slug)}`}><Fragment set:html={iconSvg(v.type)} /></div>
+      )}
+      {pick && <span class="pickflag">Tonight's pick</span>}
+    </div>
+  )}
+  <div class="meta">
+    <span class:list={['badge', side]}>{v.city}</span>
+    <span class="badge">{TYPE_LABEL[v.type] ?? v.type}</span>
+    {district && <a href={`/neighborhoods/${district.slug}/`}>{district.name}</a>}
+  </div>
+  <h3><a href={`/venues/${v.slug}/`}>{v.name}</a></h3>
+  <p>{note ?? v.blurb}</p>
+  {v.happy_hour && <p><strong>Happy hour:</strong> {v.happy_hour}</p>}
+  <div class="tags">{v.tags.slice(0, 4).map((t) => <span class="tag">{t.replace('-', ' ')}</span>)}</div>
+</article>

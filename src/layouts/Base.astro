@@ -1,0 +1,213 @@
+---
+import '../styles/global.css';
+import { iconSvg } from '../lib/art';
+import venuesIC from '../data/venues-iowa-city.json';
+import venuesCR from '../data/venues-cedar-rapids.json';
+interface Props { title: string; description?: string; current?: string }
+const { title, description = "What's on tonight in the Cedar Rapids–Iowa City Corridor.", current = '' } = Astro.props;
+const searchData = [...venuesIC, ...venuesCR].map((v) => ({
+  n: v.name, s: v.slug, t: v.type, c: v.city, b: v.blurb.slice(0, 80)
+}));
+const nav = [
+  ['/', 'Tonight', 'tonight'],
+  ['/drink/', 'Drink', 'drink'],
+  ['/eat/', 'Eat', 'eat'],
+  ['/events/', 'Events', 'events'],
+  ['/game-day/', 'Game Day', 'gameday'],
+  ['/neighborhoods/', 'Neighborhoods', 'more'],
+  ['/party-pics/', 'Party Pics', 'more'],
+];
+const tabs = nav.slice(0, 5);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>{title} · The 380</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nobile:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <div class="city-toggle" role="group" aria-label="Which end of the Corridor">
+          <button class="nobile-regular" type="button" data-side="all" aria-pressed="true">Both</button>
+          <button class="nobile-regular" type="button" data-side="ic" aria-pressed="false"><span class="long">Iowa City</span><span class="short n">IC</span></button>
+          <button class="nobile-regular" type="button" data-side="cr" aria-pressed="false"><span class="long">Cedar Rapids</span><span class="short">CR</span></button>
+        </div>
+        <div class="header-search" id="header-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input id="hs-input" type="search" placeholder="Search…" aria-label="Search venues" autocomplete="off" />
+          <div class="hs-dropdown" id="hs-dropdown" hidden></div>
+        </div>
+      </div>
+    </header>
+    <style>
+      .header-search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 999px;
+        padding: 7px 14px 7px 10px;
+        width: 200px;
+      }
+      .header-search svg {
+        width: 15px;
+        height: 15px;
+        color: rgba(255,255,255,0.8);
+        flex-shrink: 0;
+      }
+      .header-search input {
+        background: none;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        width: 100%;
+        min-width: 0;
+      }
+      .header-search input::placeholder { color: rgba(255,255,255,0.55); }
+      @media (max-width: 500px) { .header-search { width: 130px; } }
+
+      /* dropdown */
+      .hs-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        min-width: 300px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid rgba(0,0,0,0.06);
+        overflow: hidden;
+        z-index: 200;
+      }
+      .hs-dropdown[hidden] { display: none; }
+      .hs-result {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 16px;
+        text-decoration: none;
+        color: #111;
+        border-bottom: 1px solid #f2f4f7;
+        transition: background 0.12s;
+        position: relative;
+      }
+      .hs-result::before {
+        content: '';
+        width: 3px;
+        height: 0;
+        background: #f97316;
+        border-radius: 2px;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: height 0.15s;
+      }
+      .hs-result:hover::before { height: 60%; }
+      .hs-result:last-child { border-bottom: none; }
+      .hs-result:hover { background: #fafbfc; }
+      .hs-result strong { display: block; font-size: 14px; font-weight: 700; color: #111; line-height: 1.3; }
+      .hs-result span { display: block; font-size: 11px; color: #aaa; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+      .hs-no-results { padding: 16px; font-size: 13px; color: #bbb; text-align: center; }
+    </style>
+    <nav class="site-nav" aria-label="Sections">
+      <div class="wrap">
+        <a class="brand" href="/">
+          <span class="mark" aria-hidden="true">380</span>
+          <span class="word">The 380<small>Tonight in the Corridor</small></span>
+        </a>
+        {nav.map(([href, label]) => (
+          
+          <a href={href} aria-current={current === label ? 'page' : undefined}>{label}</a>
+        ))}
+      </div>
+    </nav>
+    <main>
+      <div class="wrap">
+        <slot />
+      </div>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <p><strong>The 380</strong> is an independent going-out guide for Iowa City, Coralville, North Liberty, Cedar Rapids and Marion.</p>
+        <p>Listings are seeded from public sources and marked for verification; hours and happy hours change, so check before you go. Drink responsibly and get a ride home.</p>
+        <p><a href="/about/">About</a> · <a href="/neighborhoods/">Neighborhoods</a> · <a href="/party-pics/">Party Pics</a> · <a href="/about/#advertise">Advertise</a></p>
+      </div>
+    </footer>
+    <nav class="tabbar" aria-label="Sections">
+      {tabs.map(([href, label, icon]) => (
+        <a href={href} aria-current={current === label ? 'page' : undefined}>
+          <Fragment set:html={iconSvg(icon)} />
+          {label}
+        </a>
+      ))}
+    </nav>
+    <script>
+      // City toggle: remembered per device, filters anything with data-side.
+      const KEY = 'the380.side';
+      const buttons = document.querySelectorAll<HTMLButtonElement>('.city-toggle button');
+      function apply(side: string) {
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.side === side)));
+        document.querySelectorAll<HTMLElement>('[data-side]').forEach((el) => {
+          if (el.closest('.city-toggle')) return;
+          el.classList.toggle('hidden', side !== 'all' && el.dataset.side !== side);
+        });
+        document.documentElement.dataset.side = side;
+        document.dispatchEvent(new CustomEvent('sidechange', { detail: side }));
+      }
+      let saved = 'all';
+      try { saved = localStorage.getItem(KEY) || 'all'; } catch {}
+      apply(saved);
+      buttons.forEach((b) => b.addEventListener('click', () => {
+        const side = b.dataset.side || 'all';
+        try { localStorage.setItem(KEY, side); } catch {}
+        apply(side);
+      }));
+    </script>
+    <script define:vars={{ searchData }}>
+      const input = document.getElementById('hs-input');
+      const dropdown = document.getElementById('hs-dropdown');
+
+      function normalize(s) { return s.toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+      function render(q) {
+        const n = normalize(q);
+        if (!n) { dropdown.hidden = true; dropdown.innerHTML = ''; return; }
+        const results = searchData.filter((v) =>
+          normalize(v.n).includes(n) || normalize(v.t).includes(n) || normalize(v.c).includes(n)
+        ).slice(0, 8);
+        if (!results.length) {
+          dropdown.innerHTML = '<div class="hs-no-results">No venues found</div>';
+        } else {
+          dropdown.innerHTML = results.map((v) =>
+            `<a class="hs-result" href="/venues/${v.s}/">${v.n}</a>`
+          ).join('');
+        }
+        dropdown.hidden = false;
+      }
+
+      input?.addEventListener('input', (e) => render(e.target.value.trim()));
+      input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { dropdown.hidden = true; input.blur(); }
+      });
+      document.addEventListener('click', (e) => {
+        if (!document.getElementById('header-search')?.contains(e.target)) {
+          dropdown.hidden = true;
+        }
+      });
+    </script>
+  </body>
+</html>

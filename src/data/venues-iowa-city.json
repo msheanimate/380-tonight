@@ -411,7 +411,8 @@
     "website": "https://brixiowacity.com",
     "blurb": "Wine flights, cheese boards and a patio on the Northside; the chill date-night move when bars feel too loud.",
     "source": "https://downtowniowacity.com/",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://brixcheeseshop.com/menus"
   },
   {
     "name": "The Stuffed Olive",

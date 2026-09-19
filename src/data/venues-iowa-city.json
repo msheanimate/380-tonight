@@ -796,7 +796,8 @@
     "website": "https://www.hamburginn.com",
     "blurb": "The pie-shake diner where presidential candidates stop; greasy, historic and worth the weekend wait.",
     "source": "https://en.wikipedia.org/wiki/Hamburg_Inn_No._2",
-    "verify": true
+    "verify": true,
+    "menu_url": "https://www.hamburginn2.com/menu"
   },
   {
     "name": "John's Grocery",

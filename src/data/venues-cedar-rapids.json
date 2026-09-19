@@ -67,7 +67,7 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Tue–Wed 4–10pm; Thu–Sat 11am–10pm; Sun 11am–8pm; closed Mondays.",
+    "hours_note": "Tue\u2013Wed 4\u201310pm; Thu\u2013Sat 11am\u201310pm; Sun 11am\u20138pm; closed Mondays.",
     "website": "https://www.lionbridgebrewing.com",
     "blurb": "Czech Village's anchor brewery: solid lagers, a real food menu, and a patio built for lazy Sunday afternoons.",
     "source": "https://www.lionbridgebrewing.com/contact",
@@ -98,7 +98,7 @@
     "slug": "brewhemia",
     "city": "Cedar Rapids",
     "district": "newbo-czech-village",
-    "type": "restaurant",
+    "type": "cafe",
     "address": "1202 3rd St SE Ste 101, Cedar Rapids, IA 52401",
     "tags": [
       "brunch",
@@ -483,7 +483,7 @@
       "late-night"
     ],
     "happy_hour": null,
-    "hours_note": "Wed–Thu 3–9pm; Fri 3–11pm; Sat 11am–11pm; Sun 11am–8pm; kitchen closes 10pm Fri–Sat.",
+    "hours_note": "Wed\u2013Thu 3\u20139pm; Fri 3\u201311pm; Sat 11am\u201311pm; Sun 11am\u20138pm; kitchen closes 10pm Fri\u2013Sat.",
     "website": "https://www.thequarterbarrel.com",
     "blurb": "House beer, pizza, and a wall of pinball and arcade cabinets; the nerdiest good time downtown.",
     "source": "https://www.thequarterbarrel.com/location",
@@ -598,7 +598,7 @@
     "verify": true
   },
   {
-    "name": "Big Grove Brewery & Taproom – Cedar Rapids",
+    "name": "Big Grove Brewery & Taproom \u2013 Cedar Rapids",
     "slug": "big-grove-cedar-rapids",
     "city": "Cedar Rapids",
     "district": "kingston-village",
@@ -757,7 +757,7 @@
       "brunch"
     ],
     "happy_hour": "Happy hour offered; times not published on site",
-    "hours_note": "Mon–Thu 11am–10pm; Fri–Sat 11am–late; Sun 11am–10pm per funnotfancy.com.",
+    "hours_note": "Mon\u2013Thu 11am\u201310pm; Fri\u2013Sat 11am\u2013late; Sun 11am\u201310pm per funnotfancy.com.",
     "website": "https://www.funnotfancy.com/the-hip-stir",
     "blurb": "Playful cocktails and a menu that's better than it needs to be, in the old Ramsey's Wine Bistro space.",
     "source": "https://www.uptownmarion.com/food_drink.html",
@@ -975,6 +975,240 @@
     "website": "https://www.tourismcedarrapids.com/blog/cedar-rapids-local-live-music-scene/",
     "blurb": "Weekend cover bands and karaoke in a big Marion bar that stays busy well past midnight.",
     "source": "https://www.tourismcedarrapids.com/blog/cedar-rapids-local-live-music-scene/",
+    "verify": true
+  },
+  {
+    "name": "Uptown Coffee Company",
+    "slug": "uptown-coffee-company",
+    "city": "Marion",
+    "district": "uptown-marion",
+    "type": "cafe",
+    "address": "760 11th St, Marion, IA 52302",
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours at uptowncoffee.co.",
+    "website": "https://www.uptowncoffee.co",
+    "blurb": "Marion's independent coffee shop in Uptown \u2014 good espresso, a comfortable room, and the Uptown Snug bar next door if the afternoon runs long.",
+    "source": "https://www.uptownmarion.com/food_drink.html",
+    "verify": true
+  },
+  {
+    "name": "Kismet Coffee & Bloom",
+    "slug": "kismet-coffee-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "1000 3rd St SE Suite 1, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "flowers",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.kismetcoffeeandbloom.com",
+    "blurb": "Coffee shop and flower studio in NewBo \u2014 pick up a flat white and a bouquet on the same stop. The combination works better than it sounds.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Veritas Cafe + Bookstore",
+    "slug": "veritas-cafe-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "509 3rd St SE, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "books",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.veritascafecr.com",
+    "blurb": "Books and coffee in NewBo. Browse the shelves, order an espresso, and stay as long as you like.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Cafe Saint Pio",
+    "slug": "cafe-saint-pio-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "99 16th Ave SW, Cedar Rapids, IA 52404",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.cafesaintpio.com",
+    "blurb": "Small cafe in Czech Village serving solid espresso and pastries. A quiet spot to start the morning before exploring 16th Avenue.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Dash Coffee Roasters",
+    "slug": "dash-coffee-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "120 3rd Ave SW Suite 2, Cedar Rapids, IA 52404",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "roaster",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.dashcoffeeroasters.com",
+    "blurb": "Cedar Rapids roaster pulling their own beans in a NewBo space. If you care where your coffee comes from, start here.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Roasters NewBo",
+    "slug": "roasters-newbo-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "1120 2nd St SE, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "roaster",
+      "local"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.roastersnewbo.com",
+    "blurb": "Roaster and cafe at the heart of the NewBo District. Local beans, good light, and the kind of neighborhood shop that earns regulars.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Lightworks Cafe",
+    "slug": "lightworks-cafe-cr",
+    "city": "Cedar Rapids",
+    "district": "other-cr",
+    "type": "cafe",
+    "address": "501 7th Ave SE Suite B, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.lightworkscafe.com",
+    "blurb": "Cafe with a loyal neighborhood following on the east side. Good coffee, plenty of seating, and no pretense.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Craft'd",
+    "slug": "craftd-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "333 1st St SE Suite 100, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "cocktails",
+      "local"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.craftdcr.com",
+    "blurb": "Coffee and craft cocktails in the NewBo area. Daytime crowd comes for espresso; evening crowd comes back for cocktails.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "I'll Meet You There",
+    "slug": "ill-meet-you-there-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "62 16th Ave SW, Cedar Rapids, IA 52404",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "all-ages",
+      "local"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.illmeetyouthere.coffee",
+    "blurb": "Cozy coffee spot on 16th Ave SW in Czech Village. The kind of place you suggest as a meetup and then stay two hours longer than planned.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Uptown Coffee Company",
+    "slug": "uptown-coffee-company-cr",
+    "city": "Cedar Rapids",
+    "district": "newbo-czech-village",
+    "type": "cafe",
+    "address": "1100 3rd St SE, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.uptowncoffee.co",
+    "blurb": "The NewBo outpost of the Marion-born Uptown Coffee. Same commitment to quality in a larger NewBo setting.",
+    "source": "https://www.uptowncoffee.co",
+    "verify": true
+  },
+  {
+    "name": "Deja Brew at The Pines",
+    "slug": "deja-brew-cr",
+    "city": "Cedar Rapids",
+    "district": "other-cr",
+    "type": "cafe",
+    "address": "4100 River Ridge Dr NE, Cedar Rapids, IA 52402",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.dejabrewpines.com",
+    "blurb": "Northeast-side coffee shop popular with the neighborhoods around it. A local habit worth starting.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
+    "verify": true
+  },
+  {
+    "name": "Coffee Republic",
+    "slug": "coffee-republic-cr",
+    "city": "Cedar Rapids",
+    "district": "downtown-cr",
+    "type": "cafe",
+    "address": "220 3rd Ave SE, Cedar Rapids, IA 52401",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.coffeerepubliccr.com",
+    "blurb": "Downtown Cedar Rapids coffee shop with a loyal daily crowd. Good spot between meetings or before heading into the office district.",
+    "source": "https://www.mycoffeeexplorer.com/cedar-rapids",
     "verify": true
   }
 ]

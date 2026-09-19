@@ -2993,5 +2993,299 @@
       "lgbtq-friendly"
     ],
     "blurb": "Intimate Italian restaurant in Penn Landing with a wood-fired pizza oven, fresh pasta, and a consistently exceptional kitchen."
+  },
+  {
+    "name": "Java House",
+    "slug": "java-house-downtown",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "211 E Washington St, Iowa City, IA 52240",
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Flagship downtown location; verify current hours at thejavahouse.com.",
+    "website": "https://thejavahouse.com",
+    "blurb": "Iowa City's own roaster and cafe, open since 1993. The Washington Street flagship is the spot for a serious latte before the Ped Mall fills up.",
+    "source": "https://thejavahouse.com/cafes",
+    "verify": true
+  },
+  {
+    "name": "Cortado",
+    "slug": "cortado-ic",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "26 S Clinton St, Iowa City, IA 52240",
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours at cortadoic.com.",
+    "website": "https://www.cortadoic.com",
+    "blurb": "European-style espresso bar on Clinton with expertly pulled shots, fresh pastries, and Mediterranean sandwiches \u2014 fast, serious coffee with no fuss.",
+    "source": "https://thinkiowacity.com/listing/cortado/",
+    "verify": false
+  },
+  {
+    "name": "Java House (1st Avenue)",
+    "slug": "java-house-1st-ave",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "cafe",
+    "address": "1575 S 1st Ave, Iowa City, IA 52240",
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours at thejavahouse.com.",
+    "website": "https://thejavahouse.com",
+    "blurb": "Java House's south Iowa City location on 1st Ave \u2014 same local roasts as downtown, with easier parking and a crowd that leans more neighborhood than campus.",
+    "source": "https://thejavahouse.com/cafes",
+    "verify": true
+  },
+  {
+    "name": "Java House (North Liberty)",
+    "slug": "java-house-north-liberty",
+    "city": "North Liberty",
+    "district": "north-liberty",
+    "type": "cafe",
+    "address": "555 Hwy 965 Suite A, North Liberty, IA 52317",
+    "tags": [
+      "coffee",
+      "drive-thru",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Drive-thru location; verify current hours at thejavahouse.com.",
+    "website": "https://thejavahouse.com",
+    "blurb": "Java House's North Liberty drive-thru on Hwy 965 \u2014 the local-roast option when you're heading south toward Iowa City and don't want a chain.",
+    "source": "https://thejavahouse.com/cafes",
+    "verify": true
+  },
+  {
+    "name": "Java House (Mormon Trek)",
+    "slug": "java-house-mormon-trek",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "713 Mormon Trek Blvd, Iowa City, IA 52246",
+    "tags": [
+      "coffee",
+      "drive-thru",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours at thejavahouse.com.",
+    "website": "https://thejavahouse.com",
+    "blurb": "Java House's west-side Iowa City location on Mormon Trek \u2014 local roasts with drive-thru convenience on the hospital side of town.",
+    "source": "https://thejavahouse.com/cafes",
+    "verify": true
+  },
+  {
+    "name": "Press Coffee",
+    "slug": "press-coffee-ic",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "cafe",
+    "address": "1120 N Dodge St, Iowa City, IA 52245",
+    "phone": "(319) 887-1500",
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours at presscoffeeco.com.",
+    "website": "https://www.presscoffeeco.com",
+    "blurb": "Northside Iowa City's neighborhood coffee shop on Dodge \u2014 a local spot away from the Ped Mall crowds, good for a quiet morning or a work session.",
+    "source": "https://thinkiowacity.com/listing/press-coffee/",
+    "verify": true
+  },
+  {
+    "name": "Fix! Coffee",
+    "slug": "fix-coffee-ic",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "404 E College St Suite 202, Iowa City, IA 52240",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "espresso",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.fixcoffee.com",
+    "blurb": "Specialty espresso bar tucked above the Ped Mall. Small and focused \u2014 good beans, clean drinks, and a window seat worth claiming.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "The Encounter Cafe",
+    "slug": "encounter-cafe-ic",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "376 S Clinton St, Iowa City, IA 52240",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.theencountercafe.com",
+    "blurb": "Cozy cafe on South Clinton near campus. Community-oriented space with solid coffee and a welcoming atmosphere.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "DAYDRINK",
+    "slug": "daydrink-ic",
+    "city": "Iowa City",
+    "district": "riverfront-crossings",
+    "type": "cafe",
+    "address": "518 Bowery St, Iowa City, IA 52240",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "cocktails",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.daydrinkic.com",
+    "blurb": "Coffee by day, cocktails by night in Riverfront Crossings. The name says it all \u2014 start with an espresso, finish with a pour.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "Kindred Coffee",
+    "slug": "kindred-coffee-ic",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "cafe",
+    "address": "287 N Linn St, Iowa City, IA 52245",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "local"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.kindredcoffeeic.com",
+    "blurb": "Neighborhood coffee shop on North Linn, a block from the farmers market. Craft espresso and a calm, unhurried pace.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "Prairie Lights Cafe",
+    "slug": "prairie-lights-cafe",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "15 S Dubuque St, Iowa City, IA 52240",
+    "phone": "(319) 337-2681",
+    "tags": [
+      "coffee",
+      "books",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Open during bookstore hours; check prairielights.com.",
+    "website": "https://www.prairielights.com",
+    "blurb": "Coffee inside one of the country's great independent bookshops. Order a drink and wander the stacks \u2014 there's no better morning in Iowa City.",
+    "source": "https://www.prairielights.com",
+    "verify": false
+  },
+  {
+    "name": "Sidekick Coffee & Books",
+    "slug": "sidekick-coffee-ic",
+    "city": "Iowa City",
+    "district": "northside",
+    "type": "cafe",
+    "address": "1310\u00bd Melrose Ave, Iowa City, IA 52246",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "books",
+      "work-friendly"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.sidekickcoffeeic.com",
+    "blurb": "Coffee and used books on Melrose Ave near University Hospital. Come for the espresso, stay because you found a paperback you needed.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "Mammitas Coffee",
+    "slug": "mammitas-coffee-ic",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "cafe",
+    "address": "224 S Linn St, Iowa City, IA 52240",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "espresso",
+      "local"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.mammitascoffee.com",
+    "blurb": "Bright coffee spot on South Linn with Latin-influenced drinks. The caf\u00e9 con leche is worth the trip.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "Zoetic Coffee",
+    "slug": "zoetic-coffee-solon",
+    "city": "Solon",
+    "district": "north-liberty",
+    "type": "cafe",
+    "address": "102 N Iowa St, Solon, IA 52333",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "all-ages",
+      "local"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.zoeticcoffee.com",
+    "blurb": "Coffee shop in downtown Solon worth the short drive from Iowa City. Slower pace, good drinks, and a genuinely local feel.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
+  },
+  {
+    "name": "Coffee Emporium",
+    "slug": "coffee-emporium-coralville",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
+    "type": "cafe",
+    "address": "925 E 2nd Ave, Coralville, IA 52241",
+    "phone": null,
+    "tags": [
+      "coffee",
+      "work-friendly",
+      "all-ages"
+    ],
+    "happy_hour": null,
+    "hours_note": "Verify current hours before visiting.",
+    "website": "https://www.coffeeemporiumcoralville.com",
+    "blurb": "Coralville's reliable coffee stop on 2nd Avenue. Solid espresso and plenty of seating \u2014 the morning anchor the neighborhood needed.",
+    "source": "https://www.mycoffeeexplorer.com/iowa-city",
+    "verify": true
   }
 ]

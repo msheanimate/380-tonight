@@ -322,3 +322,35 @@ li { margin: 4px 0; }
   color: #026CDF;
   letter-spacing: 0.04em;
 }
+.vc-sg-badge {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #e85d04;
+  letter-spacing: 0.04em;
+}
+.vc-cell-show.away {
+  opacity: 0.45;
+  font-style: italic;
+}
+.vc-pitem.away {
+  opacity: 0.65;
+}
+.vc-away-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted, #888);
+  vertical-align: middle;
+}
+.vc-cell-show.womens {
+  color: #d63384;
+}
+.vc-pitem.womens .vc-pitem-main a,
+.vc-pitem.womens .vc-pitem-main span {
+  color: #d63384;
+}

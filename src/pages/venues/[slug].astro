@@ -42,7 +42,7 @@ const site = v.website.replace(/^https?:\/\//, '').replace(/\/$/, '');
     </>
   )}
   {(v.type === 'music-venue' || v.type === 'theater' || v.type === 'arena' || v.tags?.includes('live-music')) && (
-    <VenueCalendar slug={v.slug} name={v.name} shows={(v as any).shows} />
+    <VenueCalendar slug={v.slug} name={v.name} shows={(v as any).shows} apis={(v as any).apis} />
   )}
   <p><a href="/drink/">← Drink</a> · <a href="/eat/">Eat</a> · <a href="/neighborhoods/">Neighborhoods</a></p>
 </Base>

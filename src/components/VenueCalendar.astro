@@ -1,13 +1,14 @@
 ---
 /**
  * VenueCalendar — multi-source show calendar.
- * Pulls from Songkick, Eventbrite, and Ticketmaster in parallel.
+ * Pulls from Songkick, Eventbrite, Ticketmaster, and SeatGeek in parallel.
  * Each source is optional — add the keys you have and the rest are skipped.
  *
  * GET FREE KEYS:
  *   Songkick    → https://www.songkick.com/developer
  *   Eventbrite  → https://www.eventbrite.com/platform/api  (instant)
  *   Ticketmaster→ https://developer.ticketmaster.com        (instant)
+ *   SeatGeek    → https://seatgeek.com/account/develop        (instant)
  */
 const SK_KEY  = 'YOUR_SONGKICK_KEY';        // Songkick Discovery API
 const EB_KEY  = 'KLIP436R4F7XWQI26B';    // Eventbrite private token
@@ -25,8 +26,9 @@ interface Props {
   slug:   string;
   name:   string;
   shows?: Show[];      // manually-listed shows from venue JSON
+  apis?:  string[];   // restrict to these API sources only (e.g. ["seatgeek"])
 }
-const { slug, name, shows = [] } = Astro.props;
+const { slug, name, shows = [], apis } = Astro.props;
 ---
 
 <section
@@ -37,6 +39,7 @@ const { slug, name, shows = [] } = Astro.props;
   data-eb={EB_KEY}
   data-tm={TM_KEY}
   data-sg={SG_KEY}
+  data-apis={JSON.stringify(apis ?? [])}
   data-shows={JSON.stringify(shows)}
   aria-label={`Upcoming shows at ${name}`}
 >
@@ -360,15 +363,16 @@ const { slug, name, shows = [] } = Astro.props;
     const SK_KEY = section.dataset.sk   ?? '';
     const EB_KEY = section.dataset.eb   ?? '';
     const TM_KEY = section.dataset.tm   ?? '';
-    const SG_KEY = section.dataset.sg     ?? '';
+    const SG_KEY = section.dataset.sg   ?? '';
 
-    const PLACEHOLDER = ['YOUR_SONGKICK_KEY','YOUR_EVENTBRITE_TOKEN','YOUR_TICKETMASTER_KEY'];
+    const PLACEHOLDER = ['YOUR_SONGKICK_KEY','YOUR_EVENTBRITE_TOKEN','YOUR_TICKETMASTER_KEY','YOUR_SEATGEEK_CLIENT_ID'];
     const skActive = SK_KEY && !PLACEHOLDER.includes(SK_KEY);
     const ebActive = EB_KEY && !PLACEHOLDER.includes(EB_KEY);
     const tmActive = TM_KEY && !PLACEHOLDER.includes(TM_KEY);
+    const sgActive = SG_KEY && !PLACEHOLDER.includes(SG_KEY);
 
     // Manual shows from venue JSON
-    interface ManualShow { date: string; time?: string; artist: string; url?: string; }
+    interface ManualShow { date: string; time?: string; artist: string; url?: string; away?: boolean; }
     let manualShows: ManualShow[] = [];
     try { manualShows = JSON.parse(section.dataset.shows ?? '[]'); } catch {}
 
@@ -388,6 +392,7 @@ const { slug, name, shows = [] } = Astro.props;
         skActive                && 'Songkick',
         ebActive                && 'Eventbrite',
         tmActive                && 'Ticketmaster',
+        sgActive                && 'SeatGeek',
       ].filter(Boolean) as string[];
       sourcesEl.innerHTML = active.map(s =>
         `<span class="vc-badge">${s}</span>`
@@ -410,6 +415,7 @@ const { slug, name, shows = [] } = Astro.props;
       date:     string;      // YYYY-MM-DD
       time:     string|null; // HH:MM:SS or null
       source:   string;
+      away?:    boolean;
     }
 
     function todayParts() {
@@ -616,6 +622,60 @@ const { slug, name, shows = [] } = Astro.props;
       return events;
     }
 
+
+    /* ───────────── SEATGEEK ───────────── */
+    async function sgFindVenueId(): Promise<string|null> {
+      const ck = `sg-vid-${slug}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 30*24*3_600_000) return hit.id;
+      } catch {}
+      const r = await fetch(
+        `https://api.seatgeek.com/2/venues?q=${encodeURIComponent(name)}`
+        + `&city=Iowa+City&state=Iowa&client_id=${SG_KEY}`
+      );
+      if (!r.ok) return null;
+      const data = await r.json();
+      const venues: any[] = data.venues ?? [];
+      const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const match = venues.find((v: any) => norm(v.name ?? '').includes(norm(name).slice(0,5))) ?? venues[0] ?? null;
+      if (!match) return null;
+      try { localStorage.setItem(ck, JSON.stringify({id: String(match.id), ts: Date.now()})); } catch {}
+      return String(match.id);
+    }
+
+    async function fetchSeatGeek(year: number, month: number): Promise<Event[]> {
+      if (!sgActive) return [];
+      const ck = `sg-ev-${slug}-${year}-${month}`;
+      try {
+        const hit = JSON.parse(localStorage.getItem(ck) ?? 'null');
+        if (hit && Date.now() - hit.ts < 3_600_000) return hit.events;
+      } catch {}
+      const lastDay = new Date(year, month, 0).getDate();
+      const start   = `${year}-${pad(month)}-01T00:00:00`;
+      const end     = `${year}-${pad(month)}-${lastDay}T23:59:59`;
+      const vid = await sgFindVenueId();
+      if (!vid) return [];
+      const r = await fetch(
+        `https://api.seatgeek.com/2/events?venue.id=${vid}`
+        + `&datetime_utc.gte=${start}&datetime_utc.lte=${end}`
+        + `&per_page=50&client_id=${SG_KEY}`
+      );
+      if (!r.ok) return [];
+      const data = await r.json();
+      const raw: any[] = data.events ?? [];
+      const events: Event[] = raw.map((e: any) => ({
+        headline: e.title ?? e.performers?.[0]?.name ?? 'Event',
+        support:  e.performers?.slice(1).map((p: any) => p.name).join(', ') ?? '',
+        url:      e.url ?? '#',
+        date:     (e.datetime_local ?? '').slice(0, 10),
+        time:     (e.datetime_local ?? '').slice(11, 19) || null,
+        source:   'SeatGeek',
+      })).filter(e => e.date);
+      try { localStorage.setItem(ck, JSON.stringify({events, ts: Date.now()})); } catch {}
+      return events;
+    }
+
     /* ───────────── MANUAL SHOWS ───────────── */
     function fetchManual(year: number, month: number): Event[] {
       const prefix = `${year}-${pad(month)}-`;
@@ -628,6 +688,7 @@ const { slug, name, shows = [] } = Astro.props;
           date:     s.date,
           time:     s.time ? (s.time.length === 5 ? s.time + ':00' : s.time) : null,
           source:   'Listed',
+          away:     s.away ?? false,
         }));
     }
 
@@ -700,11 +761,15 @@ const { slug, name, shows = [] } = Astro.props;
         let showsHtml = '';
         if (evs) {
           const tmEv = evs.find(e => e.source === 'Ticketmaster');
+          const sgEv = evs.find(e => e.source === 'SeatGeek');
           const tmLogo = tmEv ? `<a class="vc-tm-badge" href="${tmEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">TM</a>` : '';
+          const sgLogo = sgEv ? `<a class="vc-sg-badge" href="${sgEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">SG</a>` : '';
+          const firstAway = evs[0].away;
+          const firstWomens = evs[0].headline.includes("Women's");
           showsHtml = `<div class="vc-cell-shows">
-            <div class="vc-cell-show">${evs[0].headline}</div>
+            <div class="vc-cell-show${firstAway ? ' away' : ''}${firstWomens ? ' womens' : ''}">${evs[0].headline}</div>
             ${evs.length > 1 ? `<div class="vc-cell-more">+${evs.length - 1} more</div>` : ''}
-            ${tmLogo}
+            ${tmLogo}${sgLogo}
           </div>`;
         }
 
@@ -757,9 +822,10 @@ const { slug, name, shows = [] } = Astro.props;
         const nameEl = hasUrl
           ? `<a href="${e.url}" target="_blank" rel="noopener">${e.headline}</a>`
           : `<span>${e.headline}</span>`;
-        return `<li class="vc-pitem">
+        const isWomens = e.headline.includes("Women's");
+        return `<li class="vc-pitem${e.away ? ' away' : ''}${isWomens ? ' womens' : ''}">
           <div class="vc-pitem-main">
-            ${timeStr}${nameEl}
+            ${timeStr}${nameEl}${e.away ? ' <span class="vc-away-tag">Away</span>' : ''}
           </div>
           ${e.support ? `<div class="vc-psupport">with ${e.support}</div>` : ''}
           <div class="vc-psource">${e.source}</div>
@@ -782,18 +848,19 @@ const { slug, name, shows = [] } = Astro.props;
       if (prevBtn) prevBtn.disabled = year < t.y || (year === t.y && month <= t.m);
 
       const manual = fetchManual(year, month);
-      if (!skActive && !ebActive && !tmActive) {
+      if (!skActive && !ebActive && !tmActive && !sgActive) {
         if (manual.length) { renderCalendar(year, month, manual); return; }
         renderNoSources(); return;
       }
 
       renderSkeleton(year, month);
-      const [sk, eb, tm] = await Promise.all([
+      const [sk, eb, tm, sg] = await Promise.all([
         fetchSongkick(year, month).catch(() => [] as Event[]),
         fetchEventbrite(year, month).catch(() => [] as Event[]),
         fetchTicketmaster(year, month).catch(() => [] as Event[]),
+        fetchSeatGeek(year, month).catch(() => [] as Event[]),
       ]);
-      renderCalendar(year, month, mergeEvents([manual, sk, eb, tm]));
+      renderCalendar(year, month, mergeEvents([manual, sk, eb, tm, sg]));
     }
 
     prevBtn?.addEventListener('click', () => goToMonth(curYear, curMonth - 1));

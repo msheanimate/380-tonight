@@ -13,6 +13,7 @@ const searchable = allVenues.map((v) => ({
   tags: v.tags,
   blurb: v.blurb,
   happy_hour: v.happy_hour ?? null,
+  artists: ((v as any).shows ?? []).map((s: any) => s.artist as string),
 }));
 ---
 <Base title="Search" current="Search">
@@ -81,12 +82,15 @@ const searchable = allVenues.map((v) => ({
     return map[type] || 'Venue';
   }
 
-  function renderCard(v) {
+  function renderCard(v, q) {
     const side = sideOf(v.city);
     const tags = v.tags.slice(0, 3).map(t =>
       `<span class="tag">${t.replace('-',' ')}</span>`).join('');
     const hh = v.happy_hour
       ? `<span class="hh-badge">🍺 ${v.happy_hour}</span>` : '';
+    const matchedArtist = q && v.artists && v.artists.find(a => a.toLowerCase().includes(q));
+    const artistHint = matchedArtist
+      ? `<p class="rc-artist-hint">🎵 ${matchedArtist}</p>` : '';
     return `
       <a class="result-card" href="/venues/${v.slug}/" data-side="${side}">
         <div class="rc-left">
@@ -96,6 +100,7 @@ const searchable = allVenues.map((v) => ({
           </p>
           <strong class="rc-name">${v.name}</strong>
           <p class="rc-blurb">${v.blurb}</p>
+          ${artistHint}
           ${hh}
           <div class="rc-tags">${tags}</div>
         </div>
@@ -127,11 +132,12 @@ const searchable = allVenues.map((v) => ({
         v.tags.some(t => t.includes(q)) ||
         v.type.includes(q) ||
         v.city.toLowerCase().includes(q) ||
-        v.district.includes(q);
+        v.district.includes(q) ||
+        (v.artists && v.artists.some(a => a.toLowerCase().includes(q)));
       return matchSide && matchType && matchQ;
     });
 
-    resultsEl.innerHTML = filtered.map(renderCard).join('');
+    resultsEl.innerHTML = filtered.map(v => renderCard(v, q)).join('');
     emptyEl.classList.toggle('hidden', filtered.length > 0);
     countEl.textContent = filtered.length > 0
       ? `${filtered.length} result${filtered.length === 1 ? '' : 's'}` : '';
@@ -344,6 +350,13 @@ const searchable = allVenues.map((v) => ({
     color: var(--text-muted, #aaa);
     font-size: 0.85rem;
     margin-top: 1rem;
+  }
+
+  .rc-artist-hint {
+    font-size: 0.78rem;
+    color: var(--green-dark, #0e7c47);
+    font-weight: 600;
+    margin: 0 0 0.3rem;
   }
 
   .empty { color: var(--text-muted, #888); margin-top: 1rem; }

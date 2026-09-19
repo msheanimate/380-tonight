@@ -761,7 +761,7 @@ const { slug, name, shows = [], apis } = Astro.props;
         let showsHtml = '';
         if (evs) {
           const tmEv = evs.find(e => e.source === 'Ticketmaster');
-          const sgEv = evs.find(e => e.source === 'SeatGeek');
+          const sgEv = evs.find(e => e.source === 'SeatGeek' || (e.url && e.url.includes('seatgeek.com')));
           const tmLogo = tmEv ? `<a class="vc-tm-badge" href="${tmEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">TM</a>` : '';
           const sgLogo = sgEv ? `<a class="vc-sg-badge" href="${sgEv.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">SG</a>` : '';
           const firstAway = evs[0].away;

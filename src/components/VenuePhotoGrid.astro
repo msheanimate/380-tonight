@@ -1,0 +1,186 @@
+---
+/**
+ * VenuePhotoGrid — full photo gallery grid for the bottom of a venue page.
+ * Reads image files from public/photo-gallery/<slug>/ -- drop images in, they show up as cards.
+ * Separate from VenueGallery's hero slider, which reads from public/venue-photos/<slug>/.
+ * Renders nothing if the folder is empty.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+
+const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
+
+interface Props {
+  slug: string;
+  name: string;
+}
+const { slug, name } = Astro.props;
+
+let imgs: string[] = [];
+try {
+  const dir = path.join(process.cwd(), 'public', 'photo-gallery', slug);
+  const files = fs.readdirSync(dir)
+    .filter((f) => IMAGE_EXT.has(path.extname(f).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b));
+  imgs = files.map((f) => `/photo-gallery/${slug}/${f}`);
+} catch {
+  // no folder yet -- nothing to show
+}
+---
+
+{imgs.length > 0 && (
+  <>
+    <section class="pg" aria-label={`Photo gallery for ${name}`}>
+      <h2 class="pg-heading">Photos <span class="pg-count">{imgs.length}</span></h2>
+      <div class="pg-grid">
+        {imgs.map((src, i) => (
+          <button class="pg-card" type="button" data-index={String(i)} aria-label={`View photo ${i + 1} of ${name}`}>
+            <img src={src} alt={`${name} photo ${i + 1}`} loading="lazy" />
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <div class="pg-lightbox" id="pg-lightbox" hidden>
+      <button class="pg-lb-close" id="pg-lb-close" type="button" aria-label="Close">✕</button>
+      {imgs.length > 1 && (
+        <button class="pg-lb-prev" id="pg-lb-prev" type="button" aria-label="Previous photo">‹</button>
+      )}
+      <img class="pg-lb-img" id="pg-lb-img" src="" alt="" />
+      {imgs.length > 1 && (
+        <button class="pg-lb-next" id="pg-lb-next" type="button" aria-label="Next photo">›</button>
+      )}
+      <div class="pg-lb-counter" id="pg-lb-counter"></div>
+    </div>
+  </>
+)}
+
+<style>
+  .pg { margin: 28px 0 20px; }
+
+  .pg-heading {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .pg-count { font-size: 14px; font-weight: 600; color: var(--ink-3); }
+
+  .pg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .pg-card {
+    all: unset;
+    display: block;
+    cursor: pointer;
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: var(--card);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .pg-card:hover, .pg-card:focus-visible { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .pg-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .pg-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 14, .92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+  }
+  .pg-lightbox[hidden] { display: none; }
+
+  .pg-lb-img {
+    max-width: min(92vw, 1100px);
+    max-height: 86vh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+  }
+
+  .pg-lb-close, .pg-lb-prev, .pg-lb-next {
+    all: unset;
+    display: flex;
+    position: absolute;
+    cursor: pointer;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,.12);
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+  }
+  .pg-lb-close:hover, .pg-lb-prev:hover, .pg-lb-next:hover { background: rgba(255,255,255,.24); }
+
+  .pg-lb-close { top: 18px; right: 18px; width: 40px; height: 40px; font-size: 18px; }
+  .pg-lb-prev, .pg-lb-next { top: 50%; transform: translateY(-50%); width: 48px; height: 48px; font-size: 26px; }
+  .pg-lb-prev { left: 12px; }
+  .pg-lb-next { right: 12px; }
+
+  .pg-lb-counter {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(255,255,255,.12);
+    padding: 4px 12px;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+  }
+
+  @media (max-width: 480px) {
+    .pg-lb-prev, .pg-lb-next { width: 40px; height: 40px; font-size: 20px; }
+  }
+</style>
+
+<script>
+  const cards = Array.from(document.querySelectorAll<HTMLButtonElement>('.pg-card'));
+  const lightbox = document.getElementById('pg-lightbox');
+  const lbImg = document.getElementById('pg-lb-img') as HTMLImageElement | null;
+  const lbCounter = document.getElementById('pg-lb-counter');
+  const closeBtn = document.getElementById('pg-lb-close');
+  const prevBtn = document.getElementById('pg-lb-prev');
+  const nextBtn = document.getElementById('pg-lb-next');
+
+  const srcs = cards.map((c) => c.querySelector('img')?.getAttribute('src') || '');
+  let cur = 0;
+
+  function show() {
+    if (lbImg) lbImg.src = srcs[cur];
+    if (lbCounter) lbCounter.textContent = `${cur + 1} / ${srcs.length}`;
+  }
+  function open(i: number) {
+    cur = i;
+    show();
+    if (lightbox) lightbox.hidden = false;
+  }
+  function close() {
+    if (lightbox) lightbox.hidden = true;
+  }
+  function next() { cur = (cur + 1) % srcs.length; show(); }
+  function prev() { cur = (cur - 1 + srcs.length) % srcs.length; show(); }
+
+  cards.forEach((c, i) => c.addEventListener('click', () => open(i)));
+  closeBtn?.addEventListener('click', close);
+  nextBtn?.addEventListener('click', next);
+  prevBtn?.addEventListener('click', prev);
+  lightbox?.addEventListener('click', (e) => { if (e.target === lightbox) close(); });
+  document.addEventListener('keydown', (e) => {
+    if (lightbox?.hidden) return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowRight') next();
+    if (e.key === 'ArrowLeft') prev();
+  });
+</script>

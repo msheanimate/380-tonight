@@ -7,6 +7,9 @@ const side = sideOf(v.city);
 const district = districtBySlug(v.district);
 ---
 <article class:list={['card', { pick }]} data-side={side} data-tags={v.tags.join(' ')} data-type={v.type} data-district={v.district} data-name={v.name.toLowerCase()}>
+  <button type="button" class="card-like-btn" data-slug={v.slug} aria-pressed="false" aria-label={`Like ${v.name}`}>
+    <span class="like-icon" aria-hidden="true">♡</span>
+  </button>
   {media && (
     <div class="media">
       {v.photo ? (

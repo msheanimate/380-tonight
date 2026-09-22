@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-19",
+  "shows": [
+    {
+      "venue_slug": "wildwood-smokehouse-saloon",
+      "title": "Phantom",
+      "time": "8:00 PM",
+      "ticket_url": "https://www.songkick.com/concerts/43294717-phantom-at-wildwood-smokehouse-and-saloon"
+    },
+    {
+      "venue_slug": "gabes",
+      "title": "Club Hangout Reunion ft DJ Big D Don Black, DJ Ice & DJ NYJ",
+      "time": "8:00 PM",
+      "ticket_url": "https://www.tixr.com/groups/gabes/events/club-hangout-reunion-ft-dj-big-d-don-black-dj-ice-dj-nyj-206794"
+    }
+  ]
+}

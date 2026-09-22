@@ -1,0 +1,169 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Log in" description="Log in or sign up for The 380 to save your favorite venues.">
+  <div class="auth-wrap">
+    <div class="auth-intro">
+      <h1>Log in or sign up</h1>
+      <p class="auth-sub">Save venues you like and find them again on your profile.</p>
+    </div>
+
+    <div class="auth-page">
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="auth-tab active" id="tab-login" role="tab" aria-selected="true">Log in</button>
+        <button type="button" class="auth-tab" id="tab-signup" role="tab" aria-selected="false">Sign up</button>
+      </div>
+
+      <form id="auth-form" class="auth-form" novalidate>
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" required autocomplete="email" />
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" required autocomplete="current-password" minlength="6" />
+        <button type="submit" class="btn" id="auth-submit">Log in</button>
+        <p class="auth-message" id="auth-message" role="status" hidden></p>
+      </form>
+
+      <p class="auth-unconfigured" id="auth-unconfigured" hidden>
+        Accounts aren't connected yet -- check back soon.
+      </p>
+    </div>
+  </div>
+
+  <style>
+    /* Login keeps the same Kinnick photo as every other page, but with a
+       heavier, neutral-gray overlay so it reads calmer than the rest of the
+       site -- see --photo-scrim-heavy in global.css. */
+    :global(main) {
+      background-image: var(--photo-scrim-heavy), var(--photo-url);
+      background-size: cover, cover;
+      background-position: center, center 30%;
+      background-repeat: no-repeat, no-repeat;
+      background-attachment: fixed, fixed;
+    }
+
+    .auth-wrap {
+      max-width: 460px;
+      margin: 0 auto 48px;
+      padding-top: clamp(16px, 6vh, 56px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+    .auth-intro { text-align: center; }
+    .auth-intro h1 { margin: 0 0 10px; }
+    .auth-sub { color: var(--ink-on-photo-2); margin: 0; max-width: 380px; }
+
+    .auth-page {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      width: 100%;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 28px 28px 32px;
+    }
+    .auth-page::before {
+      content: '';
+      position: absolute;
+      inset: -40px;
+  background-image: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)), var(--photo-url);
+  background-size: cover, cover;
+  background-position: center, center 30%;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: scroll, fixed;
+  filter: blur(28px);
+  z-index: 0;
+}
+    .auth-page > * { position: relative; z-index: 1; }
+    .auth-tabs { display: flex; gap: 4px; background: var(--field-bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 20px; }
+    .auth-tabs[hidden] { display: none; }
+    .auth-tab {
+      flex: 1; border: none; background: none; padding: 10px 12px; border-radius: calc(var(--radius-sm) - 4px);
+      font-family: inherit; font-size: 14px; font-weight: 700; color: var(--ink-2); cursor: pointer;
+    }
+    .auth-tab.active { background: #fff; color: var(--ink); box-shadow: var(--shadow); }
+    .auth-form { display: flex; flex-direction: column; gap: 6px; }
+    .auth-form[hidden] { display: none; }
+    .auth-form label { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-top: 8px; }
+    .auth-form input {
+      font-family: inherit; font-size: 15px; height: 46px; padding: 0 14px; border: 1px solid var(--field-border);
+      border-radius: 999px; background: var(--field-bg); color: var(--ink);
+    }
+    .auth-form input:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+    .auth-form .btn { margin-top: 16px; }
+    .auth-message { margin: 12px 0 0; font-size: 14px; padding: 10px 12px; border-radius: var(--radius-sm); }
+    .auth-message.ok { background: var(--green-soft); color: var(--green-dark); }
+    .auth-message.error { background: #fdecea; color: #b3261e; }
+    .auth-unconfigured { color: var(--ink-3); font-style: italic; }
+  </style>
+
+  <script>
+    import { supabase, supabaseConfigured } from '../lib/supabase';
+
+    const form = document.getElementById('auth-form') as HTMLFormElement | null;
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const submitBtn = document.getElementById('auth-submit') as HTMLButtonElement | null;
+    const messageEl = document.getElementById('auth-message') as HTMLElement | null;
+    const unconfiguredEl = document.getElementById('auth-unconfigured');
+
+    if (!supabaseConfigured || !supabase) {
+      form?.setAttribute('hidden', '');
+      document.querySelector('.auth-tabs')?.setAttribute('hidden', '');
+      unconfiguredEl?.removeAttribute('hidden');
+    } else {
+      let mode: 'login' | 'signup' = 'login';
+
+      function setMode(next: 'login' | 'signup') {
+        mode = next;
+        tabLogin?.setAttribute('aria-selected', String(mode === 'login'));
+        tabSignup?.setAttribute('aria-selected', String(mode === 'signup'));
+        tabLogin?.classList.toggle('active', mode === 'login');
+        tabSignup?.classList.toggle('active', mode === 'signup');
+        if (submitBtn) submitBtn.textContent = mode === 'login' ? 'Log in' : 'Sign up';
+        if (messageEl) { messageEl.hidden = true; messageEl.textContent = ''; }
+      }
+      tabLogin?.addEventListener('click', () => setMode('login'));
+      tabSignup?.addEventListener('click', () => setMode('signup'));
+
+      function showMessage(text: string, kind: 'ok' | 'error') {
+        if (!messageEl) return;
+        messageEl.textContent = text;
+        messageEl.className = `auth-message ${kind}`;
+        messageEl.hidden = false;
+      }
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = (document.getElementById('auth-email') as HTMLInputElement)?.value.trim();
+        const password = (document.getElementById('auth-password') as HTMLInputElement)?.value;
+        if (!email || !password || !supabase) return;
+
+        if (submitBtn) submitBtn.disabled = true;
+        try {
+          if (mode === 'login') {
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) { showMessage(error.message, 'error'); return; }
+            location.href = '/create-profile/';
+          } else {
+            const { data, error } = await supabase.auth.signUp({
+              email,
+              password,
+              options: { emailRedirectTo: `${window.location.origin}/create-profile/` },
+            });
+            if (error) { showMessage(error.message, 'error'); return; }
+            if (data.session) {
+              location.href = '/create-profile/';
+            } else {
+              showMessage('Check your email to confirm your account, then log in.', 'ok');
+            }
+          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+    }
+  </script>
+</Base>

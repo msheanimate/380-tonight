@@ -1,0 +1,729 @@
+---
+import Base from '../layouts/Base.astro';
+import venuesIC from '../data/venues-iowa-city.json';
+import venuesCR from '../data/venues-cedar-rapids.json';
+
+const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
+  slug: v.slug, name: v.name, city: v.city, type: v.type,
+}));
+---
+<Base title="Your profile" description="Your saved venues on The 380.">
+  <div id="profile-page" data-venues={JSON.stringify(venueIndex)}>
+    <div id="profile-signed-out">
+      <h1>You're not logged in</h1>
+      <p><a href="/login/">Log in or sign up</a> to see your profile and the venues you've liked.</p>
+    </div>
+
+    <div id="profile-signed-in" hidden>
+      <h1>Your profile</h1>
+
+      <div class="avatar-row">
+        <div class="avatar avatar-lg" id="profile-avatar"></div>
+        <div class="avatar-actions">
+          <label class="btn secondary" for="avatar-file-input">Upload photo</label>
+          <input type="file" id="avatar-file-input" accept="image/*" hidden />
+          <button type="button" class="btn secondary" id="avatar-remove-btn" hidden>Remove photo</button>
+          <p class="avatar-error" id="avatar-error" hidden></p>
+        </div>
+      </div>
+
+      <form id="profile-form" class="dn-form">
+        <label for="display-name-input">Display name</label>
+        <input id="display-name-input" type="text" maxlength="60" />
+
+        <label for="bio-input">About you</label>
+        <textarea id="bio-input" maxlength="160" rows="2" placeholder="A line about what you're into around town"></textarea>
+
+        <label for="home-city-input">Home base</label>
+        <div class="dd-picker" id="home-city-picker">
+          <input type="text" id="home-city-input" autocomplete="off" placeholder="Prefer not to say" />
+          <button type="button" class="dd-clear" id="home-city-clear" hidden aria-label="Clear home base">&times;</button>
+          <div class="hs-dropdown" id="home-city-dropdown" hidden></div>
+        </div>
+        <div class="home-other-row" id="home-other-row" hidden>
+          <input id="home-city-other-input" type="text" placeholder="City" maxlength="60" />
+          <input id="home-state-other-input" type="text" placeholder="State" maxlength="30" />
+        </div>
+
+        <label for="favorite-type-input">Favorite kind of night out</label>
+        <div class="dd-picker" id="favorite-type-picker">
+          <input type="text" id="favorite-type-input" autocomplete="off" placeholder="Prefer not to say" />
+          <button type="button" class="dd-clear" id="favorite-type-clear" hidden aria-label="Clear favorite type">&times;</button>
+          <div class="hs-dropdown" id="favorite-type-dropdown" hidden></div>
+        </div>
+
+        <button type="submit" class="btn secondary">Save profile</button>
+        <a href="/u/" id="username-view-link" class="username-view-link" hidden>View your public page &rarr;</a>
+        <p class="avatar-error" id="profile-save-error" hidden></p>
+      </form>
+
+      <h2>Your photos</h2>
+      <div id="gallery-grid" class="gallery-grid"></div>
+      <p id="gallery-empty" hidden>No photos yet -- add a few from nights out.</p>
+      <label class="btn secondary" for="gallery-file-input" id="gallery-add-label">Add photos</label>
+      <input type="file" id="gallery-file-input" accept="image/*" multiple hidden />
+      <p class="avatar-error" id="gallery-error" hidden></p>
+
+      <h2>Your go-to's</h2>
+      <div id="liked-venues" class="liked-grid"></div>
+      <p id="liked-empty" hidden>No go-to's yet -- tap the heart on a venue you love. <a href="/">Find something for tonight</a>.</p>
+
+      <h2>Friends</h2>
+      <div class="friend-toolbar">
+        <button type="button" class="btn secondary" id="friend-search-toggle">+ Add friend</button>
+        <div class="friend-search" id="friend-search" hidden>
+          <input type="text" id="friend-search-input" autocomplete="off" placeholder="Find people by name or handle" />
+          <div class="friend-search-results" id="friend-search-results" hidden></div>
+        </div>
+      </div>
+      <div id="friend-requests-section" class="friend-requests-section" hidden>
+        <h2>Friend requests</h2>
+        <div id="friend-requests-list" class="friend-list"></div>
+      </div>
+      <div id="friends-list" class="friend-list"></div>
+      <p id="friends-empty" hidden>No friends yet -- search for them above, or add them from their public page.</p>
+
+      <button type="button" class="btn secondary" id="logout-btn">Log out</button>
+    </div>
+
+    <div id="profile-unconfigured" hidden>
+      <h1>Your profile</h1>
+      <p class="auth-unconfigured">Accounts aren't connected yet -- check back soon.</p>
+    </div>
+  </div>
+
+  <style>
+    #profile-page { max-width: 640px; margin: 0 auto 48px; }
+    /* #profile-signed-out sits directly on the bare photo canvas, not a
+       card -- its plain <p> was inheriting the dark --ink body color,
+       illegible over the dark photo. */
+    #profile-signed-out p { color: var(--ink-on-photo-2); }
+    #profile-signed-out p a { color: var(--green); font-weight: 700; text-decoration: none; }
+    #profile-signed-out p a:hover { text-decoration: underline; }
+    .avatar-row { display: flex; align-items: center; gap: 16px; margin: 16px 0; }
+    .avatar-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .avatar-actions label.btn { cursor: pointer; }
+    .avatar-error { color: #b3261e; font-size: 13px; margin: 0; }
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin: 12px 0 16px;
+    }
+    .gallery-card { position: relative; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow); background: var(--card); }
+    .gallery-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gallery-remove {
+      all: unset; position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(0,0,0,.55); color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; cursor: pointer; line-height: 1;
+    }
+    .gallery-remove:hover { background: rgba(0,0,0,.75); }
+    #gallery-add-label { cursor: pointer; }
+    .dn-form { display: flex; flex-direction: column; gap: 4px; margin: 16px 0 32px; max-width: 420px; }
+    .dn-form label { font-size: 13px; font-weight: 600; color: var(--ink-on-photo-2); margin-top: 12px; }
+    .dn-form label:first-child { margin-top: 0; }
+    .dn-form input, .dn-form textarea {
+      font-family: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-sm); background: var(--card); color: var(--ink);
+    }
+    .dn-form textarea { resize: vertical; }
+    .home-other-row { display: flex; gap: 8px; margin-top: 6px; }
+    .home-other-row[hidden] { display: none; }
+    .home-other-row input { flex: 1; }
+    .dn-form input:focus, .dn-form textarea:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    .dn-form .btn { margin-top: 18px; align-self: flex-start; }
+    .dn-form .dd-picker { position: relative; }
+    .dn-form .dd-picker input { width: 100%; box-sizing: border-box; padding: 10px 34px 10px 12px; cursor: pointer; }
+    .dd-picker .hs-dropdown { max-height: 260px; overflow-y: auto; }
+    .dd-clear {
+      all: unset; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-size: 16px; line-height: 1; color: var(--ink-3); cursor: pointer;
+    }
+    .dd-clear[hidden] { display: none; }
+    .dd-clear:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
+    .username-view-link { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 700; color: var(--green-dark); text-decoration: none; }
+    .username-view-link[hidden] { display: none; }
+    .username-view-link:hover { text-decoration: underline; }
+    .friend-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 16px; }
+    /* .friend-card and its .fc-* children now live in global.css -- see note there */
+    .friend-toolbar { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin: 12px 0 4px; }
+    .friend-search { flex: 1 1 220px; max-width: 420px; }
+    .friend-search[hidden] { display: none; }
+    .friend-search input {
+      width: 100%; box-sizing: border-box; font-family: inherit; font-size: 15px;
+      padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      background: var(--card); color: var(--ink);
+    }
+    .friend-search input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    .friend-requests-section { margin: 0 0 16px auto; max-width: 320px; }
+    .friend-requests-section[hidden] { display: none; }
+    .liked-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0 24px;
+    }
+    .liked-card {
+      display: block; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--card);
+      box-shadow: var(--shadow); text-decoration: none; color: var(--ink);
+    }
+    .liked-card .lc-name { font-weight: 700; }
+    .liked-card .lc-meta { display: block; margin-top: 2px; font-size: 13px; color: var(--ink-3); }
+    #logout-btn { margin-top: 12px; }
+    .auth-unconfigured { color: var(--ink-3); font-style: italic; }
+  </style>
+
+  <script>
+    import { supabase, supabaseConfigured } from '../lib/supabase';
+    import { paintAvatar } from '../lib/avatar';
+    import { createDropdownPicker } from '../lib/dropdown';
+
+    interface VenueRef { slug: string; name: string; city: string; type: string }
+
+    const page = document.getElementById('profile-page') as HTMLElement | null;
+    const venueIndex: VenueRef[] = JSON.parse(page?.dataset.venues || '[]');
+    const venueBySlug = new Map(venueIndex.map((v) => [v.slug, v]));
+
+    const signedOutEl = document.getElementById('profile-signed-out');
+    const signedInEl = document.getElementById('profile-signed-in');
+    const unconfiguredEl = document.getElementById('profile-unconfigured');
+
+    if (!supabaseConfigured || !supabase) {
+      signedOutEl?.setAttribute('hidden', '');
+      unconfiguredEl?.removeAttribute('hidden');
+    } else {
+      const nameInput = document.getElementById('display-name-input') as HTMLInputElement | null;
+      const bioInput = document.getElementById('bio-input') as HTMLTextAreaElement | null;
+      const homeCityInput = document.getElementById('home-city-input') as HTMLInputElement | null;
+      const favoriteTypeInput = document.getElementById('favorite-type-input') as HTMLInputElement | null;
+      const homeCityPickerRoot = document.getElementById('home-city-picker') as HTMLElement | null;
+      const homeCityClear = document.getElementById('home-city-clear') as HTMLButtonElement | null;
+      const homeCityDropdown = document.getElementById('home-city-dropdown') as HTMLElement | null;
+      const favoriteTypePickerRoot = document.getElementById('favorite-type-picker') as HTMLElement | null;
+      const favoriteTypeClear = document.getElementById('favorite-type-clear') as HTMLButtonElement | null;
+      const favoriteTypeDropdown = document.getElementById('favorite-type-dropdown') as HTMLElement | null;
+      const homeOtherRow = document.getElementById('home-other-row') as HTMLElement | null;
+      const homeCityOtherInput = document.getElementById('home-city-other-input') as HTMLInputElement | null;
+      const homeStateOtherInput = document.getElementById('home-state-other-input') as HTMLInputElement | null;
+      const profileForm = document.getElementById('profile-form');
+      const likedGrid = document.getElementById('liked-venues');
+      const likedEmpty = document.getElementById('liked-empty') as HTMLElement | null;
+      const logoutBtn = document.getElementById('logout-btn');
+      const avatarEl = document.getElementById('profile-avatar') as HTMLElement | null;
+      const avatarFileInput = document.getElementById('avatar-file-input') as HTMLInputElement | null;
+      const avatarRemoveBtn = document.getElementById('avatar-remove-btn') as HTMLButtonElement | null;
+      const avatarError = document.getElementById('avatar-error') as HTMLElement | null;
+      const galleryGrid = document.getElementById('gallery-grid') as HTMLElement | null;
+      const galleryEmpty = document.getElementById('gallery-empty') as HTMLElement | null;
+      const galleryAddLabel = document.getElementById('gallery-add-label') as HTMLElement | null;
+      const galleryFileInput = document.getElementById('gallery-file-input') as HTMLInputElement | null;
+      const galleryError = document.getElementById('gallery-error') as HTMLElement | null;
+      const GALLERY_MAX = 12;
+      const usernameViewLink = document.getElementById('username-view-link') as HTMLAnchorElement | null;
+      const profileSaveError = document.getElementById('profile-save-error') as HTMLElement | null;
+      const friendRequestsSection = document.getElementById('friend-requests-section') as HTMLElement | null;
+      const friendRequestsList = document.getElementById('friend-requests-list') as HTMLElement | null;
+      const friendsList = document.getElementById('friends-list') as HTMLElement | null;
+      const friendsEmpty = document.getElementById('friends-empty') as HTMLElement | null;
+      const friendSearchEl = document.getElementById('friend-search') as HTMLElement | null;
+      const friendSearchToggle = document.getElementById('friend-search-toggle') as HTMLButtonElement | null;
+      const friendSearchInput = document.getElementById('friend-search-input') as HTMLInputElement | null;
+      const friendSearchResults = document.getElementById('friend-search-results') as HTMLElement | null;
+
+      const KNOWN_CITIES = ['Iowa City', 'Coralville', 'North Liberty', 'Cedar Rapids', 'Marion', 'Solon'];
+
+      const HOME_CITY_OPTIONS = [
+        { value: '', label: 'Prefer not to say' },
+        { value: 'Iowa City', label: 'Iowa City' },
+        { value: 'Coralville', label: 'Coralville' },
+        { value: 'North Liberty', label: 'North Liberty' },
+        { value: 'Cedar Rapids', label: 'Cedar Rapids' },
+        { value: 'Marion', label: 'Marion' },
+        { value: 'Solon', label: 'Solon' },
+        { value: 'other', label: 'Other' },
+      ];
+      const FAVORITE_TYPE_OPTIONS = [
+        { value: '', label: 'Prefer not to say' },
+        { value: 'bar', label: 'Bar' },
+        { value: 'restaurant', label: 'Restaurant' },
+        { value: 'brewery', label: 'Brewery' },
+        { value: 'cafe', label: 'Cafe' },
+        { value: 'music-venue', label: 'Music venue' },
+        { value: 'theater', label: 'Theater' },
+        { value: 'cinema', label: 'Cinema' },
+        { value: 'arena', label: 'Arena / sports' },
+        { value: 'other', label: 'Something else' },
+      ];
+
+      const homeCityPicker = (homeCityPickerRoot && homeCityInput && homeCityDropdown)
+        ? createDropdownPicker({
+            root: homeCityPickerRoot,
+            input: homeCityInput,
+            dropdown: homeCityDropdown,
+            clearBtn: homeCityClear,
+            options: HOME_CITY_OPTIONS,
+            showAllWhenEmpty: true,
+            maxResults: HOME_CITY_OPTIONS.length,
+            onChange: (value) => { if (homeOtherRow) homeOtherRow.hidden = value !== 'other'; },
+          })
+        : null;
+
+      const favoriteTypePicker = (favoriteTypePickerRoot && favoriteTypeInput && favoriteTypeDropdown)
+        ? createDropdownPicker({
+            root: favoriteTypePickerRoot,
+            input: favoriteTypeInput,
+            dropdown: favoriteTypeDropdown,
+            clearBtn: favoriteTypeClear,
+            options: FAVORITE_TYPE_OPTIONS,
+            showAllWhenEmpty: true,
+            maxResults: FAVORITE_TYPE_OPTIONS.length,
+          })
+        : null;
+
+      function resolveHomeCity(): string | null {
+        const value = homeCityPicker?.getValue() || '';
+        if (value === 'other') {
+          const city = homeCityOtherInput?.value.trim() || '';
+          const state = homeStateOtherInput?.value.trim() || '';
+          if (!city && !state) return null;
+          return state ? `${city}, ${state}` : city;
+        }
+        return value || null;
+      }
+
+      function showAvatarError(msg: string) {
+        if (!avatarError) return;
+        avatarError.textContent = msg;
+        avatarError.hidden = false;
+      }
+
+      function showGalleryError(msg: string) {
+        if (!galleryError) return;
+        galleryError.textContent = msg;
+        galleryError.hidden = false;
+      }
+
+      async function loadGallery(userId: string) {
+        const { data: photos } = await supabase!
+          .from('profile_photos')
+          .select('id, url, storage_path')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true });
+        const rows = photos || [];
+        if (galleryGrid) {
+          galleryGrid.innerHTML = rows.map((p: { id: number; url: string; storage_path: string }) =>
+            `<div class="gallery-card" data-id="${p.id}" data-path="${p.storage_path}"><img src="${p.url}" alt="" /><button type="button" class="gallery-remove" aria-label="Remove photo">\u00d7</button></div>`
+          ).join('');
+        }
+        if (galleryEmpty) galleryEmpty.hidden = rows.length > 0;
+        if (galleryAddLabel) galleryAddLabel.hidden = rows.length >= GALLERY_MAX;
+      }
+
+      interface FriendRow { id: string; username: string | null; display_name: string | null; avatar_url: string | null }
+
+      function slugifyUsername(name: string): string {
+        let base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 20).replace(/-+$/g, '');
+        if (base.length < 3) base = 'member';
+        return base;
+      }
+
+      function updateUsernameLink(username: string) {
+        if (!usernameViewLink) return;
+        if (username) {
+          usernameViewLink.href = `/u/?u=${encodeURIComponent(username)}`;
+          usernameViewLink.hidden = false;
+        } else {
+          usernameViewLink.hidden = true;
+        }
+      }
+
+      function buildFriendCard(f: FriendRow, actions: HTMLElement[]): HTMLElement {
+        const card = document.createElement('div');
+        card.className = 'friend-card';
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar avatar-sm';
+        paintAvatar(avatar, f.avatar_url, f.display_name, undefined);
+        const link = document.createElement('a');
+        link.className = 'fc-name';
+        link.textContent = f.display_name || f.username || 'Someone';
+        link.href = f.username ? `/u/?u=${encodeURIComponent(f.username)}` : '#';
+        const actionsWrap = document.createElement('div');
+        actionsWrap.className = 'fc-actions';
+        actions.forEach((a) => actionsWrap.appendChild(a));
+        card.append(avatar, link, actionsWrap);
+        return card;
+      }
+
+      function buildActionBtn(label: string, cls: string, onClick: () => void): HTMLButtonElement {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `fc-btn ${cls}`;
+        btn.textContent = label;
+        btn.addEventListener('click', onClick);
+        return btn;
+      }
+
+      async function loadFriends() {
+        const { data } = await supabase!.rpc('my_friends');
+        const rows: FriendRow[] = data || [];
+        if (friendsList) {
+          friendsList.innerHTML = '';
+          rows.forEach((f) => {
+            const removeBtn = buildActionBtn('Remove', 'fc-unfriend', async () => {
+              const { data: { session } } = await supabase!.auth.getSession();
+              if (!session?.user) return;
+              removeBtn.disabled = true;
+              await supabase!.from('friend_requests').delete()
+                .or(`and(requester_id.eq.${session.user.id},addressee_id.eq.${f.id}),and(requester_id.eq.${f.id},addressee_id.eq.${session.user.id})`);
+              await loadFriends();
+            });
+            friendsList!.appendChild(buildFriendCard(f, [removeBtn]));
+          });
+        }
+        if (friendsEmpty) friendsEmpty.hidden = rows.length > 0;
+      }
+
+      async function loadPendingRequests() {
+        const { data } = await supabase!.rpc('pending_friend_requests');
+        const rows = (data || []) as Array<{ request_id: number; requester_id: string; username: string | null; display_name: string | null; avatar_url: string | null }>;
+        if (friendRequestsList) {
+          friendRequestsList.innerHTML = '';
+          rows.forEach((r) => {
+            const acceptBtn = buildActionBtn('Accept', 'fc-accept', async () => {
+              acceptBtn.disabled = true;
+              await supabase!.from('friend_requests').update({ status: 'accepted', responded_at: new Date().toISOString() }).eq('id', r.request_id);
+              await Promise.all([loadPendingRequests(), loadFriends()]);
+            });
+            const declineBtn = buildActionBtn('Decline', 'fc-decline', async () => {
+              declineBtn.disabled = true;
+              await supabase!.from('friend_requests').delete().eq('id', r.request_id);
+              await loadPendingRequests();
+            });
+            friendRequestsList!.appendChild(buildFriendCard(
+              { id: r.requester_id, username: r.username, display_name: r.display_name, avatar_url: r.avatar_url },
+              [acceptBtn, declineBtn]
+            ));
+          });
+        }
+        if (friendRequestsSection) friendRequestsSection.hidden = rows.length === 0;
+      }
+
+      interface SearchRow extends FriendRow { relationship: string; request_id: number | null }
+
+      let searchResults: SearchRow[] = [];
+      let searchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+      function buildSearchRowActions(row: SearchRow): HTMLElement[] {
+        if (row.relationship === 'accepted') {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = '\u2713 Friends';
+          return [status];
+        }
+        if (row.relationship === 'pending_sent') {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = 'Pending';
+          const cancelBtn = buildActionBtn('Cancel', 'fc-unfriend', async () => {
+            cancelBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', row.request_id);
+            row.relationship = 'none';
+            row.request_id = null;
+            renderSearchResults();
+          });
+          return [status, cancelBtn];
+        }
+        if (row.relationship === 'pending_received') {
+          const acceptBtn = buildActionBtn('Accept', 'fc-accept', async () => {
+            acceptBtn.disabled = true;
+            await supabase!.from('friend_requests').update({ status: 'accepted', responded_at: new Date().toISOString() }).eq('id', row.request_id);
+            row.relationship = 'accepted';
+            renderSearchResults();
+            await Promise.all([loadFriends(), loadPendingRequests()]);
+          });
+          const declineBtn = buildActionBtn('Decline', 'fc-decline', async () => {
+            declineBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', row.request_id);
+            row.relationship = 'none';
+            row.request_id = null;
+            renderSearchResults();
+            await loadPendingRequests();
+          });
+          return [acceptBtn, declineBtn];
+        }
+        const addBtn = buildActionBtn('Add', 'fc-accept', async () => {
+          addBtn.disabled = true;
+          const { data: { session } } = await supabase!.auth.getSession();
+          if (!session?.user) { addBtn.disabled = false; return; }
+          const { data, error } = await supabase!.from('friend_requests')
+            .insert({ requester_id: session.user.id, addressee_id: row.id })
+            .select('id')
+            .single();
+          if (!error) {
+            row.relationship = 'pending_sent';
+            row.request_id = (data as { id: number } | null)?.id ?? null;
+            renderSearchResults();
+          } else {
+            addBtn.disabled = false;
+          }
+        });
+        return [addBtn];
+      }
+
+      function renderSearchResults() {
+        if (!friendSearchResults) return;
+        friendSearchResults.innerHTML = '';
+        if (!searchResults.length) {
+          friendSearchResults.innerHTML = '<p class="fsr-empty">No one found.</p>';
+          return;
+        }
+        searchResults.forEach((row) => {
+          friendSearchResults!.appendChild(buildFriendCard(row, buildSearchRowActions(row)));
+        });
+      }
+
+      function collapseFriendSearch() {
+        if (friendSearchEl) friendSearchEl.hidden = true;
+        if (friendSearchResults) friendSearchResults.hidden = true;
+        if (friendSearchInput) friendSearchInput.value = '';
+        searchResults = [];
+      }
+
+      friendSearchToggle?.addEventListener('click', () => {
+        if (!friendSearchEl) return;
+        const opening = friendSearchEl.hidden;
+        if (opening) {
+          friendSearchEl.hidden = false;
+          friendSearchInput?.focus();
+        } else {
+          collapseFriendSearch();
+        }
+      });
+
+      friendSearchInput?.addEventListener('input', () => {
+        const q = friendSearchInput.value.trim();
+        clearTimeout(searchDebounce);
+        if (q.length < 2) {
+          searchResults = [];
+          if (friendSearchResults) friendSearchResults.hidden = true;
+          return;
+        }
+        searchDebounce = setTimeout(async () => {
+          const { data } = await supabase!.rpc('search_profiles', { p_query: q });
+          if (friendSearchInput.value.trim() !== q) return; // stale response -- input has moved on
+          searchResults = (data as SearchRow[]) || [];
+          if (friendSearchResults) friendSearchResults.hidden = false;
+          renderSearchResults();
+        }, 300);
+      });
+
+      friendSearchInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          collapseFriendSearch();
+          friendSearchInput.blur();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        const target = e.target as Node;
+        if (friendSearchToggle?.contains(target)) return;
+        if (friendSearchEl && !friendSearchEl.hidden && !friendSearchEl.contains(target)) {
+          collapseFriendSearch();
+        }
+      });
+
+      async function loadProfile(userId: string) {
+        const { data: profile } = await supabase!
+          .from('profiles')
+          .select('display_name, bio, home_city, favorite_type, avatar_url, username')
+          .eq('id', userId)
+          .maybeSingle();
+        if (nameInput) nameInput.value = profile?.display_name || '';
+        if (bioInput) bioInput.value = profile?.bio || '';
+        const homeCity = profile?.home_city || '';
+        if (homeCity && !KNOWN_CITIES.includes(homeCity)) {
+          homeCityPicker?.setValue('other', { silent: true });
+          if (homeOtherRow) homeOtherRow.hidden = false;
+          const lastComma = homeCity.lastIndexOf(',');
+          if (homeCityOtherInput) homeCityOtherInput.value = lastComma > -1 ? homeCity.slice(0, lastComma).trim() : homeCity;
+          if (homeStateOtherInput) homeStateOtherInput.value = lastComma > -1 ? homeCity.slice(lastComma + 1).trim() : '';
+        } else {
+          homeCityPicker?.setValue(homeCity, { silent: true });
+          if (homeOtherRow) homeOtherRow.hidden = true;
+        }
+        favoriteTypePicker?.setValue(profile?.favorite_type || '', { silent: true });
+        updateUsernameLink(profile?.username || '');
+        paintAvatar(avatarEl, profile?.avatar_url, profile?.display_name, undefined);
+        if (avatarRemoveBtn) avatarRemoveBtn.hidden = !profile?.avatar_url;
+
+        await loadGallery(userId);
+        await Promise.all([loadFriends(), loadPendingRequests()]);
+
+        const { data: likes } = await supabase!.from('likes').select('venue_slug').eq('user_id', userId);
+        const slugs = (likes || []).map((l: { venue_slug: string }) => l.venue_slug);
+        if (likedGrid) {
+          likedGrid.innerHTML = slugs.map((slug: string) => {
+            const v = venueBySlug.get(slug);
+            if (!v) return '';
+            return `<a class="liked-card" href="/venues/${v.slug}/"><span class="lc-name">${v.name}</span><span class="lc-meta">${v.city} · ${v.type}</span></a>`;
+          }).join('');
+        }
+        if (likedEmpty) likedEmpty.hidden = slugs.length > 0;
+      }
+
+      async function reflect(session: { user?: { id: string } } | null) {
+        if (session?.user) {
+          signedOutEl?.setAttribute('hidden', '');
+          signedInEl?.removeAttribute('hidden');
+          await loadProfile(session.user.id);
+        } else {
+          signedOutEl?.removeAttribute('hidden');
+          signedInEl?.setAttribute('hidden', '');
+        }
+      }
+
+      supabase.auth.getSession().then(({ data }) => reflect(data.session));
+
+      profileForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const { data: { session } } = await supabase!.auth.getSession();
+        if (!session?.user || !nameInput) return;
+
+        const displayName = nameInput.value.trim();
+        const baseFields = {
+          id: session.user.id,
+          display_name: displayName,
+          bio: bioInput?.value.trim() || null,
+          home_city: resolveHomeCity(),
+          favorite_type: favoriteTypePicker?.getValue() || null,
+        };
+
+        // Your username isn't a separate thing you manage -- it's just a
+        // URL-safe version of your display name, generated automatically so
+        // your public page (/u/?u=...) always matches. If that collides with
+        // someone else's, we quietly tack on a couple of digits and retry.
+        let username = slugifyUsername(displayName || session.user.email?.split('@')[0] || 'member');
+        let saved = false;
+        let lastError: { message: string; code?: string } | null = null;
+        for (let attempt = 0; attempt < 6; attempt++) {
+          const { error } = await supabase!.from('profiles').upsert({ ...baseFields, username });
+          if (!error) { saved = true; break; }
+          lastError = error;
+          if (error.code === '23505') {
+            username = `${username.slice(0, 17)}-${Math.floor(10 + Math.random() * 90)}`;
+            continue;
+          }
+          break;
+        }
+
+        if (!saved) {
+          if (profileSaveError) {
+            profileSaveError.textContent = `Didn't save: ${lastError?.message || 'unknown error'}`;
+            profileSaveError.hidden = false;
+          }
+          return;
+        }
+
+        if (profileSaveError) profileSaveError.hidden = true;
+        // Saving is the last step of editing -- send them to see the result
+        // on their own public page rather than leaving them on the form.
+        location.href = `/u/?u=${encodeURIComponent(username)}`;
+      });
+
+      avatarFileInput?.addEventListener('change', async () => {
+        const file = avatarFileInput.files?.[0];
+        if (!file) return;
+        if (avatarError) avatarError.hidden = true;
+        if (!file.type.startsWith('image/')) { showAvatarError('That file is not an image.'); return; }
+        if (file.size > 5 * 1024 * 1024) { showAvatarError('Please pick an image under 5MB.'); return; }
+
+        const { data: { session } } = await supabase!.auth.getSession();
+        if (!session?.user) return;
+
+        avatarFileInput.disabled = true;
+        try {
+          const { error: uploadError } = await supabase!.storage
+            .from('avatars')
+            .upload(session.user.id, file, { upsert: true, contentType: file.type });
+          if (uploadError) { showAvatarError(uploadError.message); return; }
+
+          const { data: pub } = supabase!.storage.from('avatars').getPublicUrl(session.user.id);
+          const freshUrl = `${pub.publicUrl}?v=${Date.now()}`;
+
+          await supabase!.from('profiles').upsert({ id: session.user.id, avatar_url: freshUrl });
+          paintAvatar(avatarEl, freshUrl, nameInput?.value, undefined);
+          paintAvatar(document.getElementById('auth-avatar'), freshUrl, nameInput?.value, undefined);
+          if (avatarRemoveBtn) avatarRemoveBtn.hidden = false;
+        } finally {
+          avatarFileInput.disabled = false;
+          avatarFileInput.value = '';
+        }
+      });
+
+      avatarRemoveBtn?.addEventListener('click', async () => {
+        const { data: { session } } = await supabase!.auth.getSession();
+        if (!session?.user) return;
+        avatarRemoveBtn.disabled = true;
+        try {
+          await supabase!.storage.from('avatars').remove([session.user.id]);
+          await supabase!.from('profiles').upsert({ id: session.user.id, avatar_url: null });
+          paintAvatar(avatarEl, null, nameInput?.value, undefined);
+          paintAvatar(document.getElementById('auth-avatar'), null, nameInput?.value, undefined);
+          avatarRemoveBtn.hidden = true;
+        } finally {
+          avatarRemoveBtn.disabled = false;
+        }
+      });
+
+      galleryFileInput?.addEventListener('change', async () => {
+        const files = Array.from(galleryFileInput.files || []);
+        if (!files.length) return;
+        if (galleryError) galleryError.hidden = true;
+
+        const { data: { session } } = await supabase!.auth.getSession();
+        if (!session?.user) return;
+
+        const currentCount = galleryGrid?.children.length || 0;
+        const room = GALLERY_MAX - currentCount;
+        if (room <= 0) { showGalleryError(`You've reached the ${GALLERY_MAX}-photo limit -- remove one first.`); galleryFileInput.value = ''; return; }
+        const toUpload = files.slice(0, room);
+        if (files.length > toUpload.length) showGalleryError(`Only added ${toUpload.length} -- that's the ${GALLERY_MAX}-photo limit.`);
+
+        galleryFileInput.disabled = true;
+        try {
+          for (const file of toUpload) {
+            if (!file.type.startsWith('image/')) { showGalleryError(`${file.name} is not an image -- skipped.`); continue; }
+            if (file.size > 5 * 1024 * 1024) { showGalleryError(`${file.name} is over 5MB -- skipped.`); continue; }
+
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+            const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
+            const { error: uploadError } = await supabase!.storage.from('profile-photos').upload(path, file, { contentType: file.type });
+            if (uploadError) { showGalleryError(uploadError.message); continue; }
+
+            const { data: pub } = supabase!.storage.from('profile-photos').getPublicUrl(path);
+            await supabase!.from('profile_photos').insert({ user_id: session.user.id, url: pub.publicUrl, storage_path: path });
+          }
+          await loadGallery(session.user.id);
+        } finally {
+          galleryFileInput.disabled = false;
+          galleryFileInput.value = '';
+        }
+      });
+
+      galleryGrid?.addEventListener('click', async (e) => {
+        const btn = (e.target as HTMLElement).closest('.gallery-remove');
+        if (!btn) return;
+        const card = btn.closest('.gallery-card') as HTMLElement | null;
+        const id = card?.dataset.id;
+        const path = card?.dataset.path;
+        if (!id || !path) return;
+        const { data: { session } } = await supabase!.auth.getSession();
+        if (!session?.user) return;
+        card.style.opacity = '0.4';
+        await supabase!.storage.from('profile-photos').remove([path]);
+        await supabase!.from('profile_photos').delete().eq('id', id).eq('user_id', session.user.id);
+        await loadGallery(session.user.id);
+      });
+
+      logoutBtn?.addEventListener('click', async () => {
+        await supabase!.auth.signOut();
+        location.href = '/';
+      });
+    }
+  </script>
+</Base>

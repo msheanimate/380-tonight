@@ -8,6 +8,8 @@ const { title, description = "What's on tonight in the Cedar Rapids–Iowa City 
 const searchData = [...venuesIC, ...venuesCR].map((v) => ({
   n: v.name, s: v.slug, t: v.type, c: v.city, b: v.blurb.slice(0, 80)
 }));
+const pathname = Astro.url.pathname;
+const cityActive = pathname.startsWith('/iowa-city') ? 'ic' : pathname.startsWith('/cedar-rapids') ? 'cr' : 'all';
 const nav = [
   ['/', 'Tonight', 'tonight'],
   ['/drink/', 'Drink', 'drink'],
@@ -24,28 +26,54 @@ const tabs = nav.slice(0, 5);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#1C1A22" />
     <title>{title} · The 380</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="The 380" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nobile:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Nobile:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Poiret+One&display=swap" rel="stylesheet">
   </head>
   <body>
     <header class="site-header">
-      <div class="wrap">
-        <div class="city-toggle" role="group" aria-label="Which end of the Corridor">
-          <button class="nobile-regular" type="button" data-side="all" aria-pressed="true">Both</button>
-          <button class="nobile-regular" type="button" data-side="ic" aria-pressed="false"><span class="long">Iowa City</span><span class="short n">IC</span></button>
-          <button class="nobile-regular" type="button" data-side="cr" aria-pressed="false"><span class="long">Cedar Rapids</span><span class="short">CR</span></button>
-        </div>
-        <div class="header-search" id="header-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input id="hs-input" type="search" placeholder="Search…" aria-label="Search venues" autocomplete="off" />
-          <div class="hs-dropdown" id="hs-dropdown" hidden></div>
+      <div class="wrap site-header-top">
+        <a class="brand" href="/">
+          <span class="word">THE 380</span>
+        </a>
+        <div class="site-header-tools">
+          <div class="city-toggle" role="group" aria-label="Which end of the Corridor">
+            <button type="button" data-side="all" aria-pressed={cityActive === "all" ? "true" : "false"}>Both</button>
+            <a class="city-link" href="/iowa-city/" data-side="ic" aria-current={cityActive === "ic" ? "page" : undefined}><span class="long">Iowa City</span><span class="short">IC</span></a>
+            <a class="city-link" href="/cedar-rapids/" data-side="cr" aria-current={cityActive === "cr" ? "page" : undefined}><span class="long">Cedar Rapids</span><span class="short">CR</span></a>
+          </div>
+          <div class="header-search" id="header-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input id="hs-input" type="search" placeholder="Search…" aria-label="Search venues" autocomplete="off" />
+            <div class="hs-dropdown" id="hs-dropdown" hidden></div>
+          </div>
+          <div class="auth-widget" id="auth-widget">
+            <a href="/login/" class="auth-link" id="auth-login-link">Log in</a>
+            <a href="/messages/" class="auth-link auth-messages-link" id="auth-messages-link" hidden>Messages</a>
+            <a href="/profile/" class="auth-link auth-loggedin" id="auth-profile-link" hidden>
+              <div class="avatar avatar-sm" id="auth-avatar"></div>
+              <span id="auth-display-name"></span>
+            </a>
+          </div>
         </div>
       </div>
+      <nav class="site-nav" aria-label="Sections">
+        <div class="wrap">
+          {nav.map(([href, label]) => (
+            <a href={href} aria-current={current === label ? 'page' : undefined}>{label}</a>
+          ))}
+        </div>
+      </nav>
     </header>
     <style>
       .header-search {
@@ -53,46 +81,57 @@ const tabs = nav.slice(0, 5);
         display: flex;
         align-items: center;
         gap: 6px;
-        background: rgba(255,255,255,0.12);
-        border: 1px solid rgba(255,255,255,0.25);
+        background: var(--field-bg);
+        border: 1px solid var(--field-border);
         border-radius: 999px;
         padding: 7px 14px 7px 10px;
-        width: 450px;
+        width: 280px;
       }
       .header-search svg {
         width: 15px;
         height: 15px;
-        color: rgba(255,255,255,0.8);
+        color: var(--ink-3);
         flex-shrink: 0;
       }
       .header-search input {
         background: none;
         border: none;
         outline: none;
-        color: #fff;
+        color: var(--ink);
         font-family: inherit;
         font-size: 14px;
         width: 100%;
         min-width: 0;
       }
-      .header-search input::placeholder { color: rgba(255,255,255,0.55); }
+      .header-search input::placeholder { color: var(--ink-3); }
       @media (max-width: 500px) { .header-search { width: 130px; } }
 
-      /* dropdown */
-
+      .auth-widget { display: flex; align-items: center; flex-shrink: 0; gap: 4px; }
+      .auth-link {
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        padding: 6px 4px;
+      }
+      .auth-link:hover { text-decoration: underline; }
+      .auth-messages-link[hidden] { display: none; }
+      .auth-loggedin {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 132px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .auth-loggedin[hidden] { display: none; }
+      .auth-loggedin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      @media (max-width: 500px) {
+        .auth-link { font-size: 13px; }
+        .auth-loggedin { max-width: 90px; }
+      }
     </style>
-    <nav class="site-nav" aria-label="Sections">
-      <div class="wrap">
-        <a class="brand" href="/">
-          <span class="mark" aria-hidden="true">380</span>
-          <span class="word">The 380<small>Tonight in the Corridor</small></span>
-        </a>
-        {nav.map(([href, label]) => (
-          
-          <a href={href} aria-current={current === label ? 'page' : undefined}>{label}</a>
-        ))}
-      </div>
-    </nav>
     <main>
       <div class="wrap">
         <slot />
@@ -117,8 +156,16 @@ const tabs = nav.slice(0, 5);
       // City toggle: remembered per device, filters anything with data-side.
       const KEY = 'the380.side';
       const buttons = document.querySelectorAll<HTMLButtonElement>('.city-toggle button');
+      const cityLinks = document.querySelectorAll<HTMLAnchorElement>('.city-toggle .city-link');
       function apply(side: string) {
         buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.side === side)));
+        cityLinks.forEach((a) => {
+          if (side !== 'all' && a.dataset.side === side) {
+            a.setAttribute('aria-current', 'page');
+          } else {
+            a.removeAttribute('aria-current');
+          }
+        });
         document.querySelectorAll<HTMLElement>('[data-side]').forEach((el) => {
           if (el.closest('.city-toggle')) return;
           el.classList.toggle('hidden', side !== 'all' && el.dataset.side !== side);
@@ -126,11 +173,26 @@ const tabs = nav.slice(0, 5);
         document.documentElement.dataset.side = side;
         document.dispatchEvent(new CustomEvent('sidechange', { detail: side }));
       }
+      const activeLink = document.querySelector('.city-toggle .city-link[aria-current="page"]');
       let saved = 'all';
-      try { saved = localStorage.getItem(KEY) || 'all'; } catch {}
+      if (activeLink) {
+        saved = (activeLink as HTMLElement).dataset.side || 'all';
+      } else {
+        try { saved = localStorage.getItem(KEY) || 'all'; } catch {}
+      }
       apply(saved);
       buttons.forEach((b) => b.addEventListener('click', () => {
         const side = b.dataset.side || 'all';
+        // The Iowa City / Cedar Rapids pages only ever render that one city's
+        // venues -- there is no "both" content on them to reveal. Clicking
+        // Both there should take you somewhere that actually has both, not
+        // just flip a filter with nothing behind it.
+        const onDedicatedCityPage = location.pathname.startsWith('/iowa-city') || location.pathname.startsWith('/cedar-rapids');
+        if (side === 'all' && onDedicatedCityPage) {
+          try { localStorage.setItem(KEY, 'all'); } catch {}
+          location.href = '/';
+          return;
+        }
         try { localStorage.setItem(KEY, side); } catch {}
         apply(side);
       }));
@@ -166,6 +228,52 @@ const tabs = nav.slice(0, 5);
           dropdown.hidden = true;
         }
       });
+    </script>
+    <script>
+      import { supabase, supabaseConfigured } from '../lib/supabase';
+      import { paintAvatar } from '../lib/avatar';
+      import { enableCardLikes } from '../lib/likes';
+
+      const loginLink = document.getElementById('auth-login-link') as HTMLElement | null;
+      const messagesLink = document.getElementById('auth-messages-link') as HTMLElement | null;
+      const profileLink = document.getElementById('auth-profile-link') as HTMLElement | null;
+      const nameSpan = document.getElementById('auth-display-name');
+      const avatarEl = document.getElementById('auth-avatar') as HTMLElement | null;
+
+      async function reflect(session: { user?: { id: string; email?: string } } | null) {
+        if (!loginLink || !profileLink) return;
+        if (session?.user) {
+          loginLink.hidden = true;
+          if (messagesLink) messagesLink.hidden = false;
+          profileLink.hidden = false;
+          if (nameSpan && supabase) {
+            const { data } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', session.user.id).maybeSingle();
+            nameSpan.textContent = data?.display_name || session.user.email?.split('@')[0] || 'Account';
+            paintAvatar(avatarEl, data?.avatar_url, data?.display_name, session.user.email);
+          }
+        } else {
+          loginLink.hidden = false;
+          if (messagesLink) messagesLink.hidden = true;
+          profileLink.hidden = true;
+        }
+      }
+
+      if (supabaseConfigured && supabase) {
+        enableCardLikes();
+        supabase.auth.getSession().then(({ data }) => reflect(data.session));
+        supabase.auth.onAuthStateChange((_event, session) => reflect(session));
+      }
+    </script>
+    <script>
+      // Registers the service worker (installability + offline fallback +
+      // Web Push). Safe to no-op on browsers that don't support it.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.warn('Service worker registration failed:', err);
+          });
+        });
+      }
     </script>
   </body>
 </html>

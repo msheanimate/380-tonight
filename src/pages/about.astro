@@ -11,3 +11,10 @@ import Base from '../layouts/Base.astro';
   <h2>Corrections</h2>
   <p>Every listing started from a public source and is marked until we've walked in. If your hours, happy hour, or address is wrong, email hello@380tonight.com and it's fixed the same day.</p>
 </Base>
+
+<style>
+  /* Bare paragraphs sit directly on the photo canvas here (no card wrapper),
+     so they need the light on-photo ink, same as .lede/h1/h2 already get
+     sitewide. Scoped to this file only -- does not touch Base.astro's footer. */
+  p { color: var(--ink-on-photo-2); }
+</style>

@@ -2,8 +2,58 @@
 import Base from '../layouts/Base.astro';
 import venuesIC from '../data/venues-iowa-city.json';
 import venuesCR from '../data/venues-cedar-rapids.json';
+import eventsRaw from '../data/events.json';
 
 const allVenues = [...venuesIC, ...venuesCR];
+// Central-Time "today", same convention as events.astro and the venue pages.
+const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+
+// Every upcoming show/event in the area as its own searchable row, so a
+// band name finds the gig (date, venue, tickets) rather than just the venue.
+// Sources: each venue's `shows` listings plus events.json (dated entries,
+// and weekly recurring ones like trivia or DJ nights).
+type ShowHit = {
+  artist: string; date: string; weekday: string | null; time: string | null; url: string | null;
+  slug: string; venue: string; city: string; kind: string;
+};
+// Generic words a person might type instead of a band name ("concert",
+// "live music", "game"), derived from the venue type and event category.
+const KIND_BY_TYPE: Record<string, string> = {
+  'music-venue': 'concert concerts show shows live music band bands gig gigs',
+  theater: 'concert concerts show shows theater theatre performance live music',
+  arena: 'concert concerts show shows game games live music sports',
+};
+const KIND_BY_CATEGORY: Record<string, string> = {
+  music: 'concert concerts show shows live music band bands',
+  'game-day': 'game games watch party football hawkeyes sports game day',
+  nightlife: 'nightlife night out',
+  arts: 'arts art show',
+  festival: 'festival festivals fest',
+};
+const kindFor = (v: any, extra = '') => `${KIND_BY_TYPE[v.type] ?? 'event events'} ${(v.tags ?? []).join(' ').replace(/-/g, ' ')} ${extra}`.toLowerCase();
+const venueBySlug = new Map(allVenues.map((v) => [v.slug, v]));
+const shows: ShowHit[] = [];
+for (const v of allVenues) {
+  for (const sh of ((v as any).shows ?? []) as any[]) {
+    if (typeof sh.date !== 'string' || sh.date < todayStr) continue;
+    shows.push({ artist: sh.artist, date: sh.date, weekday: null, time: sh.time ?? null, url: sh.url ?? null, slug: v.slug, venue: v.name, city: v.city, kind: kindFor(v) });
+  }
+}
+for (const e of eventsRaw as any[]) {
+  const ven = venueBySlug.get(e.venue_slug);
+  if (!ven) continue;
+  if (e.date === 'weekly') {
+    shows.push({ artist: e.title, date: 'weekly', weekday: e.weekday ?? null, time: e.time ?? null, url: null, slug: ven.slug, venue: ven.name, city: ven.city, kind: kindFor(ven, `${e.category} ${KIND_BY_CATEGORY[e.category] ?? ''} weekly`) });
+  } else if ((e.end_date ?? e.date) >= todayStr) {
+    shows.push({ artist: e.title, date: e.date, weekday: null, time: e.time ?? null, url: null, slug: ven.slug, venue: ven.name, city: ven.city, kind: kindFor(ven, `${e.category} ${KIND_BY_CATEGORY[e.category] ?? ''}`) });
+  }
+}
+// Soonest first; weekly recurring rows sort after every dated one.
+shows.sort((a, b) =>
+  Number(a.date === 'weekly') - Number(b.date === 'weekly') ||
+  a.date.localeCompare(b.date) ||
+  (a.time ?? '').localeCompare(b.time ?? ''));
+
 const searchable = allVenues.map((v) => ({
   slug: v.slug,
   name: v.name,
@@ -13,25 +63,25 @@ const searchable = allVenues.map((v) => ({
   tags: v.tags,
   blurb: v.blurb,
   happy_hour: v.happy_hour ?? null,
-  artists: ((v as any).shows ?? []).map((s: any) => s.artist as string),
+  artists: (((v as any).shows ?? []) as any[]).filter((s) => typeof s.date === 'string' && s.date >= todayStr).map((s) => s.artist as string),
 }));
 ---
 <Base title="Search" current="Search">
   <div class="search-page">
     <p class="kicker">Search</p>
-    <h1>Find a bar or restaurant</h1>
+    <h1>Find a bar, restaurant or show</h1>
 
     <div class="search-box">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       <input
         id="q"
         type="search"
-        placeholder="Name, vibe, tag…"
+        placeholder="Name, band, vibe, tag…"
         autocomplete="off"
         autocorrect="off"
         spellcheck="false"
         autofocus
-        aria-label="Search venues"
+        aria-label="Search venues and shows"
       />
       <button id="clear-btn" aria-label="Clear search" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -39,23 +89,27 @@ const searchable = allVenues.map((v) => ({
     </div>
 
     <div class="type-chips" id="type-chips">
-      <button class="chip active" data-type="" type="button">All</button>
-      <button class="chip" data-type="bar" type="button">Bars</button>
-      <button class="chip" data-type="brewery" type="button">Breweries</button>
-      <button class="chip" data-type="restaurant" type="button">Restaurants</button>
-      <button class="chip" data-type="music-venue" type="button">Music</button>
+      <button class="chip active" data-cat="" type="button">All</button>
+      <button class="chip" data-cat="bars" type="button">🍺 Bars</button>
+      <button class="chip" data-cat="nightlife" type="button">🌙 Nightlife</button>
+      <button class="chip" data-cat="game-day" type="button">🏈 Game Day</button>
+      <button class="chip" data-cat="music" type="button">🎵 Music</button>
+      <button class="chip" data-cat="restaurants" type="button">🍽 Restaurants</button>
+      <button class="chip" data-cat="breweries" type="button">🍻 Breweries</button>
+      <button class="chip" data-cat="cafes" type="button">☕ Cafes</button>
+      <button class="chip" data-cat="arts" type="button">🎭 Arts</button>
     </div>
 
     <p class="result-count" id="result-count" aria-live="polite"></p>
 
     <div id="results" class="results"></div>
     <p class="empty hidden" id="empty">Nothing matched — try a different word.</p>
-    <p class="search-hint" id="hint">Type to search all {allVenues.length} venues across Iowa City and Cedar Rapids.</p>
+    <p class="search-hint" id="hint">Type to search all {allVenues.length} venues and {shows.length} upcoming shows across Iowa City and Cedar Rapids.</p>
   </div>
 </Base>
 
-<script define:vars={{ searchable }}>
-  const input   = document.getElementById('q');
+<script define:vars={{ searchable, shows }}>
+  const input    = document.getElementById('q');
   const clearBtn = document.getElementById('clear-btn');
   const resultsEl = document.getElementById('results');
   const emptyEl   = document.getElementById('empty');
@@ -63,7 +117,39 @@ const searchable = allVenues.map((v) => ({
   const countEl   = document.getElementById('result-count');
   const chips     = Array.from(document.querySelectorAll('#type-chips .chip'));
 
-  let activeType = '';
+  let activeCat = '';
+
+  // Category definitions: each maps to arrays of matching types and/or tags.
+  // A venue matches if its type is in `types` OR any of its tags appear in `tags`.
+  const CAT_MAP = {
+    'bars':        { types: ['bar'],                         tags: [] },
+    'nightlife':   { types: ['bar'],                         tags: ['late-night', 'karaoke', 'dance', 'dive'] },
+    'game-day':    { types: ['bar', 'restaurant', 'arena'],  tags: ['game-day', 'sports-bar'] },
+    'music':       { types: ['music-venue', 'arena'],        tags: ['live-music'] },
+    'restaurants': { types: ['restaurant'],                  tags: [] },
+    'breweries':   { types: ['brewery'],                     tags: ['craft-beer'] },
+    'cafes':       { types: ['cafe'],                        tags: ['coffee'] },
+    'arts':        { types: ['theater', 'cinema', 'other'],  tags: ['all-ages'] },
+  };
+
+  // A venue matches the active category if:
+  //   - it has a matching type, OR
+  //   - it has at least one matching tag
+  // For "game-day" specifically we require the tag match (not just type:bar)
+  function matchesCat(v, cat) {
+    if (!cat) return true;
+    const def = CAT_MAP[cat];
+    if (!def) return true;
+    const typeMatch = def.types.includes(v.type);
+    const tagMatch  = def.tags.length > 0 && v.tags.some(t => def.tags.includes(t));
+
+    // Stricter categories: game-day and nightlife need the tag to avoid
+    // matching every bar in the list when no tag is present.
+    if (cat === 'game-day') return tagMatch;
+    if (cat === 'nightlife') return tagMatch;
+    if (cat === 'arts')      return typeMatch; // other type is too broad with tags
+    return typeMatch || tagMatch;
+  }
 
   function sideOf(city) {
     return ['Iowa City','Coralville','North Liberty','Solon'].includes(city) ? 'ic' : 'cr';
@@ -76,16 +162,18 @@ const searchable = allVenues.map((v) => ({
   }
 
   function typeLabel(type) {
-    const map = { bar:'Bar', brewery:'Brewery', restaurant:'Restaurant',
-      'music-venue':'Music Venue', theater:'Theater', cinema:'Cinema',
-      arena:'Arena', other:'Venue' };
+    const map = {
+      bar: 'Bar', brewery: 'Brewery', restaurant: 'Restaurant',
+      'music-venue': 'Music Venue', theater: 'Theater', cinema: 'Cinema',
+      arena: 'Arena', cafe: 'Café', other: 'Venue',
+    };
     return map[type] || 'Venue';
   }
 
   function renderCard(v, q) {
     const side = sideOf(v.city);
     const tags = v.tags.slice(0, 3).map(t =>
-      `<span class="tag">${t.replace('-',' ')}</span>`).join('');
+      `<span class="tag">${t.replace(/-/g,' ')}</span>`).join('');
     const hh = v.happy_hour
       ? `<span class="hh-badge">🍺 ${v.happy_hour}</span>` : '';
     const matchedArtist = q && v.artists && v.artists.find(a => a.toLowerCase().includes(q));
@@ -93,6 +181,9 @@ const searchable = allVenues.map((v) => ({
       ? `<p class="rc-artist-hint">🎵 ${matchedArtist}</p>` : '';
     return `
       <a class="result-card" href="/venues/${v.slug}/" data-side="${side}">
+        <button type="button" class="card-like-btn" data-slug="${v.slug}" aria-pressed="false" aria-label="Like">
+          <span class="like-icon" aria-hidden="true">♡</span>
+        </button>
         <div class="rc-left">
           <p class="rc-meta">
             <span class="badge ${side}">${cityLabel(v.city)}</span>
@@ -108,15 +199,61 @@ const searchable = allVenues.map((v) => ({
       </a>`;
   }
 
+  // Ignore apostrophes/periods so "gabes" finds Gabe's and "st burch" finds St. Burch.
+  const norm = (str) => String(str).toLowerCase().replace(/['\u2019.]/g, '');
+  const esc = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const WDAYS  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Venue listings store 24h "21:00"; events.json has free text like "8:00 PM" or "TBA".
+  function fmtShowTime(t) {
+    if (!t) return '';
+    const m = String(t).match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return String(t);
+    let h = parseInt(m[1], 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    return `${h}:${m[2]} ${ampm}`;
+  }
+
+  function renderShow(sh) {
+    const side = sideOf(sh.city);
+    let dateBlock;
+    if (sh.date === 'weekly') {
+      dateBlock = `<span class="rc-wd">Every</span><span class="rc-dom rc-dom-sm">${esc(sh.weekday || '')}</span>`;
+    } else {
+      const d = new Date(`${sh.date}T12:00:00`);
+      dateBlock = `<span class="rc-wd">${WDAYS[d.getDay()]}</span><span class="rc-dom">${d.getDate()}</span><span class="rc-mon">${MONTHS[d.getMonth()]}</span>`;
+    }
+    const time = fmtShowTime(sh.time);
+    const tix = sh.url ? `<a class="rc-tix" href="${esc(sh.url)}" target="_blank" rel="noopener">Tickets &#8599;</a>` : '';
+    return `
+      <div class="result-card show-card" data-side="${side}">
+        <div class="rc-date">${dateBlock}</div>
+        <div class="rc-left">
+          <p class="rc-meta">
+            <span class="badge ${side}">${cityLabel(sh.city)}</span>
+            <span class="rc-type">Show${time ? ' &middot; ' + esc(time) : ''}</span>
+          </p>
+          <strong class="rc-name"><a class="rc-link" href="/venues/${sh.slug}/#venue-calendar">${esc(sh.artist)}</a></strong>
+          <p class="rc-blurb">at ${esc(sh.venue)}</p>
+          ${tix}
+        </div>
+        <svg class="rc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`;
+  }
+
+  const SHOW_CAP = 20;
+
   function run() {
-    const raw  = input.value.trim();
-    const q    = raw.toLowerCase();
+    const raw = input.value.trim();
+    const q   = raw.toLowerCase();
     const side = document.documentElement.dataset.side || 'all';
 
     clearBtn.hidden = raw.length === 0;
-    hintEl.classList.toggle('hidden', raw.length > 0 || activeType !== '');
+    hintEl.classList.toggle('hidden', raw.length > 0 || activeCat !== '');
 
-    if (!q && !activeType) {
+    if (!q && !activeCat) {
       resultsEl.innerHTML = '';
       emptyEl.classList.add('hidden');
       countEl.textContent = '';
@@ -125,22 +262,48 @@ const searchable = allVenues.map((v) => ({
 
     const filtered = searchable.filter((v) => {
       const matchSide = side === 'all' || sideOf(v.city) === side;
-      const matchType = !activeType || v.type === activeType;
+      const matchCat  = matchesCat(v, activeCat);
       const matchQ    = !q ||
-        v.name.toLowerCase().includes(q) ||
+        norm(v.name).includes(norm(q)) ||
         v.blurb.toLowerCase().includes(q) ||
         v.tags.some(t => t.replace(/-/g, ' ').includes(q)) ||
         v.type.includes(q) ||
         v.city.toLowerCase().includes(q) ||
         v.district.includes(q) ||
         (v.artists && v.artists.some(a => a.toLowerCase().includes(q)));
-      return matchSide && matchType && matchQ;
+      return matchSide && matchCat && matchQ;
     });
 
-    resultsEl.innerHTML = filtered.map(v => renderCard(v, q)).join('');
-    emptyEl.classList.toggle('hidden', filtered.length > 0);
-    countEl.textContent = filtered.length > 0
-      ? `${filtered.length} result${filtered.length === 1 ? '' : 's'}` : '';
+    // Shows: any upcoming gig whose act matches the query. With the Music
+    // chip on and nothing typed, list what's coming up instead.
+    const wantShows = activeCat === '' || activeCat === 'music';
+    const showHits = !wantShows ? [] : shows.filter((sh) => {
+      const matchSide = side === 'all' || sideOf(sh.city) === side;
+      // Match the act, the venue name ("gabes" lists Gabe's calendar), or a
+      // generic word for the kind of thing it is ("concert", "game").
+      const matchQ = q
+        ? (norm(sh.artist).includes(norm(q)) || norm(sh.venue).includes(norm(q)) || sh.kind.includes(q))
+        : activeCat === 'music';
+      return matchSide && matchQ;
+    });
+    const shownShows = showHits.slice(0, SHOW_CAP);
+
+    let html = '';
+    if (shownShows.length) {
+      html += `<p class="results-label">Shows${showHits.length > SHOW_CAP ? ` &middot; next ${SHOW_CAP} of ${showHits.length}` : ''}</p>`;
+      html += shownShows.map(renderShow).join('');
+    }
+    if (filtered.length) {
+      if (shownShows.length) html += '<p class="results-label">Places</p>';
+      html += filtered.map(v => renderCard(v, q)).join('');
+    }
+    resultsEl.innerHTML = html;
+    emptyEl.classList.toggle('hidden', filtered.length > 0 || shownShows.length > 0);
+    const parts = [];
+    if (showHits.length) parts.push(`${showHits.length} show${showHits.length === 1 ? '' : 's'}`);
+    if (filtered.length) parts.push(`${filtered.length} place${filtered.length === 1 ? '' : 's'}`);
+    countEl.textContent = parts.join(' \u00b7 ');
+    document.dispatchEvent(new CustomEvent('resultsrendered'));
   }
 
   input.addEventListener('input', run);
@@ -149,7 +312,7 @@ const searchable = allVenues.map((v) => ({
   chips.forEach((c) => c.addEventListener('click', () => {
     chips.forEach(b => b.classList.remove('active'));
     c.classList.add('active');
-    activeType = c.dataset.type;
+    activeCat = c.dataset.cat;
     run();
   }));
 
@@ -158,6 +321,21 @@ const searchable = allVenues.map((v) => ({
   // Pre-fill from ?q= URL param
   const urlQ = new URLSearchParams(location.search).get('q') || '';
   if (urlQ) { input.value = urlQ; run(); }
+
+  // Pre-select from ?cat= URL param
+  const urlCat = new URLSearchParams(location.search).get('cat') || '';
+  if (urlCat) {
+    const match = chips.find(c => c.dataset.cat === urlCat);
+    if (match) { match.click(); }
+  }
+</script>
+
+<script>
+  import { paintLikeButtons } from '../lib/likes';
+  const resultsEl = document.getElementById('results');
+  document.addEventListener('resultsrendered', () => {
+    if (resultsEl) paintLikeButtons(resultsEl);
+  });
 </script>
 
 <style>
@@ -237,6 +415,12 @@ const searchable = allVenues.map((v) => ({
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .chip:hover {
+    border-color: var(--green, #1fb865);
+    color: var(--green-dark, #0e7c47);
   }
 
   .chip.active {
@@ -258,75 +442,10 @@ const searchable = allVenues.map((v) => ({
     gap: 0.5rem;
   }
 
-  .result-card {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.1rem;
-    background: var(--surface, #fff);
-    border: 1px solid var(--border, #e5e7eb);
-    border-radius: 12px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-
-  .result-card:hover {
-    border-color: var(--green, #1fb865);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-  }
-
-  .rc-left { flex: 1; min-width: 0; }
-
-  .rc-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0 0 0.25rem;
-    font-size: 0.75rem;
-  }
-
-  .rc-type {
-    color: var(--text-muted, #888);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 0.7rem;
-  }
-
-  .rc-name {
-    display: block;
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.2rem;
-  }
-
-  .rc-blurb {
-    font-size: 0.82rem;
-    color: var(--text-muted, #777);
-    margin: 0 0 0.4rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .hh-badge {
-    display: inline-block;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--green-dark, #0e7c47);
-    background: rgba(31,184,101,0.1);
-    padding: 0.15rem 0.5rem;
-    border-radius: 50px;
-    margin-bottom: 0.35rem;
-  }
-
-  .rc-tags {
-    display: flex;
-    gap: 0.35rem;
-    flex-wrap: wrap;
+  .search-hint {
+    color: var(--text-muted, #aaa);
+    font-size: 0.85rem;
+    margin-top: 1rem;
   }
 
   .tag {
@@ -339,26 +458,153 @@ const searchable = allVenues.map((v) => ({
     text-transform: capitalize;
   }
 
-  .rc-arrow {
-    width: 18px;
-    height: 18px;
-    color: var(--text-muted, #aaa);
-    flex-shrink: 0;
+  .empty { color: var(--text-muted, #888); margin-top: 1rem; }
+  .hidden { display: none !important; }
+</style>
+
+<style is:global>
+  /* Search results are rendered client-side via innerHTML (see the <script>
+     below), so Astro's scoped-style attribute never reaches these elements --
+     a plain scoped <style> block silently never matches them. These rules
+     have to be global instead. Colors use the site's real design tokens
+     (the block above leaned on --surface/--text/--border/--text-muted,
+     none of which are actually defined, so they were rendering off
+     hardcoded fallback colors, or in .result-card/.rc-*'s case, not
+     rendering at all). These rows sit directly on the bare photo canvas
+     with no ancestor card, so they get their own glass-panel treatment,
+     same pattern as .card. */
+  .result-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    inset: -28px;
+    background-image: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)), var(--photo-url);
+    background-size: cover, cover;
+    background-position: center, center 30%;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: scroll, fixed;
+    filter: blur(28px);
+    z-index: 0;
+  }
+  .result-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+
+  .rc-left { position: relative; z-index: 1; flex: 1; min-width: 0; }
+
+  .rc-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
   }
 
-  .search-hint {
-    color: var(--text-muted, #aaa);
-    font-size: 0.85rem;
-    margin-top: 1rem;
+  .rc-type {
+    color: var(--ink-2);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+  }
+
+  .rc-name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    color: var(--ink);
+  }
+
+  .rc-blurb {
+    font-size: 0.82rem;
+    color: var(--ink-2);
+    margin: 0 0 0.4rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hh-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--green-dark);
+    background: var(--green-soft);
+    padding: 0.15rem 0.5rem;
+    border-radius: 50px;
+    margin-bottom: 0.35rem;
+  }
+
+  .rc-tags {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .rc-arrow {
+    position: relative;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-2);
+    flex-shrink: 0;
   }
 
   .rc-artist-hint {
     font-size: 0.78rem;
-    color: var(--green-dark, #0e7c47);
+    color: var(--green-dark);
     font-weight: 600;
     margin: 0 0 0.3rem;
   }
 
-  .empty { color: var(--text-muted, #888); margin-top: 1rem; }
-  .hidden { display: none !important; }
+  /* .result-card is a horizontal row, not a tall photo card, so the like
+     button sits vertically centered next to the arrow instead of pinned
+     to the top-right corner used on .card. */
+  .result-card .card-like-btn {
+    top: 50%;
+    right: 46px;
+    transform: translateY(-50%);
+  }
+  .result-card .card-like-btn:hover { transform: translateY(-50%) scale(1.08); }
+
+  /* Show rows: a date block on the left, the act as the stretched link to
+     the venue's calendar, and an optional ticket link that sits above it. */
+  .results-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-on-photo-2); margin: 0.75rem 0 0.1rem;
+  }
+  .results-label:first-child { margin-top: 0; }
+  .show-card .rc-date {
+    position: relative; z-index: 1; flex-shrink: 0; width: 54px;
+    display: flex; flex-direction: column; align-items: center; line-height: 1.1;
+  }
+  .rc-wd  { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green-dark); }
+  .rc-dom { font-size: 1.4rem; font-weight: 800; color: var(--ink); }
+  .rc-dom-sm { font-size: 0.95rem; }
+  .rc-mon { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; color: var(--ink-2); }
+  .rc-link { color: inherit; text-decoration: none; }
+  .rc-link::after { content: ''; position: absolute; inset: 0; }
+  .show-card:hover .rc-link { text-decoration: underline; }
+  .rc-tix {
+    position: relative; z-index: 2; display: inline-block;
+    font-size: 0.74rem; font-weight: 700; color: var(--green-dark); text-decoration: none;
+  }
+  .rc-tix:hover { text-decoration: underline; }
 </style>

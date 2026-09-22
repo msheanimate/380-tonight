@@ -2,8 +2,9 @@
 import Base from '../layouts/Base.astro';
 import VenueCard from '../components/VenueCard.astro';
 import EventCard from '../components/EventCard.astro';
-import { venues, upcomingEvents, games, fmtDate, sideOf } from '../lib/data';
 import HeroSlider from '../components/HeroSlider.astro';
+import { venues, upcomingEvents, games, fmtDate, sideOf } from '../lib/data';
+import venuePhotosRaw from '../data/venue-photos.json';
 
 const today = new Date();
 const { dated, weekly } = upcomingEvents(today);
@@ -15,19 +16,37 @@ const dow = today.getDay();
 const tonightWeekly = weekly.filter((e) => e.weekday === weekdayNames[dow]);
 const dateLine = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+// Google Places photo helper (refs stored in venue-photos.json, populated by fetch-venue-photos.mjs)
+const PLACES_KEY = 'AIzaSyAfgZvvM4cJxLg9vhi0xPkZSTn6OIWLi8M';
+const venuePhotos = venuePhotosRaw as Record<string, string[]>;
+function firstPhoto(slug: string): string | undefined {
+  const refs = venuePhotos[slug];
+  if (!refs || refs.length === 0) return undefined;
+  return `https://places.googleapis.com/v1/${refs[0]}/media?maxWidthPx=800&key=${PLACES_KEY}`;
+}
+
 // Tonight's picks: editor-chosen slugs per side. Swap these weekly.
 const picksIC = ['gabes', 'coa-cantina', 'big-grove-iowa-city', 'studio-13', 'vue-rooftop'];
 const picksCR = ['csps-hall', 'parlor-city-pub', 'quarter-barrel-arcade-brewery', 'goldfinch-tap-eatery', 'lion-bridge-brewing'];
 const pick = (slugs: string[]) => slugs.map((s) => venues.find((v) => v.slug === s)).filter(Boolean);
 const lateIC = venues.filter((v) => sideOf(v.city) === 'ic' && v.tags.includes('late-night')).slice(0, 4);
 const lateCR = venues.filter((v) => sideOf(v.city) === 'cr' && v.tags.includes('late-night')).slice(0, 4);
+
+// Slider: interleave IC and CR picks so toggle-switches feel smooth.
 const sliderSlugs = [picksIC[0], picksCR[0], picksIC[1], picksCR[1], picksIC[2], picksCR[2]];
-const sliderVenues = sliderSlugs.map((s) => venues.find((v) => v.slug === s)).filter(Boolean) as typeof venues;
+const sliderVenues = sliderSlugs
+  .map((s) => venues.find((v) => v.slug === s))
+  .filter(Boolean)
+  .map((v) => ({ ...v!, photo: firstPhoto(v!.slug) }));
 ---
 <Base title="Tonight" current="Tonight">
   <section class="hero">
-    <HeroSlider slides={sliderVenues} />
+    <p class="date">{dateLine}</p>
+    <h1>What's on tonight, both ends of I-380</h1>
+    <p class="lede">Iowa City and Cedar Rapids, 30 minutes apart, one guide. Picks refresh every Thursday.</p>
   </section>
+
+  <HeroSlider slides={sliderVenues as any} />
 
   <div class="nowbar">
     <div>
@@ -38,16 +57,16 @@ const sliderVenues = sliderSlugs.map((s) => venues.find((v) => v.slug === s)).fi
         <>Football season is over. <small>Wrestling and basketball picks live on the Events page.</small></>
       )}
     </div>
-    <a class="btn secondary" href="/game-day/" style="background:#fff;color:var(--green-dark)">Game Day</a>
+    <a class="btn secondary" href="/game-day/" style="background:#fff;color:var(--button-orange)">Game Day</a>
   </div>
 
   <section data-side="ic">
     <h2><span class="badge ic">Iowa City</span> Tonight's picks <a class="more" href="/drink/">All bars →</a></h2>
-    <div class="row">{pick(picksIC).map((v) => <VenueCard venue={v!} pick />)}</div>
+    <div class="row">{pick(picksIC).map((v) => <VenueCard venue={{ ...v!, photo: firstPhoto(v!.slug) }} pick />)}</div>
   </section>
   <section data-side="cr">
     <h2><span class="badge cr">Cedar Rapids</span> Tonight's picks <a class="more" href="/drink/">All bars →</a></h2>
-    <div class="row">{pick(picksCR).map((v) => <VenueCard venue={v!} pick />)}</div>
+    <div class="row">{pick(picksCR).map((v) => <VenueCard venue={{ ...v!, photo: firstPhoto(v!.slug) }} pick />)}</div>
   </section>
 
   {tonightWeekly.length > 0 && (

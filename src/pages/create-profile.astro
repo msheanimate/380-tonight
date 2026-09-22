@@ -1,0 +1,129 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Create your profile" description="Set up your profile on The 380.">
+  <div class="auth-page">
+    <div id="cp-signed-out">
+      <h1>You're not logged in</h1>
+      <p class="auth-sub"><a href="/login/">Log in or sign up</a> first, then come back here to finish your profile.</p>
+    </div>
+
+    <div id="cp-form" hidden>
+      <h1>Welcome to The 380</h1>
+      <p class="auth-sub">Pick a display name for your profile -- you can change it anytime.</p>
+
+      <form id="cp-name-form" class="auth-form">
+        <label for="cp-name-input">Display name</label>
+        <input id="cp-name-input" type="text" maxlength="60" autocomplete="nickname" />
+        <button type="submit" class="btn" id="cp-save-btn">Save &amp; continue</button>
+      </form>
+      <button type="button" class="btn secondary" id="cp-skip-btn">Skip for now</button>
+    </div>
+
+    <p class="auth-unconfigured" id="cp-unconfigured" hidden>
+      Accounts aren't connected yet -- check back soon.
+    </p>
+  </div>
+
+  <style>
+    .auth-page {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      max-width: 420px;
+      margin: 0 auto 48px;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 28px 28px 32px;
+    }
+    .auth-page::before {
+      content: '';
+      position: absolute;
+      inset: -40px;
+  background-image: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)), var(--photo-url);
+  background-size: cover, cover;
+  background-position: center, center 30%;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: scroll, fixed;
+  filter: blur(28px);
+  z-index: 0;
+}
+    .auth-page > * { position: relative; z-index: 1; }
+    /* this card sits on the sitewide photo backdrop -- pin its heading
+       back to dark ink since it is not bare canvas like most h1s */
+    h1 { color: var(--ink); }
+    .auth-sub { color: var(--ink-2); margin: 4px 0 20px; }
+    .auth-form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .auth-form label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+    .auth-form input {
+      font-family: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-sm); background: var(--card); color: var(--ink);
+    }
+    .auth-form input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    .auth-form .btn { margin-top: 16px; }
+    #cp-skip-btn { width: 100%; }
+    .auth-unconfigured { color: var(--ink-3); font-style: italic; }
+  </style>
+
+  <script>
+    import { supabase, supabaseConfigured } from '../lib/supabase';
+
+    const signedOutEl = document.getElementById('cp-signed-out');
+    const formEl = document.getElementById('cp-form');
+    const unconfiguredEl = document.getElementById('cp-unconfigured');
+    const nameInput = document.getElementById('cp-name-input') as HTMLInputElement | null;
+    const nameForm = document.getElementById('cp-name-form');
+    const saveBtn = document.getElementById('cp-save-btn') as HTMLButtonElement | null;
+    const skipBtn = document.getElementById('cp-skip-btn') as HTMLButtonElement | null;
+
+    if (!supabaseConfigured || !supabase) {
+      signedOutEl?.setAttribute('hidden', '');
+      unconfiguredEl?.removeAttribute('hidden');
+    } else {
+      supabase.auth.getSession().then(async ({ data }) => {
+        const user = data.session?.user;
+        if (!user) {
+          signedOutEl?.removeAttribute('hidden');
+          return;
+        }
+        signedOutEl?.setAttribute('hidden', '');
+
+        const { data: profile } = await supabase!
+          .from('profiles')
+          .select('display_name, onboarded, username')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        // Been through this gate before, or already has a public page from
+        // saving /profile/ directly -- don't ask again, just go straight to
+        // viewing it (or to /profile/ if there's no username yet to view).
+        if (profile?.onboarded || profile?.username) {
+          location.replace(profile.username ? `/u/?u=${encodeURIComponent(profile.username)}` : '/profile/');
+          return;
+        }
+
+        if (nameInput) nameInput.value = profile?.display_name || '';
+        formEl?.removeAttribute('hidden');
+
+        async function finish(newName: string | null) {
+          if (saveBtn) saveBtn.disabled = true;
+          if (skipBtn) skipBtn.disabled = true;
+          const updates: Record<string, unknown> = { id: user.id, onboarded: true };
+          if (newName) updates.display_name = newName;
+          try {
+            await supabase!.from('profiles').upsert(updates);
+          } finally {
+            location.href = '/profile/';
+          }
+        }
+
+        nameForm?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          finish(nameInput?.value.trim() || null);
+        });
+        skipBtn?.addEventListener('click', () => finish(null));
+      });
+    }
+  </script>
+</Base>

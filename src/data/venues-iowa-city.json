@@ -32,7 +32,7 @@
     "happy_hour": null,
     "hours_note": "Open daily; check website for current hours.",
     "website": "https://fieldhouseiowacity.com",
-    "blurb": "Two floors of Iowa City nightlife \u2014 game-day sports bar downstairs, dance floor and DJ upstairs. A go-to spot on Hawkeye game days and weekend nights.",
+    "blurb": "Two floors of Iowa City nightlife — game-day sports bar downstairs, dance floor and DJ upstairs. A go-to spot on Hawkeye game days and weekend nights.",
     "source": "https://downtowniowacity.com/listings/fieldhouse/",
     "verify": true
   },
@@ -73,7 +73,8 @@
     "blurb": "Southern-leaning brunch, local coffee and real cocktails on the Ped Mall; the go-to when last night needs fixing.",
     "source": "https://thinkiowacity.com/listing/the-dandy-lion/",
     "verify": true,
-    "menu_url": "https://www.thedandylionic.com/menu"
+    "menu_url": "https://www.thedandylionic.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/The%20Dandy%20Lion%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Brothers Bar & Grill",
@@ -278,7 +279,7 @@
       "late-night"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Fri 2pm\u20132am; Sat\u2013Sun 11am\u20132am. Daily drink specials posted on social.",
+    "hours_note": "Mon–Fri 2pm–2am; Sat–Sun 11am–2am. Daily drink specials posted on social.",
     "website": "https://dcsiowacity.com/",
     "blurb": "Big windows, big patio, wings and burgers under $12; DC's is the easy answer for a game-day lunch that never ends.",
     "source": "https://dcsiowacity.com/",
@@ -297,7 +298,7 @@
       "late-night"
     ],
     "happy_hour": null,
-    "hours_note": "Bar Mon\u2013Wed 4pm\u20132am, Thu\u2013Sat 11am\u20132am, Sun 8pm\u20132am; kitchen closes 9pm, closed Sun.",
+    "hours_note": "Bar Mon–Wed 4pm–2am, Thu–Sat 11am–2am, Sun 8pm–2am; kitchen closes 9pm, closed Sun.",
     "website": "https://coacantinaiowacity.com/",
     "blurb": "Two levels, three bars and 200-plus tequilas with a DJ on weekends; tacos early, margaritas late, regrets Sunday.",
     "source": "https://coacantinaiowacity.com/",
@@ -374,7 +375,8 @@
     "website": "https://thinkiowacity.com/listing/st-burch-tavern/",
     "blurb": "Upscale tavern fare and a serious cocktail list on Iowa Avenue; where you take parents who are paying.",
     "source": "https://thinkiowacity.com/listing/st-burch-tavern/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/St.%20Burch%20Tavern%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Pullman Bar & Diner",
@@ -393,7 +395,8 @@
     "blurb": "Elevated diner food and stiff cocktails in a slick booth-lined room; the brunch line is long for a reason.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://pullmandiner.com/food-drink/"
+    "menu_url": "https://pullmandiner.com/food-drink/",
+    "doordash_url": "https://www.doordash.com/search/store/Pullman%20Bar%20%26%20Diner%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Brix Cheese Shop & Wine Bar",
@@ -475,7 +478,7 @@
     "menu_url": "https://cdn.shopify.com/s/files/1/0604/5551/8396/files/IowaCity-FullMenu-July2026.pdf?v=1784129686"
   },
   {
-    "name": "ReUnion Brewery \u2013 Iowa City",
+    "name": "ReUnion Brewery – Iowa City",
     "slug": "reunion-brewery-iowa-city",
     "city": "Iowa City",
     "district": "downtown",
@@ -494,7 +497,7 @@
     "menu_url": "https://reunionbrewery.com/iowacitymenu"
   },
   {
-    "name": "ReUnion Brewery \u2013 Coralville",
+    "name": "ReUnion Brewery – Coralville",
     "slug": "reunion-brewery-coralville",
     "city": "Coralville",
     "district": "iowa-river-landing",
@@ -525,7 +528,7 @@
     ],
     "happy_hour": null,
     "hours_note": "South of town off Hwy 6, not walkable from downtown; active 2026 show calendar on Ticketmaster.",
-    "website": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390",
+    "website": "https://www.wildwoodsaloon.com/",
     "blurb": "Country and rock acts, BBQ and a big dance floor out on the south edge of town; bring boots and a DD.",
     "source": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390",
     "verify": true,
@@ -647,7 +650,7 @@
       {
         "date": "2026-10-31",
         "time": "20:00",
-        "artist": "Southbound & Winterland \u2014 Halloween Show",
+        "artist": "Southbound & Winterland — Halloween Show",
         "url": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390"
       },
       {
@@ -692,7 +695,7 @@
       {
         "date": "2026-11-21",
         "time": "20:00",
-        "artist": "Whiplash \u2014 Tribute to Metallica",
+        "artist": "Whiplash — Tribute to Metallica",
         "url": "https://www.ticketmaster.com/wildwood-smokehouse-and-saloon-tickets-iowa-city/venue/50390"
       },
       {
@@ -797,7 +800,8 @@
     "blurb": "The pie-shake diner where presidential candidates stop; greasy, historic and worth the weekend wait.",
     "source": "https://en.wikipedia.org/wiki/Hamburg_Inn_No._2",
     "verify": true,
-    "menu_url": "https://www.hamburginn2.com/menu"
+    "menu_url": "https://www.hamburginn2.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/Hamburg%20Inn%20No.%202%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "John's Grocery",
@@ -834,7 +838,8 @@
     "blurb": "Thin-crust, square-cut, sausage-heavy pizza since 1969; Pagliai's is the Northside's most-argued-about slice.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.pagliaispizza.com/menu"
+    "menu_url": "https://www.pagliaispizza.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/Pagliai%27s%20Pizza%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Bluebird Diner",
@@ -853,7 +858,8 @@
     "blurb": "Retro diner brunch with big portions and bigger coffee; the Northside's best hangover cure not named Hamburg Inn.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://bluebird.cafe/wp-content/uploads/2025/02/66845-Bluebird-Diner-Menu_PROOF.pdf"
+    "menu_url": "https://bluebird.cafe/wp-content/uploads/2025/02/66845-Bluebird-Diner-Menu_PROOF.pdf",
+    "doordash_url": "https://www.doordash.com/search/store/Bluebird%20Diner%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Oasis Falafel",
@@ -871,7 +877,8 @@
     "blurb": "Fast, cheap, excellent falafel and shawarma on Linn Street; the smart move between afternoon beers and evening beers.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.oasisfalafel.com/menu"
+    "menu_url": "https://www.oasisfalafel.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/Oasis%20Falafel%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Trumpet Blossom Cafe",
@@ -891,7 +898,8 @@
     "blurb": "All-vegan menu, craft cocktails and the occasional show; even committed carnivores leave impressed.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.trumpetblossom.com/new-folder"
+    "menu_url": "https://www.trumpetblossom.com/new-folder",
+    "doordash_url": "https://www.doordash.com/search/store/Trumpet%20Blossom%20Cafe%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Basta Pizzeria Ristorante",
@@ -911,7 +919,8 @@
     "blurb": "Wood-fired pizza and a patio on Iowa Avenue; nicer than a slice joint, cheaper than a steakhouse, just right.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.bastaiowacity.com/dinner-menu"
+    "menu_url": "https://www.bastaiowacity.com/dinner-menu",
+    "doordash_url": "https://www.doordash.com/search/store/Basta%20Pizzeria%20Ristorante%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "The Webster",
@@ -929,7 +938,8 @@
     "blurb": "Fine dining without stuffiness; tasting-menu energy and a bar worth sitting at on its own.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.thewebsteric.com/menu-dinner"
+    "menu_url": "https://www.thewebsteric.com/menu-dinner",
+    "doordash_url": "https://www.doordash.com/search/store/The%20Webster%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Formosa",
@@ -948,7 +958,8 @@
     "blurb": "Sushi and cocktails in a dim, clubby room on College Street; the dinner that slides straight into going out.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.formosaiowacity.com/menu"
+    "menu_url": "https://www.formosaiowacity.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/Formosa%20Iowa%20City%2C%20IA/"
   },
   {
     "name": "Englert Theatre",
@@ -1067,7 +1078,7 @@
       {
         "date": "2026-10-31",
         "time": "19:30",
-        "artist": "Heads In Motion \u2014 Talking Heads Tribute",
+        "artist": "Heads In Motion — Talking Heads Tribute",
         "url": "https://purchase.englert.org/EventAvailability?EventId=3001"
       },
       {
@@ -1434,7 +1445,7 @@
       {
         "date": "2026-10-15",
         "time": "19:30",
-        "artist": "B\u00e9la Fleck & Abigail Washburn",
+        "artist": "Béla Fleck & Abigail Washburn",
         "url": "https://hancher.uiowa.edu"
       },
       {
@@ -1460,12 +1471,12 @@
       {
         "date": "2026-12-03",
         "time": "19:30",
-        "artist": "A Charlie Brown Christmas \u2014 Live on Stage"
+        "artist": "A Charlie Brown Christmas — Live on Stage"
       },
       {
         "date": "2026-12-10",
         "time": "19:30",
-        "artist": "Handel's Messiah \u2014 UI Symphony Orchestra"
+        "artist": "Handel's Messiah — UI Symphony Orchestra"
       },
       {
         "date": "2027-01-14",
@@ -1543,12 +1554,13 @@
       "sports-bar"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Thu 11am\u201310pm; Fri 11am\u2013midnight; Sat 10am\u2013midnight; Sun 10am\u201310pm.",
+    "hours_note": "Mon–Thu 11am–10pm; Fri 11am–midnight; Sat 10am–midnight; Sun 10am–10pm.",
     "website": "https://30hop.com",
     "blurb": "Rooftop patio, a long tap list and comfort food with some flair; the anchor of Iowa River Landing nights.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "verify": true,
-    "menu_url": "https://30hop.com/menus"
+    "menu_url": "https://30hop.com/menus",
+    "doordash_url": "https://www.doordash.com/search/store/30hop%20Coralville%2C%20IA/"
   },
   {
     "name": "Tribute Eatery & Bar",
@@ -1563,11 +1575,12 @@
       "cocktails"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Thu 11am\u20139pm; Fri 11am\u201310pm; Sat 9am\u201310pm; Sun 9am\u20139pm; brunch Sat\u2013Sun 9am\u20133pm.",
+    "hours_note": "Mon–Thu 11am–9pm; Fri 11am–10pm; Sat 9am–10pm; Sun 9am–9pm; brunch Sat–Sun 9am–3pm.",
     "website": "https://thinkiowacity.com/attractions/iowa-river-landing/",
     "blurb": "Chef-driven plates, wine and cocktails with a patio; the grown-up dinner spot in the Landing.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Tribute%20Eatery%20%26%20Bar%20Coralville%2C%20IA/"
   },
   {
     "name": "Iowa Athletic Club",
@@ -1583,7 +1596,7 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Sun\u2013Thu 11am\u20139pm; Fri\u2013Sat 11am\u2013midnight.",
+    "hours_note": "Sun–Thu 11am–9pm; Fri–Sat 11am–midnight.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Tavern pizza, wings and arcade games attached to Xtream Arena; a sports bar built for before and after the game.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
@@ -1601,11 +1614,12 @@
       "cocktails"
     ],
     "happy_hour": null,
-    "hours_note": "Tue\u2013Thu 3pm\u20139pm; Fri 3pm\u201310pm; Sat 11am\u201310pm; closed Sun\u2013Mon per source.",
+    "hours_note": "Tue–Thu 3pm–9pm; Fri 3pm–10pm; Sat 11am–10pm; closed Sun–Mon per source.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Elevated comfort food and globally inspired plates with a patio; Vesta is the Landing's low-key gem.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Vesta%20Coralville%2C%20IA/"
   },
   {
     "name": "Marquee Pizzeria",
@@ -1619,11 +1633,12 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Sun\u2013Thu 11am\u20139pm; Fri\u2013Sat 11am\u201310pm.",
+    "hours_note": "Sun–Thu 11am–9pm; Fri–Sat 11am–10pm.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Wood-fired pizza and homemade pasta in the Landing; easy, crowd-pleasing and fine for a pre-arena dinner.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Marquee%20Pizzeria%20Coralville%2C%20IA/"
   },
   {
     "name": "Hokkaido Ramen House",
@@ -1636,11 +1651,12 @@
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Mon\u2013Sat 11:30am\u20139pm; Sun 11:30am\u20138:30pm.",
+    "hours_note": "Mon–Sat 11:30am–9pm; Sun 11:30am–8:30pm.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Rich, proper ramen next to the arena; the warm bowl you want after a cold walk from the parking ramp.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Hokkaido%20Ramen%20House%20Coralville%2C%20IA/"
   },
   {
     "name": "Xtream Arena",
@@ -1734,10 +1750,10 @@
       "game-day",
       "happy-hour"
     ],
-    "happy_hour": "Mon\u2013Fri 3\u20136 PM",
+    "happy_hour": "Mon–Fri 3–6 PM",
     "hours_note": null,
     "website": "https://biggrove.com/pages/solon-brewpub",
-    "blurb": "The original Big Grove location \u2014 open since 2013 \u2014 with house-brewed ales and stouts, globally inspired bistro fare, a patio, and the best game-day energy in Solon.",
+    "blurb": "The original Big Grove location — open since 2013 — with house-brewed ales and stouts, globally inspired bistro fare, a patio, and the best game-day energy in Solon.",
     "source": "https://biggrove.com/pages/solon-brewpub",
     "verify": false,
     "menu_url": "https://cdn.shopify.com/s/files/1/0604/5551/8396/files/Solon-FullMenu-July2026-Online.pdf"
@@ -1761,7 +1777,8 @@
     "blurb": "Family-owned Mexican restaurant on Solon's Main Street, beloved for traditional dishes, strong margaritas, and a full bar.",
     "source": "https://www.tripadvisor.com/Restaurant_Review-g38406-d3400453-Reviews-El_s_Sol_Mexican_Cuisine-Solon_Iowa.html",
     "verify": true,
-    "menu_url": null
+    "menu_url": null,
+    "doordash_url": "https://www.doordash.com/search/store/El%27s%20Sol%20Mexican%20Cuisine%20Solon%2C%20IA/"
   },
   {
     "slug": "eastwoods-sports-bar",
@@ -1785,7 +1802,7 @@
   },
   {
     "slug": "good-vibes-cafe-solon",
-    "name": "Good Vibes Caf\u00e9",
+    "name": "Good Vibes Café",
     "city": "Solon",
     "district": "solon",
     "type": "cafe",
@@ -1799,7 +1816,7 @@
     "happy_hour": null,
     "hours_note": null,
     "website": "https://www.goodvibescoffeecafe.com/",
-    "blurb": "Sisters-owned community caf\u00e9 with breakfast, lunch, board games, and a chalkboard wall \u2014 the kind of spot where you linger.",
+    "blurb": "Sisters-owned community café with breakfast, lunch, board games, and a chalkboard wall — the kind of spot where you linger.",
     "source": "https://www.goodvibescoffeecafe.com/",
     "verify": false,
     "menu_url": null
@@ -1830,35 +1847,37 @@
     "city": "North Liberty",
     "district": "north-liberty",
     "type": "restaurant",
-    "address": "North Liberty, IA",
+    "address": "125 E Zeller St, North Liberty, IA 52317",
     "tags": [
       "cocktails",
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Confirm address on the Think Iowa City listing.",
-    "website": "https://thinkiowacity.com/listing/rayo-mexican-bar-grill/",
+    "hours_note": null,
+    "website": "https://rayomexicanbarandgrill.com/",
     "blurb": "Margaritas and big Mexican plates in North Liberty; the reliable group-dinner pick before a night out.",
     "source": "https://thinkiowacity.com/listing/rayo-mexican-bar-grill/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Rayo%20Mexican%20Bar%20%26%20Grill%20North%20Liberty%2C%20IA/"
   },
   {
-    "name": "Bluebird Cafe \u2013 North Liberty",
+    "name": "Bluebird Cafe – North Liberty",
     "slug": "bluebird-cafe-north-liberty",
     "city": "North Liberty",
     "district": "north-liberty",
     "type": "restaurant",
-    "address": "North Liberty, IA",
+    "address": "650 W Cherry St, North Liberty, IA 52317",
     "tags": [
       "brunch",
       "all-ages"
     ],
     "happy_hour": null,
-    "hours_note": "Confirm address on the Think Iowa City listing.",
-    "website": "https://thinkiowacity.com/listing/bluebird-cafe-north-liberty/",
+    "hours_note": null,
+    "website": "https://bluebird.cafe/locations/bluebird-north-liberty/",
     "blurb": "The North Liberty outpost of the Iowa City diner; same big breakfasts, shorter lines.",
     "source": "https://thinkiowacity.com/listing/bluebird-cafe-north-liberty/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Bluebird%20Cafe%20%E2%80%93%20North%20Liberty%20North%20Liberty%2C%20IA/"
   },
   {
     "name": "Club 76 The Lodge",
@@ -1866,7 +1885,7 @@
     "city": "North Liberty",
     "district": "north-liberty",
     "type": "bar",
-    "address": "North Liberty, IA",
+    "address": "2349 Mehaffey Bridge Rd NE, North Liberty, IA 52317",
     "tags": [
       "dive",
       "live-music"
@@ -1881,20 +1900,21 @@
   {
     "name": "Twelve01 Kitchen and Tap",
     "slug": "twelve01-kitchen-and-tap",
-    "city": "North Liberty",
-    "district": "north-liberty",
+    "city": "Coralville",
+    "district": "iowa-river-landing",
     "type": "restaurant",
-    "address": "North Liberty, IA",
+    "address": "1210 1st Ave, Coralville, IA 52241",
     "tags": [
       "patio",
       "cocktails"
     ],
     "happy_hour": null,
-    "hours_note": "Confirm address on the Think Iowa City listing.",
-    "website": "https://thinkiowacity.com/listing/twelve01-kitchen-and-tap/",
-    "blurb": "Craft taps and a polished kitchen menu; North Liberty's answer to a downtown gastropub without the parking fight.",
+    "hours_note": "Confirm current hours; hotel restaurant inside Marriott Coralville.",
+    "website": "https://www.twelve01kitchenandtap.com/",
+    "blurb": "Craft taps and a polished kitchen menu in the Iowa River Landing Marriott; the grown-up dinner option before an Xtream Arena show.",
     "source": "https://thinkiowacity.com/listing/twelve01-kitchen-and-tap/",
-    "verify": true
+    "verify": true,
+    "doordash_url": "https://www.doordash.com/search/store/Twelve01%20Kitchen%20and%20Tap%20Coralville%2C%20IA/"
   },
   {
     "name": "Kinnick Stadium",
@@ -1961,7 +1981,7 @@
       {
         "date": "2026-10-31",
         "time": "12:00",
-        "artist": "Iowa vs Wisconsin (Football \u2014 Homecoming)",
+        "artist": "Iowa vs Wisconsin (Football — Homecoming)",
         "url": "https://seatgeek.com/iowa-hawkeyes-football-tickets"
       },
       {
@@ -1974,7 +1994,7 @@
       {
         "date": "2026-11-14",
         "time": "14:00",
-        "artist": "Iowa vs Purdue (Football \u2014 Military Appreciation)",
+        "artist": "Iowa vs Purdue (Football — Military Appreciation)",
         "url": "https://seatgeek.com/iowa-hawkeyes-football-tickets"
       },
       {
@@ -1987,7 +2007,7 @@
       {
         "date": "2026-11-27",
         "time": "11:00",
-        "artist": "Iowa vs Nebraska (Football \u2014 Senior Day)",
+        "artist": "Iowa vs Nebraska (Football — Senior Day)",
         "url": "https://seatgeek.com/iowa-hawkeyes-football-tickets"
       },
       {
@@ -2118,13 +2138,13 @@
       {
         "date": "2026-12-09",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Women's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Women's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
       },
       {
         "date": "2026-12-10",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Men's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Men's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
       },
       {
@@ -2454,7 +2474,7 @@
       {
         "date": "2026-12-10",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Men's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Men's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets"
       },
       {
@@ -2592,7 +2612,8 @@
         "url": "https://seatgeek.com/iowa-hawkeyes-mens-basketball-tickets",
         "away": true
       }
-    ]
+    ],
+    "photo": "https://hawkeyesports.com/imgproxy/OgMrPAQoO6Dm4fIshZkHFQJnrth3Kuezv8_3SOAm_Bw/rs:fit:1980:0:0:0/g:ce:0:0/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL2hhd2tleWVzcG9ydHMtcHJvZC8yMDI1LzExLzI3L2J3ZW9IZVdWYmdydEhTRTZEa1JxeFgwRkRJc3JLaWFzSlB0UVg5cjEuanBn.jpg"
   },
   {
     "slug": "iowa-womens-basketball",
@@ -2667,7 +2688,7 @@
       {
         "date": "2026-12-09",
         "time": "19:00",
-        "artist": "Iowa vs Iowa State (Women's Basketball \u2014 Cy-Hawk)",
+        "artist": "Iowa vs Iowa State (Women's Basketball — Cy-Hawk)",
         "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets"
       },
       {
@@ -2793,7 +2814,8 @@
         "url": "https://seatgeek.com/iowa-hawkeyes-womens-basketball-tickets",
         "away": true
       }
-    ]
+    ],
+    "photo": "https://hawkeyesports.com/imgproxy/QKLB43QVDoW8bTbK6sDKw3TzNDsPncVAHLToBSJYUgo/rs:fit:1980:0:0:0/g:ce:0:0/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL2hhd2tleWVzcG9ydHMtcHJvZC8yMDI2LzA5LzAzL3liYnF3cjRtdkVzM0Qzb1NwRXpXYzB2UG5HN1E4ckNYVlg0WXFtUXouanBn.jpg"
   },
   {
     "slug": "copper-boar",
@@ -2812,10 +2834,11 @@
     "happy_hour": null,
     "hours_note": null,
     "website": "https://copperboar.com/",
-    "blurb": "Contemporary American pub serving elevated scratch-made comfort food, creative cocktails, and a curated wine list \u2014 with fire pit patio seating.",
+    "blurb": "Contemporary American pub serving elevated scratch-made comfort food, creative cocktails, and a curated wine list — with fire pit patio seating.",
     "source": "https://copperboar.com/",
     "verify": false,
-    "menu_url": "https://copperboar.com/menu"
+    "menu_url": "https://copperboar.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/Copper%20Boar%20American%20Pub%20North%20Liberty%2C%20IA/"
   },
   {
     "slug": "tin-roost",
@@ -2833,10 +2856,11 @@
     "happy_hour": null,
     "hours_note": null,
     "website": "https://www.tinroost.com/",
-    "blurb": "Locally owned scratch kitchen famous for cheese curds, smoked meats, burgers, and tenderloins \u2014 seating for 400 plus a fire-lit patio.",
+    "blurb": "Locally owned scratch kitchen famous for cheese curds, smoked meats, burgers, and tenderloins — seating for 400 plus a fire-lit patio.",
     "source": "https://www.tinroost.com/",
     "verify": false,
-    "menu_url": null
+    "menu_url": null,
+    "doordash_url": "https://www.doordash.com/search/store/Tin%20Roost%20North%20Liberty%2C%20IA/"
   },
   {
     "slug": "field-day-brewing",
@@ -2897,10 +2921,11 @@
     "happy_hour": null,
     "hours_note": null,
     "website": "https://www.mirabitos.com/",
-    "blurb": "North Liberty Italian restaurant with classic pasta, pizza, and catering \u2014 a neighborhood staple for date nights and family dinners.",
+    "blurb": "North Liberty Italian restaurant with classic pasta, pizza, and catering — a neighborhood staple for date nights and family dinners.",
     "source": "https://www.mirabitos.com/",
     "verify": false,
-    "menu_url": "https://www.mirabitos.com/menu"
+    "menu_url": "https://www.mirabitos.com/menu",
+    "doordash_url": "https://www.doordash.com/search/store/Mirabito%27s%20Italian%20North%20Liberty%2C%20IA/"
   },
   {
     "slug": "casa-amigos-north-liberty",
@@ -2918,7 +2943,8 @@
       "veteran-owned",
       "lgbtq-friendly"
     ],
-    "blurb": "Veteran-owned Mexican bar and grill in North Liberty serving up bold flavors, large portions, and a festive atmosphere."
+    "blurb": "Veteran-owned Mexican bar and grill in North Liberty serving up bold flavors, large portions, and a festive atmosphere.",
+    "doordash_url": "https://www.doordash.com/search/store/Casa%20Amigos%20Restaurant%20Bar%20%26%20Grill%20North%20Liberty%2C%20IA/"
   },
   {
     "slug": "xolo-mexican-cuisine",
@@ -2935,7 +2961,8 @@
       "margaritas",
       "lunch-buffet"
     ],
-    "blurb": "Lively Mexican restaurant on Jordan Street in North Liberty with a lunch buffet, sizzling fajitas, and handcrafted margaritas."
+    "blurb": "Lively Mexican restaurant on Jordan Street in North Liberty with a lunch buffet, sizzling fajitas, and handcrafted margaritas.",
+    "doordash_url": "https://www.doordash.com/search/store/Xolo%20Mexican%20Cuisine%20North%20Liberty%2C%20IA/"
   },
   {
     "slug": "bobbers-grill",
@@ -2973,7 +3000,8 @@
       "drive-through",
       "lgbtq-friendly"
     ],
-    "blurb": "Well-loved Mexican cantina on Community Drive with drive-through convenience, a full bar, and crowd-pleasing classics."
+    "blurb": "Well-loved Mexican cantina on Community Drive with drive-through convenience, a full bar, and crowd-pleasing classics.",
+    "doordash_url": "https://www.doordash.com/search/store/Andale%20Cantina%20Bar%20%26%20Grill%20North%20Liberty%2C%20IA/"
   },
   {
     "slug": "ruscianos",
@@ -2992,7 +3020,8 @@
       "dinner-only",
       "lgbtq-friendly"
     ],
-    "blurb": "Intimate Italian restaurant in Penn Landing with a wood-fired pizza oven, fresh pasta, and a consistently exceptional kitchen."
+    "blurb": "Intimate Italian restaurant in Penn Landing with a wood-fired pizza oven, fresh pasta, and a consistently exceptional kitchen.",
+    "doordash_url": "https://www.doordash.com/search/store/Rusciano%27s%20North%20Liberty%2C%20IA/"
   },
   {
     "name": "Java House",
@@ -3028,7 +3057,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours at cortadoic.com.",
     "website": "https://www.cortadoic.com",
-    "blurb": "European-style espresso bar on Clinton with expertly pulled shots, fresh pastries, and Mediterranean sandwiches \u2014 fast, serious coffee with no fuss.",
+    "blurb": "European-style espresso bar on Clinton with expertly pulled shots, fresh pastries, and Mediterranean sandwiches — fast, serious coffee with no fuss.",
     "source": "https://thinkiowacity.com/listing/cortado/",
     "verify": false
   },
@@ -3047,7 +3076,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours at thejavahouse.com.",
     "website": "https://thejavahouse.com",
-    "blurb": "Java House's south Iowa City location on 1st Ave \u2014 same local roasts as downtown, with easier parking and a crowd that leans more neighborhood than campus.",
+    "blurb": "Java House's south Iowa City location on 1st Ave — same local roasts as downtown, with easier parking and a crowd that leans more neighborhood than campus.",
     "source": "https://thejavahouse.com/cafes",
     "verify": true
   },
@@ -3066,7 +3095,7 @@
     "happy_hour": null,
     "hours_note": "Drive-thru location; verify current hours at thejavahouse.com.",
     "website": "https://thejavahouse.com",
-    "blurb": "Java House's North Liberty drive-thru on Hwy 965 \u2014 the local-roast option when you're heading south toward Iowa City and don't want a chain.",
+    "blurb": "Java House's North Liberty drive-thru on Hwy 965 — the local-roast option when you're heading south toward Iowa City and don't want a chain.",
     "source": "https://thejavahouse.com/cafes",
     "verify": true
   },
@@ -3085,7 +3114,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours at thejavahouse.com.",
     "website": "https://thejavahouse.com",
-    "blurb": "Java House's west-side Iowa City location on Mormon Trek \u2014 local roasts with drive-thru convenience on the hospital side of town.",
+    "blurb": "Java House's west-side Iowa City location on Mormon Trek — local roasts with drive-thru convenience on the hospital side of town.",
     "source": "https://thejavahouse.com/cafes",
     "verify": true
   },
@@ -3105,7 +3134,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours at presscoffeeco.com.",
     "website": "https://www.presscoffeeco.com",
-    "blurb": "Northside Iowa City's neighborhood coffee shop on Dodge \u2014 a local spot away from the Ped Mall crowds, good for a quiet morning or a work session.",
+    "blurb": "Northside Iowa City's neighborhood coffee shop on Dodge — a local spot away from the Ped Mall crowds, good for a quiet morning or a work session.",
     "source": "https://thinkiowacity.com/listing/press-coffee/",
     "verify": true
   },
@@ -3125,7 +3154,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours before visiting.",
     "website": "https://www.fixcoffee.com",
-    "blurb": "Specialty espresso bar tucked above the Ped Mall. Small and focused \u2014 good beans, clean drinks, and a window seat worth claiming.",
+    "blurb": "Specialty espresso bar tucked above the Ped Mall. Small and focused — good beans, clean drinks, and a window seat worth claiming.",
     "source": "https://www.mycoffeeexplorer.com/iowa-city",
     "verify": true
   },
@@ -3164,7 +3193,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours before visiting.",
     "website": "https://www.daydrinkic.com",
-    "blurb": "Coffee by day, cocktails by night in Riverfront Crossings. The name says it all \u2014 start with an espresso, finish with a pour.",
+    "blurb": "Coffee by day, cocktails by night in Riverfront Crossings. The name says it all — start with an espresso, finish with a pour.",
     "source": "https://www.mycoffeeexplorer.com/iowa-city",
     "verify": true
   },
@@ -3204,7 +3233,7 @@
     "happy_hour": null,
     "hours_note": "Open during bookstore hours; check prairielights.com.",
     "website": "https://www.prairielights.com",
-    "blurb": "Coffee inside one of the country's great independent bookshops. Order a drink and wander the stacks \u2014 there's no better morning in Iowa City.",
+    "blurb": "Coffee inside one of the country's great independent bookshops. Order a drink and wander the stacks — there's no better morning in Iowa City.",
     "source": "https://www.prairielights.com",
     "verify": false
   },
@@ -3214,7 +3243,7 @@
     "city": "Iowa City",
     "district": "northside",
     "type": "cafe",
-    "address": "1310\u00bd Melrose Ave, Iowa City, IA 52246",
+    "address": "1310½ Melrose Ave, Iowa City, IA 52246",
     "phone": null,
     "tags": [
       "coffee",
@@ -3244,7 +3273,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours before visiting.",
     "website": "https://www.mammitascoffee.com",
-    "blurb": "Bright coffee spot on South Linn with Latin-influenced drinks. The caf\u00e9 con leche is worth the trip.",
+    "blurb": "Bright coffee spot on South Linn with Latin-influenced drinks. The café con leche is worth the trip.",
     "source": "https://www.mycoffeeexplorer.com/iowa-city",
     "verify": true
   },
@@ -3284,7 +3313,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours before visiting.",
     "website": "https://www.coffeeemporiumcoralville.com",
-    "blurb": "Coralville's reliable coffee stop on 2nd Avenue. Solid espresso and plenty of seating \u2014 the morning anchor the neighborhood needed.",
+    "blurb": "Coralville's reliable coffee stop on 2nd Avenue. Solid espresso and plenty of seating — the morning anchor the neighborhood needed.",
     "source": "https://www.mycoffeeexplorer.com/iowa-city",
     "verify": true
   },
@@ -3365,7 +3394,7 @@
     "happy_hour": null,
     "hours_note": "Verify current hours at thegreenhouseic.com.",
     "website": "https://www.thegreenhouseic.com",
-    "blurb": "Plant-themed cocktail lounge and coffee bar on East Washington. Craft drinks surrounded by greenery \u2014 equally good for a morning latte or an evening pour.",
+    "blurb": "Plant-themed cocktail lounge and coffee bar on East Washington. Craft drinks surrounded by greenery — equally good for a morning latte or an evening pour.",
     "source": "https://www.yelp.com/biz/the-green-house-iowa-city-2",
     "verify": false
   }

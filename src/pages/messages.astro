@@ -1,0 +1,534 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Messages" description="Your conversations on The 380.">
+  <div id="msg-page">
+    <div id="msg-signed-out">
+      <h1>Messages</h1>
+      <p><a href="/login/">Log in</a> to see your messages.</p>
+    </div>
+
+    <div id="msg-unconfigured" hidden>
+      <h1>Messages</h1>
+      <p class="auth-unconfigured">Accounts aren't connected yet -- check back soon.</p>
+    </div>
+
+    <div id="msg-push-prompt" class="card msg-push-prompt" hidden>
+      <p>Get notified here when someone sends you a message.</p>
+      <div class="msg-push-actions">
+        <button type="button" class="btn secondary" id="msg-push-dismiss">Not now</button>
+        <button type="button" class="btn" id="msg-push-enable">Enable notifications</button>
+      </div>
+    </div>
+
+    <div id="msg-shell" class="msg-shell" hidden>
+      <div class="msg-sidebar">
+        <h1>Messages</h1>
+        <div id="msg-friend-list" class="msg-friend-list"></div>
+        <p id="msg-no-friends" class="msg-empty-note" hidden>Add friends to start messaging -- search for them from your profile.</p>
+      </div>
+
+      <div class="msg-thread-pane">
+        <div id="msg-thread-empty" class="msg-thread-empty">
+          <p>Select a friend to start chatting.</p>
+        </div>
+
+        <div id="msg-thread-active" class="msg-thread-active" hidden>
+          <div class="thread-head">
+            <button type="button" class="thread-back" id="thread-back-btn" aria-label="Back to messages">&larr;</button>
+            <div class="avatar avatar-sm" id="thread-avatar"></div>
+            <a id="thread-name-link" class="thread-name"></a>
+          </div>
+
+          <div id="thread-messages" class="thread-messages"></div>
+
+          <div id="thread-photo-preview" class="thread-photo-preview" hidden>
+            <img id="thread-photo-preview-img" alt="" />
+            <button type="button" class="dd-clear" id="thread-photo-clear" aria-label="Remove photo">&times;</button>
+          </div>
+          <p id="thread-error" class="avatar-error" hidden></p>
+          <p id="thread-notfriend-note" class="msg-empty-note" hidden>
+            You can only message friends. <a id="thread-notfriend-link" href="/u/">View their profile</a> to send a friend request first.
+          </p>
+
+          <form id="thread-form" class="thread-form">
+            <label class="btn secondary thread-photo-label" for="thread-photo-input" aria-label="Attach a photo">📷</label>
+            <input type="file" id="thread-photo-input" accept="image/*" hidden />
+            <input type="text" id="thread-body-input" maxlength="2000" placeholder="Message" autocomplete="off" />
+            <button type="submit" class="btn secondary">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    #msg-page { max-width: 920px; margin: 0 auto 48px; }
+    /* #msg-signed-out sits directly on the bare photo canvas -- its plain
+       <p> (and the shared .auth-unconfigured note) were inheriting the dark
+       --ink body color, illegible over the dark photo. */
+    #msg-signed-out p, .auth-unconfigured { color: var(--ink-on-photo-2); }
+    #msg-signed-out p a { color: var(--green); font-weight: 700; text-decoration: none; }
+    #msg-signed-out p a:hover { text-decoration: underline; }
+    .msg-push-prompt {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; margin: 0 0 16px;
+    }
+    .msg-push-prompt p { margin: 0; color: var(--ink-2); font-size: 14px; }
+    .msg-push-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .msg-push-prompt[hidden] { display: none; }
+
+    .msg-shell {
+      display: flex; gap: 0; border: 1px solid var(--line); border-radius: var(--radius);
+      background: var(--card); box-shadow: var(--shadow); overflow: hidden;
+      height: 70vh; min-height: 420px;
+    }
+    .msg-shell[hidden] { display: none; }
+    .msg-sidebar {
+      width: 300px; flex-shrink: 0; border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .msg-sidebar h1 { font-size: 20px; margin: 16px 16px 8px; color: var(--ink); }
+    .msg-friend-list { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+    .msg-thread-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .msg-thread-empty {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      color: var(--ink-3); font-size: 15px; text-align: center; padding: 24px;
+    }
+    .msg-thread-empty[hidden] { display: none; }
+    .msg-thread-active { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 16px; }
+    .msg-thread-active[hidden] { display: none; }
+    .msg-empty-note { color: var(--ink-3); font-size: 14px; padding: 0 16px; }
+    .msg-empty-note[hidden] { display: none; }
+
+    .thread-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-shrink: 0; }
+    .thread-back { all: unset; cursor: pointer; font-size: 20px; color: var(--ink); padding: 4px; display: none; }
+    .thread-name { font-weight: 700; font-size: 17px; color: var(--ink); text-decoration: none; }
+    .thread-name:hover { text-decoration: underline; }
+
+    .thread-messages {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+      padding: 4px 6px; margin-bottom: 12px; min-height: 0;
+    }
+
+    .thread-photo-preview { position: relative; display: inline-block; margin-bottom: 8px; flex-shrink: 0; }
+    .thread-photo-preview[hidden] { display: none; }
+    .thread-photo-preview img { max-width: 120px; max-height: 120px; border-radius: 10px; display: block; box-shadow: var(--shadow); }
+    .thread-photo-preview .dd-clear {
+      all: unset; position: absolute; top: -8px; right: -8px; background: var(--ink); color: #fff;
+      width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; line-height: 1; cursor: pointer;
+    }
+
+    .thread-form { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .thread-photo-label {
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; padding: 0; font-size: 18px; cursor: pointer;
+    }
+    .thread-form input[type="text"] {
+      flex: 1; min-width: 0; font-family: inherit; font-size: 15px; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card); color: var(--ink);
+    }
+    .thread-form input[type="text"]::placeholder { color: var(--ink-3); }
+    .auth-unconfigured[hidden] { display: none; }
+    #thread-error[hidden] { display: none; }
+
+    @media (max-width: 720px) {
+      #msg-page { max-width: 100%; }
+      .msg-shell { height: calc(100vh - 160px); border-radius: var(--radius-sm); }
+      .msg-sidebar { width: 100%; border-right: none; }
+      .msg-shell.thread-open .msg-sidebar { display: none; }
+      .msg-shell:not(.thread-open) .msg-thread-pane { display: none; }
+      .thread-back { display: inline-block; }
+    }
+  </style>
+
+  <script>
+    import { supabase, supabaseConfigured } from '../lib/supabase';
+    import { paintAvatar } from '../lib/avatar';
+    import { pushSupported, getExistingSubscription, enablePush } from '../lib/push';
+
+    interface Friend { id: string; username: string; display_name: string | null; avatar_url: string | null }
+    interface Conversation {
+      friend_id: string; username: string; display_name: string | null; avatar_url: string | null;
+      last_body: string | null; last_photo_path: string | null; last_created_at: string;
+      last_sender_id: string; unread_count: number;
+    }
+    interface MessageRow {
+      id: number; sender_id: string; recipient_id: string; body: string | null;
+      photo_path: string | null; created_at: string; read_at: string | null;
+    }
+    interface Row {
+      id: string; username: string; display_name: string | null; avatar_url: string | null;
+      last_body: string | null; last_photo_path: string | null;
+      last_created_at: string | null; last_sender_id: string | null; unread_count: number;
+    }
+
+    function timeAgo(iso: string): string {
+      const diff = Date.now() - new Date(iso).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days}d ago`;
+      return new Date(iso).toLocaleDateString();
+    }
+
+    const signedOutEl = document.getElementById('msg-signed-out');
+    const unconfiguredEl = document.getElementById('msg-unconfigured');
+    const shellEl = document.getElementById('msg-shell') as HTMLElement | null;
+    const listEl = document.getElementById('msg-friend-list');
+    const noFriendsEl = document.getElementById('msg-no-friends') as HTMLElement | null;
+
+    const threadEmptyEl = document.getElementById('msg-thread-empty') as HTMLElement | null;
+    const threadActiveEl = document.getElementById('msg-thread-active') as HTMLElement | null;
+    const threadBackBtn = document.getElementById('thread-back-btn');
+    const threadAvatarEl = document.getElementById('thread-avatar') as HTMLElement | null;
+    const threadNameLink = document.getElementById('thread-name-link') as HTMLAnchorElement | null;
+    const threadMessagesEl = document.getElementById('thread-messages') as HTMLElement | null;
+    const threadForm = document.getElementById('thread-form') as HTMLFormElement | null;
+    const threadBodyInput = document.getElementById('thread-body-input') as HTMLInputElement | null;
+    const threadPhotoInput = document.getElementById('thread-photo-input') as HTMLInputElement | null;
+    const threadPhotoPreview = document.getElementById('thread-photo-preview') as HTMLElement | null;
+    const threadPhotoPreviewImg = document.getElementById('thread-photo-preview-img') as HTMLImageElement | null;
+    const threadPhotoClearBtn = document.getElementById('thread-photo-clear');
+    const threadErrorEl = document.getElementById('thread-error') as HTMLElement | null;
+    const threadNotFriendNote = document.getElementById('thread-notfriend-note') as HTMLElement | null;
+    const threadNotFriendLink = document.getElementById('thread-notfriend-link') as HTMLAnchorElement | null;
+
+    if (!supabaseConfigured || !supabase) {
+      signedOutEl?.setAttribute('hidden', '');
+      unconfiguredEl?.removeAttribute('hidden');
+    } else {
+      (async () => {
+        const { data: { session } } = await supabase!.auth.getSession();
+        const myId = session?.user?.id;
+        if (!myId) return; // msg-signed-out stays visible (default, not hidden)
+
+        signedOutEl?.setAttribute('hidden', '');
+        shellEl?.removeAttribute('hidden');
+
+        // Offer to enable push notifications for new DMs -- skip quietly if
+        // unsupported, already decided (denied, or previously dismissed),
+        // or this device already has a subscription on file.
+        (async () => {
+          const promptEl = document.getElementById('msg-push-prompt') as HTMLElement | null;
+          const enableBtn = document.getElementById('msg-push-enable');
+          const dismissBtn = document.getElementById('msg-push-dismiss');
+          if (!promptEl || !pushSupported() || Notification.permission === 'denied') return;
+          let dismissed = false;
+          try { dismissed = localStorage.getItem('the380:push-dismissed') === '1'; } catch {}
+          if (dismissed) return;
+          if (await getExistingSubscription()) return;
+
+          promptEl.hidden = false;
+          dismissBtn?.addEventListener('click', () => {
+            promptEl.hidden = true;
+            try { localStorage.setItem('the380:push-dismissed', '1'); } catch {}
+          });
+          enableBtn?.addEventListener('click', async () => {
+            const result = await enablePush(supabase!, myId as string);
+            if (result === 'subscribed' || result === 'denied') promptEl.hidden = true;
+          });
+        })();
+
+        let rows: Row[] = [];
+        let selectedId: string | null = null;
+        let pendingFile: File | null = null;
+
+        function sortRows() {
+          rows.sort((a, b) => {
+            if (a.last_created_at && b.last_created_at) return +new Date(b.last_created_at) - +new Date(a.last_created_at);
+            if (a.last_created_at) return -1;
+            if (b.last_created_at) return 1;
+            return (a.display_name || a.username).localeCompare(b.display_name || b.username);
+          });
+        }
+
+        function renderSidebar() {
+          if (!listEl) return;
+          listEl.innerHTML = '';
+          rows.forEach((r) => {
+            const row = document.createElement('button');
+            row.type = 'button';
+            row.className = 'msg-row' + (r.unread_count > 0 ? ' unread' : '') + (r.id === selectedId ? ' active' : '');
+
+            const avatarEl = document.createElement('div');
+            avatarEl.className = 'avatar avatar-sm';
+            paintAvatar(avatarEl, r.avatar_url, r.display_name, undefined);
+
+            const info = document.createElement('div');
+            info.className = 'msg-row-info';
+            const nameEl = document.createElement('div');
+            nameEl.className = 'msg-row-name';
+            nameEl.textContent = r.display_name || r.username;
+            const previewEl = document.createElement('p');
+            previewEl.className = 'msg-row-preview';
+            if (r.last_created_at) {
+              const mine = r.last_sender_id === myId;
+              const text = r.last_body || (r.last_photo_path !== null ? '📷 Photo' : '');
+              previewEl.textContent = mine ? `You: ${text}` : text;
+            } else {
+              previewEl.textContent = 'Say hi 👋';
+              previewEl.classList.add('msg-row-preview-empty');
+            }
+            info.append(nameEl, previewEl);
+
+            const meta = document.createElement('div');
+            meta.className = 'msg-row-meta';
+            if (r.last_created_at) {
+              const timeEl = document.createElement('span');
+              timeEl.className = 'msg-row-time';
+              timeEl.textContent = timeAgo(r.last_created_at);
+              meta.appendChild(timeEl);
+            }
+            if (r.unread_count > 0) {
+              const badge = document.createElement('span');
+              badge.className = 'msg-badge';
+              badge.textContent = String(r.unread_count);
+              meta.appendChild(badge);
+            }
+
+            row.append(avatarEl, info, meta);
+            row.addEventListener('click', () => selectFriend(r.id));
+            listEl.appendChild(row);
+          });
+          if (noFriendsEl) noFriendsEl.hidden = rows.length > 0;
+        }
+
+        function renderMessage(m: MessageRow, signedUrl: string | null, groupTop: boolean, groupBottom: boolean) {
+          if (!threadMessagesEl) return;
+          const mine = m.sender_id === myId;
+          const row = document.createElement('div');
+          row.className = 'thread-msg' + (mine ? ' thread-msg-mine' : ' thread-msg-theirs')
+            + (groupTop ? ' grouped-top' : '') + (groupBottom ? ' grouped-bottom' : '');
+          if (m.body) {
+            const p = document.createElement('p');
+            p.className = 'thread-msg-body';
+            p.textContent = m.body;
+            row.appendChild(p);
+          }
+          if (signedUrl) {
+            const img = document.createElement('img');
+            img.className = 'thread-msg-photo';
+            img.src = signedUrl;
+            img.alt = '';
+            row.appendChild(img);
+          }
+          if (!groupBottom) {
+            const time = document.createElement('span');
+            time.className = 'thread-msg-time';
+            time.textContent = timeAgo(m.created_at);
+            row.appendChild(time);
+          }
+          threadMessagesEl.appendChild(row);
+        }
+
+        async function signedUrlsFor(msgRows: MessageRow[]): Promise<Map<number, string>> {
+          const photoRows = msgRows.filter((m) => m.photo_path);
+          const map = new Map<number, string>();
+          if (!photoRows.length) return map;
+          const { data } = await supabase!.storage
+            .from('message-photos')
+            .createSignedUrls(photoRows.map((m) => m.photo_path as string), 3600);
+          (data || []).forEach((entry, i) => {
+            if (entry.signedUrl) map.set(photoRows[i].id, entry.signedUrl);
+          });
+          return map;
+        }
+
+        async function loadMessages(friendId: string) {
+          if (!threadMessagesEl) return;
+          const { data } = await supabase!.from('messages')
+            .select('id, sender_id, recipient_id, body, photo_path, created_at, read_at')
+            .or(`and(sender_id.eq.${myId},recipient_id.eq.${friendId}),and(sender_id.eq.${friendId},recipient_id.eq.${myId})`)
+            .order('created_at', { ascending: true });
+          const msgRows = (data as MessageRow[]) || [];
+          const urls = await signedUrlsFor(msgRows);
+          threadMessagesEl.innerHTML = '';
+          msgRows.forEach((m, i) => {
+            const prev = msgRows[i - 1];
+            const next = msgRows[i + 1];
+            const groupTop = !!prev && prev.sender_id === m.sender_id;
+            const groupBottom = !!next && next.sender_id === m.sender_id;
+            renderMessage(m, m.photo_path ? urls.get(m.id) || null : null, groupTop, groupBottom);
+          });
+          threadMessagesEl.scrollTop = threadMessagesEl.scrollHeight;
+
+          const unreadIds = msgRows.filter((m) => m.recipient_id === myId && !m.read_at).map((m) => m.id);
+          if (unreadIds.length) {
+            await supabase!.from('messages').update({ read_at: new Date().toISOString() }).in('id', unreadIds).eq('recipient_id', myId);
+            const r = rows.find((x) => x.id === friendId);
+            if (r) { r.unread_count = 0; renderSidebar(); }
+          }
+        }
+
+        async function selectFriend(friendId: string) {
+          const r = rows.find((x) => x.id === friendId);
+          if (!r) return;
+          selectedId = friendId;
+          shellEl?.classList.add('thread-open');
+          threadEmptyEl?.setAttribute('hidden', '');
+          threadNotFriendNote?.setAttribute('hidden', '');
+          threadActiveEl?.removeAttribute('hidden');
+          renderSidebar();
+
+          if (threadNameLink) {
+            threadNameLink.textContent = r.display_name || r.username;
+            threadNameLink.href = `/u/?u=${encodeURIComponent(r.username)}`;
+          }
+          paintAvatar(threadAvatarEl, r.avatar_url, r.display_name, undefined);
+          if (threadErrorEl) threadErrorEl.hidden = true;
+          pendingFile = null;
+          if (threadPhotoInput) threadPhotoInput.value = '';
+          if (threadPhotoPreview) threadPhotoPreview.hidden = true;
+
+          history.replaceState(null, '', `/messages/?u=${encodeURIComponent(r.username)}`);
+          await loadMessages(friendId);
+        }
+
+        function closeThread() {
+          shellEl?.classList.remove('thread-open');
+        }
+
+        threadBackBtn?.addEventListener('click', closeThread);
+
+        threadPhotoInput?.addEventListener('change', () => {
+          const file = threadPhotoInput.files?.[0] || null;
+          if (!file) return;
+          if (!file.type.startsWith('image/')) {
+            if (threadErrorEl) { threadErrorEl.textContent = `${file.name} is not an image.`; threadErrorEl.hidden = false; }
+            threadPhotoInput.value = '';
+            return;
+          }
+          if (file.size > 5 * 1024 * 1024) {
+            if (threadErrorEl) { threadErrorEl.textContent = `${file.name} is over 5MB.`; threadErrorEl.hidden = false; }
+            threadPhotoInput.value = '';
+            return;
+          }
+          pendingFile = file;
+          if (threadPhotoPreview && threadPhotoPreviewImg) {
+            threadPhotoPreviewImg.src = URL.createObjectURL(file);
+            threadPhotoPreview.hidden = false;
+          }
+        });
+
+        threadPhotoClearBtn?.addEventListener('click', () => {
+          pendingFile = null;
+          if (threadPhotoInput) threadPhotoInput.value = '';
+          if (threadPhotoPreview) threadPhotoPreview.hidden = true;
+        });
+
+        threadForm?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!selectedId) return;
+          const friendId = selectedId;
+          const body = threadBodyInput?.value.trim() || '';
+          if (!body && !pendingFile) return;
+          const submitBtn = threadForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+          if (submitBtn) submitBtn.disabled = true;
+          if (threadErrorEl) threadErrorEl.hidden = true;
+          try {
+            let photo_path: string | null = null;
+            if (pendingFile) {
+              const ext = (pendingFile.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+              const path = `${myId}/${friendId}/${crypto.randomUUID()}.${ext}`;
+              const { error: uploadError } = await supabase!.storage
+                .from('message-photos')
+                .upload(path, pendingFile, { contentType: pendingFile.type });
+              if (uploadError) { if (threadErrorEl) { threadErrorEl.textContent = uploadError.message; threadErrorEl.hidden = false; } return; }
+              photo_path = path;
+            }
+            const { error } = await supabase!.from('messages').insert({
+              sender_id: myId, recipient_id: friendId,
+              body: body || null, photo_path,
+            });
+            if (error) { if (threadErrorEl) { threadErrorEl.textContent = error.message; threadErrorEl.hidden = false; } return; }
+            if (threadBodyInput) threadBodyInput.value = '';
+            pendingFile = null;
+            if (threadPhotoInput) threadPhotoInput.value = '';
+            if (threadPhotoPreview) threadPhotoPreview.hidden = true;
+
+            const r = rows.find((x) => x.id === friendId);
+            if (r) {
+              r.last_body = body || null;
+              r.last_photo_path = photo_path;
+              r.last_created_at = new Date().toISOString();
+              r.last_sender_id = myId as string;
+              sortRows();
+              renderSidebar();
+            }
+            await loadMessages(friendId);
+          } finally {
+            if (submitBtn) submitBtn.disabled = false;
+          }
+        });
+
+        const [{ data: friendsData }, { data: convosData }] = await Promise.all([
+          supabase!.rpc('my_friends'),
+          supabase!.rpc('my_conversations'),
+        ]);
+        const friends = (friendsData as Friend[]) || [];
+        const convos = (convosData as Conversation[]) || [];
+        const convoMap = new Map(convos.map((c) => [c.friend_id, c]));
+
+        rows = friends.map((f) => {
+          const c = convoMap.get(f.id);
+          return {
+            ...f,
+            last_body: c?.last_body ?? null,
+            last_photo_path: c?.last_photo_path ?? null,
+            last_created_at: c?.last_created_at ?? null,
+            last_sender_id: c?.last_sender_id ?? null,
+            unread_count: c?.unread_count ?? 0,
+          };
+        });
+        sortRows();
+        renderSidebar();
+
+        const wantedUsername = new URLSearchParams(location.search).get('u')?.trim().toLowerCase();
+        if (wantedUsername) {
+          const match = rows.find((r) => r.username.toLowerCase() === wantedUsername);
+          if (match) {
+            await selectFriend(match.id);
+          } else if (threadNotFriendLink && threadEmptyEl && threadNotFriendNote) {
+            threadNotFriendLink.href = `/u/?u=${encodeURIComponent(wantedUsername)}`;
+            threadEmptyEl.setAttribute('hidden', '');
+            threadNotFriendNote.removeAttribute('hidden');
+            threadActiveEl?.setAttribute('hidden', '');
+            shellEl?.classList.add('thread-open');
+          }
+        }
+
+        // One realtime subscription for the whole page -- routes an incoming
+        // message to the open thread if it's from that friend, otherwise just
+        // bumps that friend's row (preview/time/unread badge) in the sidebar.
+        supabase!.channel(`inbox:${myId}`)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'messages', filter: `recipient_id=eq.${myId}` },
+            (payload: { new: MessageRow }) => {
+              const msg = payload.new;
+              if (msg.sender_id === selectedId) {
+                loadMessages(msg.sender_id);
+              } else {
+                const r = rows.find((x) => x.id === msg.sender_id);
+                if (r) {
+                  r.last_body = msg.body;
+                  r.last_photo_path = msg.photo_path;
+                  r.last_created_at = msg.created_at;
+                  r.last_sender_id = msg.sender_id;
+                  r.unread_count += 1;
+                  sortRows();
+                  renderSidebar();
+                }
+              }
+            }
+          )
+          .subscribe();
+      })();
+    }
+  </script>
+</Base>

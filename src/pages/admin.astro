@@ -1,0 +1,343 @@
+---
+/**
+ * Admin — preview-only venue editor.
+ * NOTHING HERE SAVES YET. Reads real venue data + real photo folders so the
+ * form feels real, but Save/remove/upload are all local-only (reset on refresh).
+ * Wire-up (writing back to JSON + real file uploads) comes later.
+ */
+import Base from '../layouts/Base.astro';
+import { venues } from '../lib/data';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
+
+function folderImages(kind: string, slug: string): string[] {
+  try {
+    const dir = path.join(process.cwd(), 'public', kind, slug);
+    return fs.readdirSync(dir)
+      .filter((f) => IMAGE_EXT.has(path.extname(f).toLowerCase()))
+      .sort((a, b) => a.localeCompare(b))
+      .map((f) => `/${kind}/${slug}/${f}`);
+  } catch {
+    return [];
+  }
+}
+
+const venueData = venues.map((v) => ({
+  slug: v.slug,
+  name: v.name,
+  city: v.city,
+  blurb: v.blurb ?? '',
+  address: v.address ?? '',
+  menu_url: v.menu_url ?? '',
+  tags: v.tags ?? [],
+  specials: [] as string[],
+  heroPhotos: folderImages('venue-photos', v.slug),
+  galleryPhotos: folderImages('photo-gallery', v.slug),
+})).sort((a, b) => a.name.localeCompare(b.name));
+---
+<Base title="Admin" description="Venue editor">
+<div class="admin">
+  <p class="kicker">Admin</p>
+  <h1>Edit a venue</h1>
+
+  <div class="notice">
+    Preview only — nothing on this page saves yet. Try editing fields, adding tags or specials,
+    or dropping in photos to see how it'll feel. Refreshing resets everything back to the real data.
+  </div>
+
+  <label class="field">
+    <span>Venue</span>
+    <select id="venue-picker"></select>
+  </label>
+
+  <form id="venue-form" hidden>
+    <p class="venue-meta"><span id="vf-name"></span> · <span id="vf-city"></span></p>
+
+    <label class="field">
+      <span>Description</span>
+      <textarea id="vf-blurb" rows="3"></textarea>
+    </label>
+
+    <label class="field">
+      <span>Address</span>
+      <input id="vf-address" type="text" />
+    </label>
+
+    <label class="field">
+      <span>Menu link</span>
+      <input id="vf-menu" type="url" placeholder="https://..." />
+    </label>
+
+    <div class="field">
+      <span>Tags</span>
+      <div class="chips" id="vf-tags"></div>
+      <div class="add-row">
+        <input id="vf-tag-input" type="text" placeholder="Add a tag" />
+        <button type="button" id="vf-tag-add" class="btn secondary">Add</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span>Specials</span>
+      <div class="list-rows" id="vf-specials"></div>
+      <button type="button" id="vf-special-add" class="btn secondary">Add special</button>
+    </div>
+
+    <div class="field">
+      <span>Hero photos <em>(top slider)</em></span>
+      <div class="photo-grid" id="vf-hero-photos"></div>
+      <input id="vf-hero-upload" type="file" accept="image/*" multiple />
+    </div>
+
+    <div class="field">
+      <span>Photo gallery <em>(bottom of page)</em></span>
+      <div class="photo-grid" id="vf-gallery-photos"></div>
+      <input id="vf-gallery-upload" type="file" accept="image/*" multiple />
+    </div>
+
+    <button type="button" id="vf-save" class="btn">Save changes</button>
+    <p class="save-note" id="vf-save-note" hidden>Not wired up yet — nothing was actually saved.</p>
+  </form>
+</div>
+
+<script define:vars={{ venueData }}>
+  const venues = venueData;
+  const picker = document.getElementById('venue-picker');
+  const form = document.getElementById('venue-form');
+
+  const els = {
+    name: document.getElementById('vf-name'),
+    city: document.getElementById('vf-city'),
+    blurb: document.getElementById('vf-blurb'),
+    address: document.getElementById('vf-address'),
+    menu: document.getElementById('vf-menu'),
+    tags: document.getElementById('vf-tags'),
+    tagInput: document.getElementById('vf-tag-input'),
+    tagAdd: document.getElementById('vf-tag-add'),
+    specials: document.getElementById('vf-specials'),
+    specialAdd: document.getElementById('vf-special-add'),
+    heroPhotos: document.getElementById('vf-hero-photos'),
+    heroUpload: document.getElementById('vf-hero-upload'),
+    galleryPhotos: document.getElementById('vf-gallery-photos'),
+    galleryUpload: document.getElementById('vf-gallery-upload'),
+    save: document.getElementById('vf-save'),
+    saveNote: document.getElementById('vf-save-note'),
+  };
+
+  let current = null; // working copy of the selected venue's editable state
+
+  const CITY_LABEL = { 'Iowa City': 'Iowa City', 'Cedar Rapids': 'Cedar Rapids' };
+
+  const groups = {};
+  venues.forEach((v) => {
+    const g = groups[v.city] || (groups[v.city] = []);
+    g.push(v);
+  });
+  Object.keys(groups).sort().forEach((city) => {
+    const og = document.createElement('optgroup');
+    og.label = city;
+    groups[city].forEach((v) => {
+      const opt = document.createElement('option');
+      opt.value = v.slug;
+      opt.textContent = v.name;
+      og.appendChild(opt);
+    });
+    picker.appendChild(og);
+  });
+  const blank = document.createElement('option');
+  blank.value = '';
+  blank.textContent = 'Choose a venue…';
+  blank.selected = true;
+  picker.insertBefore(blank, picker.firstChild);
+
+  function renderChips() {
+    els.tags.innerHTML = '';
+    current.tags.forEach((tag, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = tag + ' ';
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.textContent = '✕';
+      x.setAttribute('aria-label', `Remove ${tag}`);
+      x.addEventListener('click', () => { current.tags.splice(i, 1); renderChips(); });
+      chip.appendChild(x);
+      els.tags.appendChild(chip);
+    });
+  }
+
+  function renderSpecials() {
+    els.specials.innerHTML = '';
+    current.specials.forEach((text, i) => {
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = text;
+      input.placeholder = 'e.g. Taco Tuesday — $2 tacos all night';
+      input.addEventListener('input', () => { current.specials[i] = input.value; });
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'btn secondary';
+      rm.textContent = 'Remove';
+      rm.addEventListener('click', () => { current.specials.splice(i, 1); renderSpecials(); });
+      row.appendChild(input);
+      row.appendChild(rm);
+      els.specials.appendChild(row);
+    });
+  }
+
+  function renderPhotoGrid(container, list) {
+    container.innerHTML = '';
+    list.forEach((src, i) => {
+      const card = document.createElement('div');
+      card.className = 'photo-card';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'photo-remove';
+      rm.textContent = '✕';
+      rm.setAttribute('aria-label', 'Remove photo');
+      rm.addEventListener('click', () => { list.splice(i, 1); renderPhotoGrid(container, list); });
+      card.appendChild(img);
+      card.appendChild(rm);
+      container.appendChild(card);
+    });
+  }
+
+  function selectVenue(slug) {
+    const v = venues.find((x) => x.slug === slug);
+    if (!v) { form.hidden = true; return; }
+    current = {
+      slug: v.slug,
+      name: v.name,
+      city: v.city,
+      blurb: v.blurb,
+      address: v.address,
+      menu_url: v.menu_url,
+      tags: [...v.tags],
+      specials: [...v.specials],
+      heroPhotos: [...v.heroPhotos],
+      galleryPhotos: [...v.galleryPhotos],
+    };
+    els.name.textContent = current.name;
+    els.city.textContent = current.city;
+    els.blurb.value = current.blurb;
+    els.address.value = current.address;
+    els.menu.value = current.menu_url;
+    renderChips();
+    renderSpecials();
+    renderPhotoGrid(els.heroPhotos, current.heroPhotos);
+    renderPhotoGrid(els.galleryPhotos, current.galleryPhotos);
+    els.saveNote.hidden = true;
+    form.hidden = false;
+  }
+
+  picker.addEventListener('change', () => selectVenue(picker.value));
+
+  els.tagAdd.addEventListener('click', () => {
+    const val = els.tagInput.value.trim();
+    if (!val || !current) return;
+    current.tags.push(val);
+    els.tagInput.value = '';
+    renderChips();
+  });
+  els.tagInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); els.tagAdd.click(); }
+  });
+
+  els.specialAdd.addEventListener('click', () => {
+    if (!current) return;
+    current.specials.push('');
+    renderSpecials();
+  });
+
+  function wireUpload(input, container, list) {
+    input.addEventListener('change', () => {
+      Array.from(input.files || []).forEach((file) => {
+        list.push(URL.createObjectURL(file));
+      });
+      renderPhotoGrid(container, list);
+      input.value = '';
+    });
+  }
+  wireUpload(els.heroUpload, els.heroPhotos, () => current.heroPhotos);
+
+  // re-bind upload handlers against the live `current` object each time a venue loads
+  els.heroUpload.addEventListener('change', () => {
+    if (!current) return;
+    Array.from(els.heroUpload.files || []).forEach((file) => current.heroPhotos.push(URL.createObjectURL(file)));
+    renderPhotoGrid(els.heroPhotos, current.heroPhotos);
+    els.heroUpload.value = '';
+  });
+  els.galleryUpload.addEventListener('change', () => {
+    if (!current) return;
+    Array.from(els.galleryUpload.files || []).forEach((file) => current.galleryPhotos.push(URL.createObjectURL(file)));
+    renderPhotoGrid(els.galleryPhotos, current.galleryPhotos);
+    els.galleryUpload.value = '';
+  });
+
+  els.save.addEventListener('click', () => {
+    els.saveNote.hidden = false;
+  });
+</script>
+
+<style>
+  .admin { max-width: 640px; }
+  .notice {
+    background: var(--green-soft); border: 1px solid var(--line); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 14px; color: var(--ink-2); margin: 0 0 24px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; font-size: 14px; }
+  .field > span { font-weight: 700; color: var(--ink); }
+  .field > span em { font-weight: 400; font-style: normal; color: var(--ink-3); font-size: 13px; }
+  input[type="text"], input[type="url"], select, textarea {
+    font-family: inherit; font-size: 15px; padding: 10px 12px; border-radius: var(--radius-sm);
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  }
+  textarea { resize: vertical; }
+  .venue-meta { color: var(--ink-2); font-size: 14px; margin: -6px 0 20px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--ink-4); color: var(--ink);
+    border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 13px; font-weight: 600;
+  }
+  .chip button { all: unset; cursor: pointer; width: 18px; height: 18px; display: grid; place-items: center; color: var(--ink-2); }
+  .chip button:hover { color: var(--cr); }
+
+  .add-row { display: flex; gap: 8px; margin-top: 8px; }
+  .add-row input { flex: 1; }
+
+  .list-rows { display: flex; flex-direction: column; gap: 8px; }
+  .list-row { display: flex; gap: 8px; }
+  .list-row input { flex: 1; }
+
+  .btn {
+    background: var(--button-orange); color: #fff; border: none; border-radius: 999px;
+    padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  .btn.secondary { background: var(--ink-4); color: var(--ink); padding: 8px 14px; }
+
+  .photo-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; margin-bottom: 10px;
+  }
+  .photo-card {
+    position: relative; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden;
+    box-shadow: var(--shadow); background: var(--ink-4);
+  }
+  .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-remove {
+    all: unset; position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; cursor: pointer;
+    display: grid; place-items: center; background: rgba(0,0,0,.55); color: #fff; border-radius: 50%; font-size: 12px;
+  }
+
+  .save-note { color: var(--ink-2); font-size: 13px; margin-top: 8px; }
+
+  #venue-form { margin-top: 8px; }
+</style>
+</Base>

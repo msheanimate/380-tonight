@@ -1,0 +1,100 @@
+---
+import Base from '../layouts/Base.astro';
+import VenueCard from '../components/VenueCard.astro';
+import EventCard from '../components/EventCard.astro';
+import { venues, districts, upcomingEvents, sideOf } from '../lib/data';
+import venuePhotosRaw from '../data/venue-photos.json';
+
+const PLACES_KEY = 'AIzaSyAfgZvvM4cJxLg9vhi0xPkZSTn6OIWLi8M';
+const venuePhotos = venuePhotosRaw as Record<string, string[]>;
+function firstPhoto(slug: string): string | undefined {
+  const refs = venuePhotos[slug];
+  if (!refs || refs.length === 0) return undefined;
+  return `https://places.googleapis.com/v1/${refs[0]}/media?maxWidthPx=800&key=${PLACES_KEY}`;
+}
+
+const icVenues = venues.filter((v) => sideOf(v.city) === 'ic');
+const icDistricts = districts.filter((d) => d.side === 'ic');
+const bars = icVenues.filter((v) => ['bar','brewery','music-venue'].includes(v.type)).slice(0, 6);
+const restaurants = icVenues.filter((v) => v.type === 'restaurant' || v.tags.includes('pizza') || v.tags.includes('brunch')).slice(0, 6);
+const { dated, weekly } = upcomingEvents(new Date());
+const icEvents = dated.filter((e) => {
+  const v = icVenues.find((venue) => venue.slug === e.venue_slug);
+  return !!v;
+}).slice(0, 6);
+const icWeekly = weekly.filter((e) => {
+  const v = icVenues.find((venue) => venue.slug === e.venue_slug);
+  return !!v;
+}).slice(0, 4);
+---
+<Base title="Iowa City" description="Bars, restaurants, events and neighborhoods across Iowa City, Coralville and the surrounding area.">
+  <p class="kicker">Iowa City side</p>
+  <h1>Iowa City</h1>
+  <p class="lede">{icVenues.length} venues across Iowa City, Coralville, North Liberty and beyond. Home of the Hawkeyes, the Ped Mall, and a nightlife scene that punches above its weight.</p>
+
+  <div class="city-stats">
+    <div class="stat"><strong>{icVenues.filter(v => ['bar','brewery','music-venue'].includes(v.type)).length}</strong><span>Bars &amp; taprooms</span></div>
+    <div class="stat"><strong>{icVenues.filter(v => v.type === 'restaurant').length}</strong><span>Restaurants</span></div>
+    <div class="stat"><strong>{icDistricts.length}</strong><span>Neighborhoods</span></div>
+  </div>
+
+  <section>
+    <h2>Neighborhoods <a class="more" href="/neighborhoods/">All →</a></h2>
+    <div class="district-grid">
+      {icDistricts.map((d) => (
+        <a class="district-card" href={`/neighborhoods/${d.slug}/`}>
+          <strong>{d.name}</strong>
+          <span>{d.scene}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section>
+    <h2>Bars &amp; taprooms <a class="more" href="/drink/">All →</a></h2>
+    <div class="grid2">
+      {bars.map((v) => <VenueCard venue={{ ...v, photo: (v as any).photo || firstPhoto(v.slug) }} />)}
+    </div>
+  </section>
+
+  <section>
+    <h2>Restaurants <a class="more" href="/eat/">All →</a></h2>
+    <div class="grid2">
+      {restaurants.map((v) => <VenueCard venue={{ ...v, photo: (v as any).photo || firstPhoto(v.slug) }} />)}
+    </div>
+  </section>
+
+  {icEvents.length > 0 && (
+    <section>
+      <h2>Coming up <a class="more" href="/events/">All events →</a></h2>
+      {icEvents.map((e) => <EventCard event={e} />)}
+    </section>
+  )}
+
+  {icWeekly.length > 0 && (
+    <section>
+      <h2>Weekly regulars</h2>
+      {icWeekly.map((e) => <EventCard event={e} />)}
+    </section>
+  )}
+
+  <p><a href="/cedar-rapids/">Cedar Rapids →</a> · <a href="/neighborhoods/">Neighborhoods</a> · <a href="/events/">Events</a></p>
+</Base>
+
+<style>
+  .city-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; text-align: center; }
+  .stat strong { display: block; font-size: 2rem; font-weight: 800; color: var(--ink); }
+  .stat span { font-size: 13px; color: var(--ink-2); }
+  .district-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
+  .district-card { display: block; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; color: var(--ink); transition: box-shadow .15s; }
+  .district-card:hover { box-shadow: var(--shadow-lg); }
+  .district-card strong { display: block; font-size: 15px; margin-bottom: 4px; }
+  .district-card span { font-size: 13px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 600px) {
+    .city-stats { grid-template-columns: repeat(3, 1fr); }
+    .district-grid { grid-template-columns: 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+  }
+</style>

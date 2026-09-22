@@ -1,0 +1,693 @@
+---
+import Base from '../layouts/Base.astro';
+import venuesIC from '../data/venues-iowa-city.json';
+import venuesCR from '../data/venues-cedar-rapids.json';
+
+const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
+  slug: v.slug, name: v.name, city: v.city, type: v.type,
+}));
+---
+<Base title="Profile" description="A member profile on The 380.">
+  <div id="u-page" data-venues={JSON.stringify(venueIndex)}>
+    <div id="u-missing">
+      <h1>No profile to show</h1>
+      <p>This link is missing a username. <a href="/">Back to The 380</a>.</p>
+    </div>
+
+    <div id="u-notfound" hidden>
+      <h1>Profile not found</h1>
+      <p>We couldn't find anyone at this address. <a href="/">Back to The 380</a>.</p>
+    </div>
+
+    <div id="u-unconfigured" hidden>
+      <h1>Profile</h1>
+      <p class="auth-unconfigured">Accounts aren't connected yet -- check back soon.</p>
+    </div>
+
+    <div id="u-profile" hidden>
+      <div class="u-head">
+        <div class="avatar avatar-lg" id="u-avatar"></div>
+        <div class="u-head-info">
+          <h1 id="u-name"></h1>
+          <p class="u-handle" id="u-handle"></p>
+          <div class="u-badges" id="u-badges"></div>
+        </div>
+      </div>
+      <p class="u-bio" id="u-bio" hidden></p>
+
+      <div class="u-friend-actions" id="u-friend-actions" hidden></div>
+      <div class="u-head-actions">
+        <a href="/profile/" class="btn secondary u-edit-btn" id="u-edit-btn" hidden>Edit profile</a>
+        <div class="friend-toolbar" id="owner-friend-toolbar" hidden>
+          <button type="button" class="btn secondary" id="owner-friend-toggle">+ Add friend</button>
+          <div class="friend-search" id="owner-friend-search" hidden>
+            <input type="text" id="owner-friend-search-input" autocomplete="off" placeholder="Find people by name or handle" />
+            <div class="friend-search-results" id="owner-friend-search-results" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="u-composer-wrap" hidden>
+        <form id="u-composer" class="dn-form">
+          <label for="u-post-body">Post something</label>
+          <textarea id="u-post-body" maxlength="500" rows="3" placeholder="What's on tonight?"></textarea>
+          <div class="dd-picker" id="u-venue-picker">
+            <input type="text" id="u-post-venue" autocomplete="off" placeholder="Tag a venue (optional)" />
+            <button type="button" class="dd-clear" id="u-venue-clear" hidden aria-label="Clear venue tag">&times;</button>
+            <div class="hs-dropdown" id="u-venue-dropdown" hidden></div>
+          </div>
+          <button type="submit" class="btn secondary">Post</button>
+        </form>
+      </div>
+
+      <div id="u-posts-wrap">
+        <h2>Feed</h2>
+        <div id="u-posts-list" class="u-posts-list"></div>
+        <p id="u-posts-empty" hidden>Nothing here yet.</p>
+      </div>
+
+      <div id="u-gallery-wrap" hidden>
+        <h2>Photos</h2>
+        <div id="u-gallery-grid" class="gallery-grid"></div>
+      </div>
+
+      <div id="u-liked-wrap" hidden>
+        <h2>Go-to's</h2>
+        <div id="u-liked-venues" class="liked-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    #u-page { max-width: 640px; margin: 0 auto 48px; }
+    /* #u-missing / #u-notfound sit directly on the bare photo canvas --
+       their plain <p> was inheriting the dark --ink body color, illegible
+       over the dark photo. */
+    #u-missing p, #u-notfound p { color: var(--ink-on-photo-2); }
+    #u-missing p a, #u-notfound p a { color: var(--green); font-weight: 700; text-decoration: none; }
+    #u-missing p a:hover, #u-notfound p a:hover { text-decoration: underline; }
+    .u-head { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+    .u-head-info h1 { margin: 0; }
+    .u-handle { margin: 2px 0 6px; color: var(--ink-on-photo-2); font-size: 14px; font-weight: 600; }
+    .u-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .u-bio { margin: 14px 0; color: var(--ink-on-photo-2); max-width: 480px; }
+    .u-friend-actions { margin: 14px 0; display: flex; align-items: center; gap: 10px; }
+    .u-friend-actions[hidden] { display: none; }
+    .u-head-actions { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+    .u-edit-btn { display: inline-block; margin: 0; text-decoration: none; }
+    .u-edit-btn[hidden] { display: none; }
+    .friend-toolbar[hidden] { display: none; }
+    .friend-search { flex: 1 1 220px; max-width: 420px; }
+    .friend-search[hidden] { display: none; }
+    .friend-search input {
+      width: 100%; box-sizing: border-box; font-family: inherit; font-size: 15px;
+      padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      background: var(--card); color: var(--ink);
+    }
+    .friend-search input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    /* .fr-status / .fr-unfriend / .fr-message / .fsr-* now live in global.css -- see note there */
+    /* .u-login-prompt now lives in global.css -- see note there (built via
+       document.createElement, so a page-scoped rule here would never match). */
+
+    #u-composer-wrap { margin: 8px 0 24px; }
+    .u-posts-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 24px; }
+    /* .u-post and its children now live in global.css -- see note there
+       (built via document.createElement in renderFeed(), so page-scoped
+       styles here would silently never match). */
+
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin: 12px 0 16px;
+    }
+    /* .gallery-card now lives in global.css -- see note there (same reason). */
+    .liked-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0 24px;
+    }
+    /* .liked-card and its .lc-* children now live in global.css -- see note there. */
+    .auth-unconfigured { color: var(--ink-on-photo-2); font-style: italic; }
+    .dn-form { display: flex; flex-direction: column; gap: 4px; max-width: 480px; }
+    .dn-form label { font-size: 13px; font-weight: 600; color: var(--ink-on-photo-2); }
+    .dn-form textarea {
+      font-family: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-sm); background: var(--card); color: var(--ink); margin-top: 6px;
+    }
+    .dn-form textarea { resize: vertical; }
+    .dn-form .btn { margin-top: 10px; align-self: flex-start; }
+    .dd-picker { position: relative; margin-top: 6px; }
+    .dd-picker input {
+      width: 100%; box-sizing: border-box; font-family: inherit; font-size: 15px;
+      padding: 10px 34px 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+      background: var(--card); color: var(--ink); cursor: pointer;
+    }
+    .dd-picker input::placeholder { color: var(--ink-3); }
+    .dd-picker input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    .dd-picker .hs-dropdown { max-height: 260px; overflow-y: auto; }
+    .dd-clear {
+      all: unset; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; font-size: 16px; line-height: 1; color: var(--ink-3); cursor: pointer;
+    }
+    .dd-clear[hidden] { display: none; }
+    .dd-clear:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
+  </style>
+
+  <script>
+    import { supabase, supabaseConfigured } from '../lib/supabase';
+    import { paintAvatar } from '../lib/avatar';
+    import { createDropdownPicker } from '../lib/dropdown';
+
+    interface VenueRef { slug: string; name: string; city: string; type: string }
+    interface PostRow { id: number; body: string; venue_slug: string | null; created_at: string }
+    interface VenueCommentRow {
+      id: number; body: string; venue_slug: string; created_at: string;
+      tagged_user_id: string | null; tagged_username: string | null; tagged_display_name: string | null;
+    }
+    interface PublicProfile {
+      id: string; username: string; display_name: string | null; bio: string | null;
+      home_city: string | null; favorite_type: string | null; avatar_url: string | null;
+      liked_venues: string[]; gallery_urls: string[]; posts: PostRow[]; venue_comments: VenueCommentRow[];
+    }
+    interface FriendRel { id: number; requester_id: string; addressee_id: string; status: string }
+
+    // A feed item is either a wall post or one of this user's own venue
+    // comments -- merged together so a comment you leave on a venue page
+    // shows up in your own feed here too, not just on that venue's page.
+    // A venue comment carries who it tagged (if anyone), same as it does
+    // on the venue page itself.
+    type FeedItem =
+      | { kind: 'post'; id: number; body: string; venue_slug: string | null; created_at: string }
+      | {
+          kind: 'venue_comment'; id: number; body: string; venue_slug: string; created_at: string;
+          tagged_username: string | null; tagged_display_name: string | null;
+        };
+
+    const page = document.getElementById('u-page') as HTMLElement | null;
+    const venueIndex: VenueRef[] = JSON.parse(page?.dataset.venues || '[]');
+    const venueBySlug = new Map(venueIndex.map((v) => [v.slug, v]));
+
+    const missingEl = document.getElementById('u-missing');
+    const notfoundEl = document.getElementById('u-notfound');
+    const unconfiguredEl = document.getElementById('u-unconfigured');
+    const profileEl = document.getElementById('u-profile');
+
+    const username = new URLSearchParams(location.search).get('u')?.trim().toLowerCase() || '';
+
+    function timeAgo(iso: string): string {
+      const diff = Date.now() - new Date(iso).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days}d ago`;
+      return new Date(iso).toLocaleDateString();
+    }
+
+    if (!supabaseConfigured || !supabase) {
+      missingEl?.setAttribute('hidden', '');
+      unconfiguredEl?.removeAttribute('hidden');
+    } else if (!username) {
+      missingEl?.removeAttribute('hidden');
+    } else {
+      missingEl?.setAttribute('hidden', '');
+
+      const avatarEl = document.getElementById('u-avatar') as HTMLElement | null;
+      const nameEl = document.getElementById('u-name');
+      const handleEl = document.getElementById('u-handle');
+      const badgesEl = document.getElementById('u-badges') as HTMLElement | null;
+      const bioEl = document.getElementById('u-bio') as HTMLElement | null;
+      const friendActionsEl = document.getElementById('u-friend-actions') as HTMLElement | null;
+      const editProfileBtn = document.getElementById('u-edit-btn') as HTMLElement | null;
+      const ownerFriendToolbar = document.getElementById('owner-friend-toolbar') as HTMLElement | null;
+      const ownerFriendToggle = document.getElementById('owner-friend-toggle') as HTMLButtonElement | null;
+      const ownerFriendSearch = document.getElementById('owner-friend-search') as HTMLElement | null;
+      const ownerFriendSearchInput = document.getElementById('owner-friend-search-input') as HTMLInputElement | null;
+      const ownerFriendSearchResults = document.getElementById('owner-friend-search-results') as HTMLElement | null;
+      const composerWrap = document.getElementById('u-composer-wrap') as HTMLElement | null;
+      const composerForm = document.getElementById('u-composer') as HTMLFormElement | null;
+      const postBodyInput = document.getElementById('u-post-body') as HTMLTextAreaElement | null;
+      const venuePickerRoot = document.getElementById('u-venue-picker') as HTMLElement | null;
+      const postVenueInput = document.getElementById('u-post-venue') as HTMLInputElement | null;
+      const venueClearBtn = document.getElementById('u-venue-clear') as HTMLButtonElement | null;
+      const venueDropdown = document.getElementById('u-venue-dropdown') as HTMLElement | null;
+      const postsList = document.getElementById('u-posts-list') as HTMLElement | null;
+      const postsEmpty = document.getElementById('u-posts-empty') as HTMLElement | null;
+      const galleryWrap = document.getElementById('u-gallery-wrap') as HTMLElement | null;
+      const galleryGrid = document.getElementById('u-gallery-grid') as HTMLElement | null;
+      const likedWrap = document.getElementById('u-liked-wrap') as HTMLElement | null;
+      const likedVenuesEl = document.getElementById('u-liked-venues') as HTMLElement | null;
+
+      let myId: string | undefined;
+      let currentFeed: FeedItem[] = [];
+
+      const venuePicker = (venuePickerRoot && postVenueInput && venueDropdown)
+        ? createDropdownPicker({
+            root: venuePickerRoot,
+            input: postVenueInput,
+            dropdown: venueDropdown,
+            clearBtn: venueClearBtn,
+            options: venueIndex.map((v) => ({ value: v.slug, label: v.name, meta: `${v.city} · ${v.type}` })),
+            noResultsText: 'No venues found',
+          })
+        : null;
+
+      function renderFeed(rows: FeedItem[], owner: boolean) {
+        if (postsList) {
+          postsList.innerHTML = '';
+          rows.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'u-post';
+            const venue = item.venue_slug ? venueBySlug.get(item.venue_slug) : null;
+
+            if (item.kind === 'venue_comment') {
+              const kindEl = document.createElement('p');
+              kindEl.className = 'u-post-kind';
+              kindEl.append('Commented on ');
+              if (venue) {
+                const vLink = document.createElement('a');
+                vLink.href = `/venues/${venue.slug}/`;
+                vLink.textContent = venue.name;
+                kindEl.appendChild(vLink);
+              } else {
+                kindEl.append('a venue');
+              }
+              if (item.tagged_username) {
+                kindEl.append(' · tagged ');
+                const tLink = document.createElement('a');
+                tLink.href = `/u/?u=${item.tagged_username}`;
+                tLink.textContent = item.tagged_display_name || `@${item.tagged_username}`;
+                kindEl.appendChild(tLink);
+              }
+              card.appendChild(kindEl);
+            }
+
+            const bodyEl = document.createElement('p');
+            bodyEl.className = 'u-post-body';
+            bodyEl.textContent = item.body;
+
+            const meta = document.createElement('div');
+            meta.className = 'u-post-meta';
+            if (item.kind === 'post' && venue) {
+              const vLink = document.createElement('a');
+              vLink.className = 'u-post-venue';
+              vLink.href = `/venues/${venue.slug}/`;
+              vLink.textContent = venue.name;
+              meta.appendChild(vLink);
+            } else {
+              meta.appendChild(document.createElement('span'));
+            }
+            const dateEl = document.createElement('span');
+            dateEl.className = 'u-post-date';
+            dateEl.textContent = timeAgo(item.created_at);
+            meta.appendChild(dateEl);
+            if (owner) {
+              const delBtn = document.createElement('button');
+              delBtn.type = 'button';
+              delBtn.className = 'u-post-delete';
+              delBtn.textContent = 'Delete';
+              delBtn.addEventListener('click', async () => {
+                if (!myId) return;
+                delBtn.disabled = true;
+                const table = item.kind === 'post' ? 'posts' : 'comments';
+                await supabase!.from(table).delete().eq('id', item.id).eq('user_id', myId);
+                currentFeed = currentFeed.filter((row) => !(row.kind === item.kind && row.id === item.id));
+                renderFeed(currentFeed, owner);
+              });
+              meta.appendChild(delBtn);
+            }
+            card.append(bodyEl, meta);
+            postsList!.appendChild(card);
+          });
+        }
+        if (postsEmpty) postsEmpty.hidden = rows.length > 0;
+      }
+
+      async function loadRelationship(theirId: string): Promise<FriendRel | null> {
+        if (!myId) return null;
+        const { data } = await supabase!.from('friend_requests')
+          .select('id, requester_id, addressee_id, status')
+          .or(`and(requester_id.eq.${myId},addressee_id.eq.${theirId}),and(requester_id.eq.${theirId},addressee_id.eq.${myId})`)
+          .maybeSingle();
+        return (data as FriendRel | null) || null;
+      }
+
+      function renderFriendActions(rel: FriendRel | null, theirId: string, theirUsername: string) {
+        if (!friendActionsEl || !myId) return;
+        friendActionsEl.hidden = false;
+        friendActionsEl.innerHTML = '';
+        if (!rel) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn secondary';
+          btn.textContent = 'Add friend';
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            const { error } = await supabase!.from('friend_requests').insert({ requester_id: myId, addressee_id: theirId });
+            if (!error) renderFriendActions(await loadRelationship(theirId), theirId, theirUsername);
+            else btn.disabled = false;
+          });
+          friendActionsEl.appendChild(btn);
+        } else if (rel.status === 'accepted') {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = '✓ Friends';
+          const messageLink = document.createElement('a');
+          messageLink.className = 'fr-message';
+          messageLink.href = `/messages/?u=${encodeURIComponent(theirUsername)}`;
+          messageLink.textContent = 'Message';
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'fr-unfriend';
+          removeBtn.textContent = 'Remove';
+          removeBtn.addEventListener('click', async () => {
+            removeBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', rel.id);
+            renderFriendActions(null, theirId, theirUsername);
+          });
+          friendActionsEl.append(status, messageLink, removeBtn);
+        } else if (rel.requester_id === myId) {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = 'Request sent';
+          const cancelBtn = document.createElement('button');
+          cancelBtn.type = 'button';
+          cancelBtn.className = 'fr-unfriend';
+          cancelBtn.textContent = 'Cancel';
+          cancelBtn.addEventListener('click', async () => {
+            cancelBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', rel.id);
+            renderFriendActions(null, theirId, theirUsername);
+          });
+          friendActionsEl.append(status, cancelBtn);
+        } else {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = 'Sent you a friend request';
+          const acceptBtn = document.createElement('button');
+          acceptBtn.type = 'button';
+          acceptBtn.className = 'btn secondary';
+          acceptBtn.textContent = 'Accept';
+          acceptBtn.addEventListener('click', async () => {
+            acceptBtn.disabled = true;
+            await supabase!.from('friend_requests').update({ status: 'accepted', responded_at: new Date().toISOString() }).eq('id', rel.id);
+            renderFriendActions({ ...rel, status: 'accepted' }, theirId, theirUsername);
+          });
+          const declineBtn = document.createElement('button');
+          declineBtn.type = 'button';
+          declineBtn.className = 'fr-unfriend';
+          declineBtn.textContent = 'Decline';
+          declineBtn.addEventListener('click', async () => {
+            declineBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', rel.id);
+            renderFriendActions(null, theirId, theirUsername);
+          });
+          friendActionsEl.append(status, acceptBtn, declineBtn);
+        }
+      }
+
+      interface SearchRow { id: string; username: string | null; display_name: string | null; avatar_url: string | null; relationship: string; request_id: number | null }
+
+      let ownerSearchResults: SearchRow[] = [];
+      let ownerSearchDebounce: ReturnType<typeof setTimeout> | undefined;
+
+      function buildOwnerSearchRowActions(row: SearchRow): HTMLElement[] {
+        if (row.relationship === 'accepted') {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = '\u2713 Friends';
+          return [status];
+        }
+        if (row.relationship === 'pending_sent') {
+          const status = document.createElement('span');
+          status.className = 'fr-status';
+          status.textContent = 'Pending';
+          const cancelBtn = document.createElement('button');
+          cancelBtn.type = 'button';
+          cancelBtn.className = 'fr-unfriend';
+          cancelBtn.textContent = 'Cancel';
+          cancelBtn.addEventListener('click', async () => {
+            cancelBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', row.request_id);
+            row.relationship = 'none';
+            row.request_id = null;
+            renderOwnerSearchResults();
+          });
+          return [status, cancelBtn];
+        }
+        if (row.relationship === 'pending_received') {
+          const acceptBtn = document.createElement('button');
+          acceptBtn.type = 'button';
+          acceptBtn.className = 'btn secondary';
+          acceptBtn.textContent = 'Accept';
+          acceptBtn.addEventListener('click', async () => {
+            acceptBtn.disabled = true;
+            await supabase!.from('friend_requests').update({ status: 'accepted', responded_at: new Date().toISOString() }).eq('id', row.request_id);
+            row.relationship = 'accepted';
+            renderOwnerSearchResults();
+          });
+          const declineBtn = document.createElement('button');
+          declineBtn.type = 'button';
+          declineBtn.className = 'fr-unfriend';
+          declineBtn.textContent = 'Decline';
+          declineBtn.addEventListener('click', async () => {
+            declineBtn.disabled = true;
+            await supabase!.from('friend_requests').delete().eq('id', row.request_id);
+            row.relationship = 'none';
+            row.request_id = null;
+            renderOwnerSearchResults();
+          });
+          return [acceptBtn, declineBtn];
+        }
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'btn secondary';
+        addBtn.textContent = 'Add';
+        addBtn.addEventListener('click', async () => {
+          addBtn.disabled = true;
+          if (!myId) { addBtn.disabled = false; return; }
+          const { data, error } = await supabase!.from('friend_requests')
+            .insert({ requester_id: myId, addressee_id: row.id })
+            .select('id')
+            .single();
+          if (!error) {
+            row.relationship = 'pending_sent';
+            row.request_id = (data as { id: number } | null)?.id ?? null;
+            renderOwnerSearchResults();
+          } else {
+            addBtn.disabled = false;
+          }
+        });
+        return [addBtn];
+      }
+
+      function buildOwnerFsrRow(row: SearchRow): HTMLElement {
+        const el = document.createElement('div');
+        el.className = 'fsr-row';
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar avatar-sm';
+        paintAvatar(avatar, row.avatar_url, row.display_name, undefined);
+        const link = document.createElement('a');
+        link.className = 'fsr-name';
+        link.textContent = row.display_name || row.username || 'Someone';
+        link.href = row.username ? `/u/?u=${encodeURIComponent(row.username)}` : '#';
+        const actions = document.createElement('div');
+        actions.className = 'fsr-actions';
+        buildOwnerSearchRowActions(row).forEach((a) => actions.appendChild(a));
+        el.append(avatar, link, actions);
+        return el;
+      }
+
+      function renderOwnerSearchResults() {
+        if (!ownerFriendSearchResults) return;
+        ownerFriendSearchResults.innerHTML = '';
+        if (!ownerSearchResults.length) {
+          ownerFriendSearchResults.innerHTML = '<p class="fsr-empty">No one found.</p>';
+          return;
+        }
+        ownerSearchResults.forEach((row) => {
+          ownerFriendSearchResults!.appendChild(buildOwnerFsrRow(row));
+        });
+      }
+
+      function collapseOwnerFriendSearch() {
+        if (ownerFriendSearch) ownerFriendSearch.hidden = true;
+        if (ownerFriendSearchResults) ownerFriendSearchResults.hidden = true;
+        if (ownerFriendSearchInput) ownerFriendSearchInput.value = '';
+        ownerSearchResults = [];
+      }
+
+      ownerFriendToggle?.addEventListener('click', () => {
+        if (!ownerFriendSearch) return;
+        const opening = ownerFriendSearch.hidden;
+        if (opening) {
+          ownerFriendSearch.hidden = false;
+          ownerFriendSearchInput?.focus();
+        } else {
+          collapseOwnerFriendSearch();
+        }
+      });
+
+      ownerFriendSearchInput?.addEventListener('input', () => {
+        const q = ownerFriendSearchInput.value.trim();
+        clearTimeout(ownerSearchDebounce);
+        if (q.length < 2) {
+          ownerSearchResults = [];
+          if (ownerFriendSearchResults) ownerFriendSearchResults.hidden = true;
+          return;
+        }
+        ownerSearchDebounce = setTimeout(async () => {
+          const { data } = await supabase!.rpc('search_profiles', { p_query: q });
+          if (ownerFriendSearchInput.value.trim() !== q) return;
+          ownerSearchResults = (data as SearchRow[]) || [];
+          if (ownerFriendSearchResults) ownerFriendSearchResults.hidden = false;
+          renderOwnerSearchResults();
+        }, 300);
+      });
+
+      ownerFriendSearchInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          collapseOwnerFriendSearch();
+          ownerFriendSearchInput.blur();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        const target = e.target as Node;
+        if (ownerFriendToggle?.contains(target)) return;
+        if (ownerFriendSearch && !ownerFriendSearch.hidden && !ownerFriendSearch.contains(target)) {
+          collapseOwnerFriendSearch();
+        }
+      });
+
+      composerForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!postBodyInput || !myId) return;
+        const body = postBodyInput.value.trim();
+        if (!body) return;
+        const submitBtn = composerForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+        if (submitBtn) submitBtn.disabled = true;
+        try {
+          const { data: inserted, error } = await supabase!.from('posts')
+            .insert({ user_id: myId, body, venue_slug: venuePicker?.getValue() || null })
+            .select('id, body, venue_slug, created_at')
+            .single();
+          if (!error && inserted) {
+            const row = inserted as PostRow;
+            currentFeed = [
+              { kind: 'post', id: row.id, body: row.body, venue_slug: row.venue_slug, created_at: row.created_at },
+              ...currentFeed,
+            ];
+            renderFeed(currentFeed, true);
+            postBodyInput.value = '';
+            venuePicker?.setValue('', { silent: true });
+          }
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+
+      async function load() {
+        const { data, error } = await supabase!.rpc('public_profile', { p_username: username });
+        const profile: PublicProfile | undefined = Array.isArray(data) ? data[0] : undefined;
+        if (error || !profile) {
+          notfoundEl?.removeAttribute('hidden');
+          return;
+        }
+
+        document.title = `${profile.display_name || profile.username} · The 380`;
+        if (nameEl) nameEl.textContent = profile.display_name || profile.username;
+        if (handleEl) handleEl.textContent = `@${profile.username}`;
+        paintAvatar(avatarEl, profile.avatar_url, profile.display_name, undefined);
+
+        if (badgesEl) {
+          badgesEl.innerHTML = '';
+          const addBadge = (text: string) => {
+            const span = document.createElement('span');
+            span.className = 'tag';
+            span.textContent = text;
+            badgesEl.appendChild(span);
+          };
+          if (profile.home_city) addBadge(profile.home_city);
+          if (profile.favorite_type) addBadge(profile.favorite_type);
+        }
+
+        if (bioEl) {
+          if (profile.bio) { bioEl.textContent = profile.bio; bioEl.hidden = false; }
+          else bioEl.hidden = true;
+        }
+
+        if (galleryGrid) {
+          galleryGrid.innerHTML = '';
+          (profile.gallery_urls || []).forEach((url) => {
+            const card = document.createElement('div');
+            card.className = 'gallery-card';
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = '';
+            card.appendChild(img);
+            galleryGrid.appendChild(card);
+          });
+        }
+        if (galleryWrap) galleryWrap.hidden = (profile.gallery_urls || []).length === 0;
+
+        if (likedVenuesEl) {
+          likedVenuesEl.innerHTML = '';
+          (profile.liked_venues || []).forEach((slug) => {
+            const v = venueBySlug.get(slug);
+            if (!v) return;
+            const a = document.createElement('a');
+            a.className = 'liked-card';
+            a.href = `/venues/${v.slug}/`;
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'lc-name';
+            nameSpan.textContent = v.name;
+            const metaSpan = document.createElement('span');
+            metaSpan.className = 'lc-meta';
+            metaSpan.textContent = `${v.city} · ${v.type}`;
+            a.append(nameSpan, metaSpan);
+            likedVenuesEl.appendChild(a);
+          });
+        }
+        if (likedWrap) likedWrap.hidden = (profile.liked_venues || []).length === 0;
+
+        const { data: { session } } = await supabase!.auth.getSession();
+        myId = session?.user?.id;
+        const isOwner = !!myId && myId === profile.id;
+
+        const posts = profile.posts || [];
+        const venueComments = profile.venue_comments || [];
+        currentFeed = [
+          ...posts.map((p): FeedItem => (
+            { kind: 'post', id: p.id, body: p.body, venue_slug: p.venue_slug, created_at: p.created_at }
+          )),
+          ...venueComments.map((c): FeedItem => (
+            {
+              kind: 'venue_comment', id: c.id, body: c.body, venue_slug: c.venue_slug, created_at: c.created_at,
+              tagged_username: c.tagged_username, tagged_display_name: c.tagged_display_name,
+            }
+          )),
+        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        renderFeed(currentFeed, isOwner);
+
+        if (isOwner) {
+          editProfileBtn?.removeAttribute('hidden');
+          composerWrap?.removeAttribute('hidden');
+          ownerFriendToolbar?.removeAttribute('hidden');
+        } else if (myId) {
+          renderFriendActions(await loadRelationship(profile.id), profile.id, profile.username);
+        } else if (friendActionsEl) {
+          friendActionsEl.hidden = false;
+          const a = document.createElement('a');
+          a.className = 'u-login-prompt';
+          a.href = '/login/';
+          a.textContent = `Log in to connect with ${profile.display_name || profile.username}`;
+          friendActionsEl.appendChild(a);
+        }
+
+        profileEl?.removeAttribute('hidden');
+      }
+
+      load();
+    }
+  </script>
+</Base>

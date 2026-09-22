@@ -30,6 +30,7 @@ export const ICONS: Record<string, string> = {
   cinema: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 10h4M17 10h4M3 14h4M17 14h4"/>',
   arena: '<path d="M3 9a9 4 0 0 1 18 0v6a9 4 0 0 1-18 0zM3 9a9 4 0 0 0 18 0"/>',
   other: '<path d="M12 3l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9L6.7 19.5l1.1-6L3.4 9.3l6-.8z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>',
   // nav
   tonight: '<path d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A6 6 0 0 1 12.4 3.1C12.3 3 12.1 3 12 3z"/>',
   drink: '<path d="M8 21h8M12 15v6M5 3h14l-7 9z"/>',

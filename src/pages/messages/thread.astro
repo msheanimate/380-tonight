@@ -1,0 +1,22 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Messages">
+  <p class="thread-redirect">Redirecting to <a href="/messages/" id="thread-redirect-link">Messages</a>&hellip;</p>
+
+  <script>
+    const u = new URLSearchParams(location.search).get('u');
+    const dest = u ? `/messages/?u=${encodeURIComponent(u)}` : '/messages/';
+    const link = document.getElementById('thread-redirect-link') as HTMLAnchorElement | null;
+    if (link) link.href = dest;
+    location.replace(dest);
+  </script>
+</Base>
+
+<style>
+  /* Bare paragraph directly on the photo canvas (no card wrapper); shown
+     only for the instant before the redirect fires, but still needs the
+     light on-photo ink like every other bare-canvas paragraph sitewide. */
+  .thread-redirect { color: var(--ink-on-photo-2); }
+  .thread-redirect a { color: var(--green); font-weight: 700; }
+</style>

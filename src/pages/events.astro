@@ -1,11 +1,22 @@
 ---
 import Base from '../layouts/Base.astro';
 import EventCard from '../components/EventCard.astro';
-import { upcomingEvents, venues } from '../lib/data';
+import { upcomingEvents, venues, events } from '../lib/data';
+import venuePhotosRaw from '../data/venue-photos.json';
+
+const PLACES_KEY = 'AIzaSyAfgZvvM4cJxLg9vhi0xPkZSTn6OIWLi8M';
+const venuePhotos: Record<string, string[]> = venuePhotosRaw as Record<string, string[]>;
+
+function firstPhoto(slug: string): string | undefined {
+  const refs = venuePhotos[slug];
+  if (!refs?.length) return undefined;
+  return `https://places.googleapis.com/v1/${refs[0]}/media?maxWidthPx=600&key=${PLACES_KEY}`;
+}
 
 const { dated, weekly } = upcomingEvents();
 const cats = ['game-day', 'music', 'nightlife', 'arts', 'festival'];
 const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includes(v.type));
+
 
 const datedJSON = JSON.stringify(dated);
 const weeklyJSON = JSON.stringify(weekly);
@@ -44,20 +55,48 @@ const weeklyJSON = JSON.stringify(weekly);
 
   <h2>Where the big shows are</h2>
   <p class="lede">These rooms publish their own calendars; the plan is to pull their feeds in here. Until then, links.</p>
-  <ul>
-    {bigRooms.map((v) => <li><a href={v.website} rel="noopener">{v.name}</a> — {v.city}</li>)}
-  </ul>
+  <div class="big-rooms-grid">
+    {bigRooms.map((v) => {
+      const photo = (v as any).photo || firstPhoto(v.slug);
+      const side = ['Iowa City','Coralville','North Liberty','Solon'].includes(v.city) ? 'ic' : 'cr';
+      const typeMap: Record<string,string> = {
+        'music-venue': 'Music Venue', theater: 'Theater', arena: 'Arena',
+        bar: 'Bar', brewery: 'Brewery', restaurant: 'Restaurant', cinema: 'Cinema', other: 'Venue'
+      };
+      return (
+        <a class="br-card" data-slug={v.slug} href={`/venues/${v.slug}/`}>
+          <div class="br-media">
+            {photo
+              ? <img src={photo} alt="" loading="lazy" />
+              : <div class="br-art" style={`background: linear-gradient(135deg, #1a3a1f 0%, #0e7c47 100%)`}></div>
+            }
+            <span class:list={['br-badge', side]}>{v.city}</span>
+          </div>
+          <div class="br-body">
+            <p class="br-type">{typeMap[v.type] ?? v.type}</p>
+            <strong class="br-name">{v.name}</strong>
+            <p class="br-blurb">{v.blurb}</p>
+            {v.website && (
+              <span class="br-link" onclick={`event.stopPropagation();window.open('${v.website}','_blank')`}>
+                See calendar →
+              </span>
+            )}
+          </div>
+        </a>
+      );
+    })}
+  </div>
 
   <style is:global>
     .ev-cal { margin: 24px 0 32px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
     .ev-cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
     .ev-cal-nav strong { font-size: 16px; }
-    .ev-cal-nav button { background: none; border: 1px solid var(--line); border-radius: 6px; width: 32px; height: 32px; font-size: 20px; line-height: 1; cursor: pointer; color: var(--ink); display: flex; align-items: center; justify-content: center; }
+    .ev-cal-nav button { background: none; border: 1px solid var(--line); border-radius: 50%; width: 30px; height: 30px; font-size: 20px; line-height: 1; cursor: pointer; color: var(--ink); display: flex; align-items: center; justify-content: center; }
     .ev-cal-nav button:hover { background: var(--bg); }
     .ev-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); }
     .ev-cal-dow span { text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); padding: 8px 0; }
     .ev-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
-    .ev-cal-day { min-height: 52px; padding: 6px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); cursor: default; position: relative; }
+    .ev-cal-day { min-height: 8em; padding: 0.4rem 0.35rem 0.3rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); cursor: default; position: relative; }
     .ev-cal-day:nth-child(7n) { border-right: none; }
     .ev-cal-day--empty { background: var(--bg); opacity: .4; }
     .ev-cal-day--today .ev-cal-day-num { background: var(--green); color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
@@ -76,6 +115,174 @@ const weeklyJSON = JSON.stringify(weekly);
     .ev-cal-item-body span { font-size: 12px; color: var(--ink-3); }
     .ev-cal-item-body a { color: var(--green); text-decoration: none; font-size: 12px; }
     .ev-cal-item-body a:hover { text-decoration: underline; }
+
+    /* Big rooms grid */
+    .big-rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin: 1.25rem 0 2rem;
+    }
+    .br-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--card, #fff);
+      border: 1px solid var(--line, #e5e7eb);
+      border-radius: 16px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+    }
+    .br-card:hover {
+      border-color: var(--green, #1fb865);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+    .br-card--live {
+      border-color: var(--green, #1fb865);
+    }
+    /* Tonight strip */
+    .br-tonight {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: color-mix(in srgb, var(--green, #1fb865) 12%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--green, #1fb865) 25%, transparent);
+      font-size: 12px;
+      line-height: 1.3;
+      flex-wrap: wrap;
+    }
+    .br-tonight-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green, #1fb865);
+      flex-shrink: 0;
+      animation: br-pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes br-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+    .br-tonight-label {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 10px;
+      color: var(--green, #1fb865);
+      flex-shrink: 0;
+    }
+    .br-tonight-title {
+      font-weight: 600;
+      color: var(--ink, #111);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    }
+    .br-tonight-time {
+      color: var(--ink-3, #6b7280);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .br-tonight-tickets {
+      margin-left: auto;
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green, #1fb865);
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 2px 8px;
+      border: 1px solid var(--green, #1fb865);
+      border-radius: 20px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .br-tonight-tickets:hover {
+      background: var(--green, #1fb865);
+      color: #fff;
+    }
+    .br-media {
+      position: relative;
+      aspect-ratio: 3/2;
+      overflow: hidden;
+      background: #111;
+    }
+    .br-media img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s;
+    }
+    .br-card:hover .br-media img { transform: scale(1.05); }
+    .br-art {
+      width: 100%; height: 100%;
+    }
+    .br-badge {
+      position: absolute;
+      top: 0.6rem; left: 0.6rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 50px;
+      color: #fff;
+    }
+    .br-badge.ic { background: var(--green, #1fb865); }
+    .br-badge.cr { background: #2563eb; }
+    .br-body {
+      padding: 1.1rem 1.25rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      flex: 1;
+    }
+    .br-type {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink-3, #888);
+      margin: 0;
+    }
+    .br-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      display: block;
+      color: var(--ink, #111);
+      line-height: 1.2;
+    }
+    .br-blurb {
+      font-size: 0.875rem;
+      color: var(--ink-2, #555);
+      line-height: 1.5;
+      margin: 0.2rem 0 0.5rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .br-link {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--button-orange);
+      margin-top: auto;
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.15s;
+    }
+    .br-link:hover { filter: brightness(0.92); transform: translateY(-1px); }
+    @media (max-width: 640px) {
+      .big-rooms-grid { grid-template-columns: 1fr; }
+    }
   </style>
 
   <script define:vars={{ datedJSON, weeklyJSON }}>
@@ -214,6 +421,46 @@ const weeklyJSON = JSON.stringify(weekly);
     });
 
     render();
+  </script>
+
+  <script>
+    // Dynamic "Playing Tonight" — fetches /shows-tonight.json at page load, no rebuild needed
+    (async () => {
+      try {
+        const res = await fetch('/shows-tonight.json');
+        if (!res.ok) return;
+        const data = await res.json();
+        // Compare date in Central Time
+        const todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+        if (data.date !== todayISO) return;
+        const shows = data.shows || [];
+        // Build map: venue_slug -> first show
+        const byVenue = new Map();
+        for (const s of shows) {
+          if (!byVenue.has(s.venue_slug)) byVenue.set(s.venue_slug, s);
+        }
+        // Inject tonight strip on each matching card
+        document.querySelectorAll('.br-card[data-slug]').forEach(card => {
+          const slug = card.dataset.slug;
+          const show = byVenue.get(slug);
+          if (!show) return;
+          card.classList.add('br-card--live');
+          const strip = document.createElement('div');
+          strip.className = 'br-tonight';
+          strip.innerHTML =
+            '<span class="br-tonight-dot"></span>' +
+            '<span class="br-tonight-label">Tonight</span>' +
+            '<span class="br-tonight-title">' + show.title + '</span>' +
+            (show.time ? '<span class="br-tonight-time">' + show.time + '</span>' : '') +
+            (show.ticket_url
+              ? '<a class="br-tonight-tickets" href="' + show.ticket_url + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Get tickets \u2192</a>'
+              : '');
+          // Insert strip between br-media and br-body
+          const body = card.querySelector('.br-body');
+          card.insertBefore(strip, body);
+        });
+      } catch (_) { /* silently ignore */ }
+    })();
   </script>
 
   <script>

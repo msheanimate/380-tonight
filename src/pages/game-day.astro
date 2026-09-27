@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import VenueCard from '../components/VenueCard.astro';
 import HawkeyeBar from '../components/HawkeyeBar.astro';
+import { hawkeyeGoing, goingButtonHtml } from '../lib/game-going';
 import { games, gamesMeta, venues, fmtDate, sideOf } from '../lib/data';
 
 const isoToday = new Date().toISOString().slice(0, 10);
@@ -19,13 +20,14 @@ const watchCR = venues.filter((v) => sideOf(v.city) === 'cr' && v.tags.includes(
 
   <h2>{gamesMeta.season} schedule</h2>
   <table>
-    <thead><tr><th>Date</th><th>Opponent</th><th>Kick</th></tr></thead>
+    <thead><tr><th>Date</th><th>Opponent</th><th>Kick</th><th class="gd-going-h"><span class="sr-only">Going</span></th></tr></thead>
     <tbody>
       {games.map((g) => (
         <tr class={g.home ? 'home' : ''}>
           <td>{fmtDate(g.date)}</td>
           <td>{g.home ? `${g.opponent} · Kinnick` : g.opponent}</td>
           <td>{g.time}</td>
+          <td class="gd-going">{g.date >= isoToday && <Fragment set:html={goingButtonHtml(hawkeyeGoing(g))} />}</td>
         </tr>
       ))}
     </tbody>

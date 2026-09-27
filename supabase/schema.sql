@@ -950,3 +950,32 @@ $$;
 
 revoke execute on function public.friends_going() from public;
 grant execute on function public.friends_going() to authenticated;
+
+-- A person's "I'm going"s for their feed on /u/: upcoming ones plus the last
+-- two weeks. Only returned to that person and their accepted friends --
+-- everyone else gets nothing, so plans are never public.
+create or replace function public.profile_going(p_username text)
+returns table (show_key text, venue_slug text, show_date date, artist text, created_at timestamptz)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  with target as (select id from public.profiles where username = lower(p_username))
+  select r.show_key, r.venue_slug, r.show_date, r.artist, r.created_at
+  from public.show_rsvps r
+  join target t on t.id = r.user_id
+  where r.show_date >= ((now() at time zone 'America/Chicago')::date - 14)
+    and (
+      auth.uid() = t.id
+      or exists (
+        select 1 from public.friend_requests fr
+        where fr.status = 'accepted'
+          and ((fr.requester_id = auth.uid() and fr.addressee_id = t.id)
+            or (fr.addressee_id = auth.uid() and fr.requester_id = t.id))
+      )
+    )
+  order by r.created_at desc;
+$$;
+
+grant execute on function public.profile_going(text) to anon, authenticated;

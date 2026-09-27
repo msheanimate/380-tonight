@@ -469,8 +469,19 @@ main { overflow-x: clip; }
 .nowbar .matchup-iowa { transform: scaleX(-1); }
 .nowbar .matchup-vs { font-family: var(--font-display); font-size: 20px; font-weight: 400; letter-spacing: .06em; -webkit-text-stroke: .5px currentColor; opacity: .95; }
 @media (max-width: 600px) { .nowbar .matchup { width: 100%; justify-content: center; } .nowbar .matchup img { height: 64px; } }
+/* "I'm going" on the Hawkeye bar: a white pill like Tickets; checked = accent text */
+.nowbar .hb-going {
+  padding: 8px 14px; font-size: 14px; font-weight: 800; background: #fff; color: var(--ink);
+  border-color: transparent; box-shadow: var(--pill-depth, 0 2px 6px rgba(0,0,0,.2));
+}
+.nowbar .hb-going:hover { background: #fff; transform: translateY(-1px); }
+.nowbar .hb-going.going { background: #fff; color: var(--btn-on-light); border-color: transparent; }
+.nowbar .hb-going.going .going-count { background: color-mix(in srgb, var(--btn) 16%, transparent); color: var(--btn-on-light); }
+/* Game Day schedule: the going button column */
+td.gd-going { text-align: right; white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 /* SeatGeek ticket link beside Game Day: white pill carrying SeatGeek's own icon */
-.nowbar-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.nowbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: none; }
 .nowbar .sg-btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px 7px 8px; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; font-size: 14px; text-decoration: none; box-shadow: var(--pill-depth, 0 2px 6px rgba(0,0,0,.2)); }
 .nowbar .sg-btn img { width: 22px; height: 22px; border-radius: 6px; display: block; }
 .nowbar .sg-btn:hover { transform: translateY(-1px); }
@@ -851,6 +862,16 @@ button#vg-prev{display:none}
 .u-post-kind { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--ink-3); }
 .u-post-kind a { color: var(--green-dark); text-decoration: none; }
 .u-post-kind a:hover { text-decoration: underline; }
+/* "I'm going" in the user feed */
+.u-going-mark { display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 6px; border-radius: 50%; background: var(--btn); color: var(--btn-ink); font-size: 10px; vertical-align: -2px; }
+.u-going-row { display: flex; align-items: center; gap: 12px; margin: 4px 0 2px; }
+.u-going-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.u-going-name { font-size: 16px; font-weight: 800; color: var(--ink); text-decoration: none; }
+.u-going-name:hover { text-decoration: underline; }
+.u-going-place { font-size: 13px; color: var(--ink-2); }
+.u-going-sg { display: inline-flex; align-items: center; gap: 7px; margin: 8px 0 0 56px; padding: 6px 13px 6px 7px; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; font-size: 13px; text-decoration: none; box-shadow: var(--pill-depth, 0 2px 6px rgba(0,0,0,.2)); }
+.u-going-sg img { width: 20px; height: 20px; border-radius: 5px; display: block; }
+.u-going-sg:hover { transform: translateY(-1px); }
 .u-post-body { white-space: pre-wrap; margin: 0; }
 .u-post-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
 .u-post-venue { font-size: 13px; font-weight: 700; color: var(--green-dark); text-decoration: none; }

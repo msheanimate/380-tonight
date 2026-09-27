@@ -2,13 +2,17 @@
 import Base from '../layouts/Base.astro';
 import venuesIC from '../data/venues-iowa-city.json';
 import venuesCR from '../data/venues-cedar-rapids.json';
+import { games } from '../lib/data';
+import { hawkeyeGoing } from '../lib/game-going';
 
 const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
   slug: v.slug, name: v.name, city: v.city, type: v.type,
 }));
+// SeatGeek links for Hawkeye games, keyed the same way as their "I'm going" rows
+const seatgeekByKey = Object.fromEntries(games.filter((g) => g.seatgeek).map((g) => [hawkeyeGoing(g).key, g.seatgeek]));
 ---
 <Base title="Profile" description="A member profile on The 380.">
-  <div id="u-page" data-venues={JSON.stringify(venueIndex)}>
+  <div id="u-page" data-venues={JSON.stringify(venueIndex)} data-seatgeek={JSON.stringify(seatgeekByKey)}>
     <div id="u-missing">
       <h1>No profile to show</h1>
       <p>This link is missing a username. <a href="/">Back to The 380</a>.</p>
@@ -154,6 +158,8 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     import { supabase, supabaseConfigured } from '../lib/supabase';
     import { paintAvatar } from '../lib/avatar';
     import { createDropdownPicker } from '../lib/dropdown';
+    import { paintGoing } from '../lib/going';
+    import { pseudoPlace, goingButtonHtml } from '../lib/game-going';
 
     interface VenueRef { slug: string; name: string; city: string; type: string }
     interface PostRow { id: number; body: string; venue_slug: string | null; created_at: string }
@@ -175,6 +181,8 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     // on the venue page itself.
     type FeedItem =
       | { kind: 'post'; id: number; body: string; venue_slug: string | null; created_at: string }
+      // an "I'm going" (show or game) -- only returned to the person and their friends
+      | { kind: 'going'; id: string; body: ''; venue_slug: string; show_date: string; artist: string; created_at: string }
       | {
           kind: 'venue_comment'; id: number; body: string; venue_slug: string; created_at: string;
           tagged_username: string | null; tagged_display_name: string | null;
@@ -183,6 +191,15 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     const page = document.getElementById('u-page') as HTMLElement | null;
     const venueIndex: VenueRef[] = JSON.parse(page?.dataset.venues || '[]');
     const venueBySlug = new Map(venueIndex.map((v) => [v.slug, v]));
+    const seatgeekByKey: Record<string, string> = JSON.parse(page?.dataset.seatgeek || '{}');
+    // Tickets for a going post: the Hawkeye game's own SeatGeek page, or a SeatGeek
+    // search for a concert. High school games sell tickets through their schools.
+    function seatgeekFor(key: string, slug: string, artist: string, venueName: string | null): string | null {
+      if (seatgeekByKey[key]) return seatgeekByKey[key];
+      if (slug.startsWith('hs-')) return null;
+      if (slug === 'hawkeyes-football') return 'https://seatgeek.com/iowa-hawkeyes-football-tickets';
+      return `https://seatgeek.com/search?search=${encodeURIComponent(venueName ? `${artist} ${venueName}` : artist)}`;
+    }
 
     const missingEl = document.getElementById('u-missing');
     const notfoundEl = document.getElementById('u-notfound');
@@ -255,6 +272,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         if (postsList) {
           postsList.innerHTML = '';
           rows.forEach((item) => {
+            if (item.kind === 'going') { postsList!.appendChild(goingCard(item)); return; }
             const card = document.createElement('div');
             card.className = 'u-post';
             const venue = item.venue_slug ? venueBySlug.get(item.venue_slug) : null;
@@ -320,6 +338,32 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
           });
         }
         if (postsEmpty) postsEmpty.hidden = rows.length > 0;
+        if (postsList) paintGoing(postsList);
+      }
+
+      const escHtml = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      const todayCT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date());
+      // "Going to Bayway at Gabe's · Fri, Oct 2" with the same I'm going button, so a friend can join in
+      function goingCard(item: Extract<FeedItem, { kind: 'going' }>) {
+        const card = document.createElement('div');
+        card.className = 'u-post u-going';
+        const ven = venueBySlug.get(item.venue_slug);
+        const pseudo = ven ? null : pseudoPlace(item.venue_slug);
+        const href = ven ? `/venues/${ven.slug}/#venue-calendar` : pseudo?.href || '#';
+        const place = ven ? `at ${ven.name}` : pseudo?.label || '';
+        const d = new Date(`${item.show_date}T12:00:00`);
+        const when = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const past = item.show_date < todayCT;
+        card.innerHTML = `
+          <p class="u-post-kind"><span class="u-going-mark" aria-hidden="true">✓</span>${past ? 'Went to' : 'Going to'}</p>
+          <div class="u-going-row">
+            <div class="going-row-date"><span class="going-row-wd">${when.split(',')[0]}</span><span class="going-row-dom">${d.getDate()}</span><span class="going-row-mon">${d.toLocaleDateString('en-US', { month: 'short' })}</span></div>
+            <div class="u-going-info"><a class="u-going-name" href="${escHtml(href)}">${escHtml(item.artist)}</a><span class="u-going-place">${escHtml(place)}</span></div>
+            ${past ? '' : goingButtonHtml({ key: item.id, slug: item.venue_slug, date: item.show_date, artist: item.artist })}
+          </div>
+          ${(() => { const sg = past ? null : seatgeekFor(item.id, item.venue_slug, item.artist, ven?.name ?? null); return sg ? `<a class="sg-btn u-going-sg" href="${escHtml(sg)}" target="_blank" rel="noopener"><img src="https://seatgeek.com/favicon-192x192.png" alt="" width="20" height="20" referrerpolicy="no-referrer" /><span>Tickets on SeatGeek</span></a>` : ''; })()}
+          <div class="u-post-meta"><span></span><span class="u-post-date">${timeAgo(item.created_at)}</span></div>`;
+        return card;
       }
 
       async function loadRelationship(theirId: string): Promise<FriendRel | null> {
@@ -666,7 +710,18 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
               tagged_username: c.tagged_username, tagged_display_name: c.tagged_display_name,
             }
           )),
-        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        ];
+        // Their "I'm going"s -- the database only hands these to them and their friends.
+        // On your own page, read your RSVPs straight from the table (your own rows are
+        // always readable to you); for a friend's page, ask profile_going().
+        const since = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+        const { data: goingRows } = isOwner
+          ? await supabase!.from('show_rsvps').select('show_key, venue_slug, show_date, artist, created_at').gte('show_date', since)
+          : await supabase!.rpc('profile_going', { p_username: username });
+        (Array.isArray(goingRows) ? goingRows : []).forEach((g: any) => {
+          currentFeed.push({ kind: 'going', id: g.show_key, body: '', venue_slug: g.venue_slug, show_date: g.show_date, artist: g.artist, created_at: g.created_at });
+        });
+        currentFeed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         renderFeed(currentFeed, isOwner);
 
         if (isOwner) {

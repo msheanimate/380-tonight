@@ -65,7 +65,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
 
       <h2>You're going</h2>
       <div id="going-list" class="going-list"></div>
-      <p id="going-empty" hidden>Nothing on the books -- tap <strong>I'm going</strong> on any show. <a href="/search/?q=concert">Find a show</a>.</p>
+      <p id="going-empty" hidden>Nothing on the books -- tap <strong>I'm going</strong> on a show or a game. <a href="/search/?q=concert">Find a show</a> or check <a href="/high-school/#schedule">high school games</a>.</p>
 
       <div id="friends-going-section" hidden>
         <h2>Friends are going</h2>
@@ -181,6 +181,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     import { paintAvatar } from '../lib/avatar';
     import { createDropdownPicker } from '../lib/dropdown';
     import { paintGoing } from '../lib/going';
+    import { pseudoPlace } from '../lib/game-going';
 
     interface VenueRef { slug: string; name: string; city: string; type: string }
 
@@ -515,7 +516,10 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
       function goingRow(r: { show_key: string; venue_slug: string; show_date: string; artist: string }, whoHtml: string, withButton: boolean) {
         const d = new Date(`${r.show_date}T12:00:00`);
         const ven = venueBySlug.get(r.venue_slug);
-        const venueName = ven?.name || r.venue_slug;
+        // games use made-up "venues" (hs-football, hawkeyes-football) -- label and link them properly
+        const pseudo = ven ? null : pseudoPlace(r.venue_slug);
+        const venueName = ven?.name || pseudo?.label || r.venue_slug;
+        const href = pseudo ? pseudo.href : `/venues/${esc(r.venue_slug)}/#venue-calendar`;
         const btn = withButton ? `
           <button type="button" class="going-btn" data-show-key="${esc(r.show_key)}" data-slug="${esc(r.venue_slug)}" data-date="${esc(r.show_date)}" data-artist="${esc(r.artist)}" aria-pressed="false">
             <span class="going-icon" aria-hidden="true">✓</span><span class="going-label">I'm going</span><span class="going-count" hidden></span>
@@ -523,8 +527,8 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         return `<div class="going-row">
           <div class="going-row-date"><span class="going-row-wd">${WDAYS_S[d.getDay()]}</span><span class="going-row-dom">${d.getDate()}</span><span class="going-row-mon">${MONTHS_S[d.getMonth()]}</span></div>
           <div class="going-row-info">
-            <a class="going-row-name" href="/venues/${esc(r.venue_slug)}/#venue-calendar">${esc(r.artist)}</a>
-            <span class="going-row-venue">at ${esc(venueName)}</span>
+            <a class="going-row-name" href="${href}">${esc(r.artist)}</a>
+            <span class="going-row-venue">${pseudo ? '' : 'at '}${esc(venueName)}</span>
             ${whoHtml}
           </div>
           ${btn}

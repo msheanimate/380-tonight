@@ -130,6 +130,8 @@ const VIEWS = [
 <script type="application/json" id="pc-data" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')}></script>
 
 <script>
+  import { paintGoing } from '../lib/going';
+  import { hsGoing, goingButtonHtml } from '../lib/game-going';
   type Row = [string, string, number, number, number | '', number | '', number, string, number, number, string, string, string, string, ([string, string, string][])?, string?];
   type Board = { key: string; name: string; sets: boolean; meets: boolean; live: boolean; off: null | { starts: string | null; year: number; finalYear: number }; U: string; T: [string, string, string, string][]; G: Row[]; teams: { slug: string; name: string; short: string; logo: string | null; area: string; url: string; rank: string; conf: string }[] };
   const root = document.getElementById('pc');
@@ -172,7 +174,7 @@ const VIEWS = [
     const isResult = (b: Board, g: Row) => (b.meets ? g[6] === 3 && g[15] !== 'cxl' : g[6] !== -1 && !g[9]);
     const PLACE_ORDER = (p: string) => (p ? parseInt(p, 10) : 99);
     function meetCard(b: Board, g: Row) {
-      const [, time, ai, , , , win, , conf, , caption, loc, id, , field = [], status = ''] = g;
+      const [date, time, ai, , , , win, , conf, , caption, loc, id, , field = [], status = ''] = g;
       const url = /^https?:/.test(id) ? id : b.U + id;
       const scored = win === 3;
       const entries = [...field].sort((x, y) => PLACE_ORDER(x[1]) - PLACE_ORDER(y[1]));
@@ -188,7 +190,7 @@ const VIEWS = [
         <p class="pc-meta"><span class="pc-status">${head}</span>${conf ? '<span class="pc-conf">Conference</span>' : ''}</p>
         <p class="pc-event-name"><span>${esc(b.T[ai][0])}</span></p>
         ${rows}
-        ${loc ? `<p class="pc-foot">${esc(loc)}</p>` : ''}</a></div>`;
+        ${loc ? `<p class="pc-foot">${esc(loc)}</p>` : ''}</a>${!scored && !status && date >= today ? goingButtonHtml(hsGoing(b.key, id, date, `${b.T[ai][0]} · ${b.name}`), 'pc-going') : ''}</div>`;
     }
 
     function gameCard(b: Board, g: Row) {
@@ -214,7 +216,7 @@ const VIEWS = [
         <p class="pc-meta"><span class="pc-status">${status}</span>${conf ? '<span class="pc-conf">Conference</span>' : ''}${caption && !scrim ? `<span class="pc-cap">${esc(caption)}</span>` : ''}${scrim ? '<span class="pc-cap">Scrimmage</span>' : ''}</p>
         ${side(ai, as, win === 0)}${side(hi, hs, win === 1)}
         ${(detail || loc) ? `<p class="pc-foot">${detail ? `<span class="pc-sets">${esc(detail)}</span>` : ''}${loc && !final ? esc(loc) : ''}</p>` : ''}
-        </a>${tix && !final ? `<a class="pc-tix" href="https://www.gobound.com/events/${esc(tix)}/tickets" target="_blank" rel="noopener">Tickets</a>` : ''}</div>`;
+        </a>${tix && !final ? `<a class="pc-tix" href="https://www.gobound.com/events/${esc(tix)}/tickets" target="_blank" rel="noopener">Tickets</a>` : ''}${!final && date >= today ? goingButtonHtml(hsGoing(b.key, id, date, `${b.T[ai][0]} at ${b.T[hi][0]} · ${b.name}`), 'pc-going') : ''}</div>`;
     }
 
     function days(b: Board, games: Row[], desc: boolean) {
@@ -229,6 +231,13 @@ const VIEWS = [
       }).join('');
     }
 
+    // "I'm going" + Tickets for a school's next game, under the "Next:" line.
+    // Same key and title as that game's card, so both buttons stay in sync.
+    function nextActions(b: Board, g: Row, title: string) {
+      const tix = g[13];
+      return `<div class="pc-th-actions">${goingButtonHtml(hsGoing(b.key, g[12], g[0], title))}${tix ? `<a class="pc-th-tix" href="https://www.gobound.com/events/${esc(tix)}/tickets" target="_blank" rel="noopener">Tickets ↗</a>` : ''}</div>`;
+    }
+
     function teamHead(b: Board) {
       const t = b.teams.find((x) => x.slug === state.team);
       if (!t) return '';
@@ -239,7 +248,7 @@ const VIEWS = [
         const nx = mine.find((g) => g[6] === -1 && g[15] !== 'cxl' && g[0] >= today);
         return `${logo(t.logo || '')}<div><p class="pc-th-name">${esc(t.name)}</p>
           <p class="pc-th-rec"><strong>${mine.length}</strong> meets${done.length ? ` · ${done.length} scored` : ''}${best ? ` · best finish ${esc(best)}` : ''}${t.conf ? ` · ${esc(t.conf)}` : ''}</p>
-          ${nx ? `<p class="pc-th-next">Next: ${dayLabel(nx[0])}${nx[1] ? ', ' + esc(nx[1]) : ''} · ${esc(b.T[nx[2]][0])}</p>` : ''}</div>
+          ${nx ? `<p class="pc-th-next">Next: ${dayLabel(nx[0])}${nx[1] ? ', ' + esc(nx[1]) : ''} · ${esc(b.T[nx[2]][0])}</p>${nextActions(b, nx, `${b.T[nx[2]][0]} · ${b.name}`)}` : ''}</div>
           <a class="pc-th-link" href="${esc(t.url)}" target="_blank" rel="noopener">Full schedule ↗</a>`;
       }
       let w = 0, l = 0, tie = 0, cw = 0, cl = 0;
@@ -253,7 +262,7 @@ const VIEWS = [
       const next = b.G.find((g) => g[6] === -1 && g[0] >= today && (b.T[g[2]][2] === t.slug || b.T[g[3]][2] === t.slug));
       return `${logo(t.logo || '')}<div><p class="pc-th-name">${rankBadge(t.rank)}${esc(t.name)}</p>
         <p class="pc-th-rec"><strong>${w}-${l}${tie ? '-' + tie : ''}</strong> overall${cw + cl ? ` · ${cw}-${cl} conference` : ''}${t.conf ? ` · ${esc(t.conf)}` : ''}${t.rank ? ` · No. ${t.rank.split('|')[0]} in ${esc(t.rank.split('|')[1])}` : ''}</p>
-        ${next ? `<p class="pc-th-next">Next: ${dayLabel(next[0])}${next[1] ? ', ' + esc(next[1]) : ''} ${b.T[next[3]][2] === t.slug ? 'vs' : '@'} ${esc(b.T[next[3]][2] === t.slug ? b.T[next[2]][0] : b.T[next[3]][0])}</p>` : ''}</div>
+        ${next ? `<p class="pc-th-next">Next: ${dayLabel(next[0])}${next[1] ? ', ' + esc(next[1]) : ''} ${b.T[next[3]][2] === t.slug ? 'vs' : '@'} ${esc(b.T[next[3]][2] === t.slug ? b.T[next[2]][0] : b.T[next[3]][0])}</p>${nextActions(b, next, `${b.T[next[2]][0]} at ${b.T[next[3]][0]} · ${b.name}`)}` : ''}</div>
         <a class="pc-th-link" href="${esc(t.url)}" target="_blank" rel="noopener">Full schedule ↗</a>`;
     }
 
@@ -328,6 +337,7 @@ const VIEWS = [
       if (!boards.length) return;
       if (state.view === 'scores') renderScores();
       if (state.view === 'schedule') renderSchedule();
+      if (state.view === 'scores' || state.view === 'schedule') paintGoing(document.getElementById(`pc-${state.view}`)!);
       if (state.view === 'standings') renderStandings();
     }
 
@@ -347,7 +357,7 @@ const VIEWS = [
       const b = board();
       const weeks = [...new Set(b.G.filter((g) => isResult(b, g) && matches(b, g)).map((g) => weekOf(g[0])))].sort();
       const i = weeks.indexOf(state.week) + Number(btn.dataset.week);
-      if (weeks[i]) { state.week = weeks[i]; renderScores(); }
+      if (weeks[i]) { state.week = weeks[i]; renderScores(); paintGoing(document.getElementById('pc-scores')!); }
     }));
     render();
   }
@@ -393,6 +403,9 @@ const VIEWS = [
   .pc-th-rec { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
   .pc-th-rec strong { color: var(--ink); }
   .pc-th-next { margin: 3px 0 0; font-size: 13px; font-weight: 700; color: var(--button-orange); }
+  .pc-th-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+  .pc-th-tix { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); font-size: 12px; font-weight: 800; text-decoration: none; box-shadow: var(--pill-depth); }
+  .pc-th-tix:hover { transform: translateY(-1px); }
   .pc-th-link { flex: none; font-size: 13px; font-weight: 800; color: var(--button-orange); text-decoration: none; }
   @media (max-width: 560px) { .pc-teamhead { flex-wrap: wrap; } .pc-th-link { width: 100%; padding-left: 56px; } }
 
@@ -403,6 +416,9 @@ const VIEWS = [
   .pc-cell { position: relative; display: flex; }
   .pc-cell > .pc-game { flex: 1; }
   .pc-cell:has(.pc-tix) .pc-meta { padding-right: 64px; }
+  /* "I'm going" sits in the card's bottom-right corner (outside the link) */
+  .pc-cell:has(.pc-going) > .pc-game { padding-bottom: 42px; }
+  .pc-cell .pc-going { position: absolute; right: 10px; bottom: 9px; z-index: 1; }
   .pc-game { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px 10px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--card-depth, var(--shadow)); backdrop-filter: blur(14px); color: var(--ink); text-decoration: none; transition: transform .12s ease; }
   .pc-game:hover { transform: translateY(-1px); }
   .pc-game:focus-visible { outline: 2px solid var(--button-orange); outline-offset: 2px; }

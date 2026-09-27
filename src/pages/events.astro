@@ -1,8 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import EventCard from '../components/EventCard.astro';
-import { upcomingEvents, venues, events } from '../lib/data';
+import { upcomingEvents, venues, events, games, fmtDate } from '../lib/data';
 import venuePhotosRaw from '../data/venue-photos.json';
+import { getBoards, SCHOOLS } from '../lib/scores';
+import { hsGoing, hawkeyeGoing, goingButtonHtml } from '../lib/game-going';
+import { showKey } from '../lib/show-key';
 
 const PLACES_KEY = 'AIzaSyAfgZvvM4cJxLg9vhi0xPkZSTn6OIWLi8M';
 const venuePhotos: Record<string, string[]> = venuePhotosRaw as Record<string, string[]>;
@@ -18,7 +21,69 @@ const cats = ['game-day', 'music', 'nightlife', 'arts', 'festival'];
 const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includes(v.type));
 
 
-const datedJSON = JSON.stringify(dated);
+/** Compact "I'm going" ref + ticket link for a calendar item (the page builds the buttons). */
+function calActions(r: { key: string; slug: string; date: string; artist: string }, tix: string | null) {
+  return { go: [r.key, r.slug, r.artist], ...(tix ? { tix } : {}) };
+}
+
+// High school games, shown only when the High School tab is turned on in
+// Display settings (html[data-showpreps]). In-season sports, upcoming games.
+const isoToday = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+const IC_AREA = new Set(['solon', 'clearcreekamana', 'westbranch', 'tipton', 'midprairie', 'williamsburg']);
+const sideOfSchool = (slug?: string) => {
+  const sc = SCHOOLS.find((x) => x.slug === slug);
+  if (!sc) return null;
+  return sc.area === 'Iowa City' || IC_AREA.has(sc.slug) ? 'ic' : 'cr';
+};
+const boards = await getBoards().catch(() => []);
+const hsGames = boards.filter((b) => b.live).flatMap((b) => b.games
+  .filter((g) => !g.final && g.date >= isoToday && g.status !== 'cxl' && (g.kind === 'game' || b.meets))
+  .map((g) => {
+    const title = b.meets ? g.away.name : `${g.away.name} at ${g.home.name}`;
+    const ours = g.home.school ?? g.away.school ?? g.schools[0];
+    const side = sideOfSchool(ours) ?? 'cr';
+    return {
+      title, sport: b.name, date: g.date, time: g.time ?? 'TBA', location: g.location, url: g.url,
+      tickets: g.tickets, side, city: side === 'ic' ? 'Iowa City area' : 'Cedar Rapids area',
+      going: goingButtonHtml(hsGoing(b.key, g.url.split('/comps/')[1] ?? g.url, g.date, `${title} · ${b.name}`)),
+    };
+  }))
+  .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+const hsSoon = hsGames.filter((g) => g.date <= new Date(Date.now() + 6 * 864e5).toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }));
+const hsByDay = [...new Set(hsSoon.map((g) => g.date))].map((d) => ({ date: d, games: hsSoon.filter((g) => g.date === d) }));
+// The calendar gets every upcoming high school game and meet we know about, every
+// sport -- including next spring's soccer and track once their schedules are posted.
+const hsCal = boards.flatMap((b) => b.games
+  .filter((g) => !g.final && g.date >= isoToday && g.status !== 'cxl' && (g.kind === 'game' || b.meets))
+  .map((g) => ({
+    title: b.meets ? g.away.name : `${g.away.name} at ${g.home.name}`, date: g.date, time: g.time ?? 'TBA',
+    city: sideOfSchool(g.home.school ?? g.away.school ?? g.schools[0]) === 'ic' ? 'Iowa City area' : 'Cedar Rapids area',
+    price: b.name, category: 'high-school', source: '/high-school/#schedule',
+    ...calActions(hsGoing(b.key, g.url.split('/comps/')[1] ?? g.url, g.date, `${b.meets ? g.away.name : `${g.away.name} at ${g.home.name}`} · ${b.name}`), g.tickets),
+  })));
+const hsCalJSON = JSON.stringify(hsCal);
+// Hawkeye football: home games are already in events.json; add the ones that aren't (away games)
+const hawkCal = games
+  .filter((g) => g.date >= isoToday && !dated.some((e) => e.date === g.date && e.category === 'game-day'))
+  .map((g) => ({
+    title: g.home ? `Iowa vs. ${g.opponent} (Kinnick)` : `Iowa ${g.opponent}`, date: g.date, time: g.time,
+    city: g.home ? 'Iowa City' : 'Away · watch parties in both cities', price: g.tv ?? 'TV TBA', category: 'game-day', source: '/game-day/',
+    ...calActions(hawkeyeGoing(g), g.seatgeek ?? null),
+  }));
+// Listed events: Hawkeye home games get the game's own going key + SeatGeek page;
+// anything at a venue gets a show-style going key, and concerts a SeatGeek search.
+const hawkByDate = new Map(games.map((g) => [g.date, g]));
+const datedCal = dated.map((e) => {
+  if (e.date < isoToday) return e;
+  const hg = e.category === 'game-day' ? hawkByDate.get(e.date) : undefined;
+  if (hg) return { ...e, ...calActions(hawkeyeGoing(hg), hg.seatgeek ?? null) };
+  if (!e.venue_slug) return e;
+  const tix = e.category === 'music' ? `https://seatgeek.com/search?search=${encodeURIComponent(e.title)}` : null;
+  return { ...e, ...calActions({ key: showKey(e.venue_slug, e.date, e.title), slug: e.venue_slug, date: e.date, artist: e.title }, tix) };
+});
+const fmtDay = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+const datedJSON = JSON.stringify([...datedCal, ...hawkCal]);
 const weeklyJSON = JSON.stringify(weekly);
 ---
 <Base title="Events" current="Events">
@@ -28,6 +93,7 @@ const weeklyJSON = JSON.stringify(weekly);
 
   <div class="chips" id="chips">
     {cats.map((c) => <button class="chip" type="button" data-cat={c} aria-pressed="false">{c.replace('-', ' ')}</button>)}
+    <button class="chip hs-only" type="button" data-cat="high-school" aria-pressed="false">high school</button>
   </div>
 
   <!-- Calendar -->
@@ -51,6 +117,30 @@ const weeklyJSON = JSON.stringify(weekly);
     {dated.length ? dated.map((e) => <EventCard event={e} />) : <p class="empty">Nothing dated on the calendar yet.</p>}
     <h2>Every week</h2>
     {weekly.map((e) => <EventCard event={e} />)}
+    {hsByDay.length > 0 && (
+      <section class="hs-only hs-events" id="hs-list" data-category="high-school">
+        <h2>High school games this week <a class="more" href="/high-school/#schedule">Full schedule →</a></h2>
+        {hsByDay.map((day) => (
+          <div class="hs-ev-day">
+            <h3 class="hs-ev-dayname">{fmtDay(day.date)}</h3>
+            {day.games.slice(0, 6).map((g) => (
+              <div class="card hs-ev" data-side={g.side} data-category="high-school">
+                <div class="hs-ev-main">
+                  <p class="hs-ev-meta"><span class:list={['badge', g.side]}>{g.city}</span><span class="badge">{g.sport}</span><span>{g.time}</span></p>
+                  <a class="hs-ev-title" href={g.url} target="_blank" rel="noopener">{g.title}</a>
+                  {g.location && <p class="hs-ev-where">{g.location}</p>}
+                </div>
+                <div class="hs-ev-actions">
+                  <Fragment set:html={g.going} />
+                  {g.tickets && <a class="hs-ev-tix" href={g.tickets} target="_blank" rel="noopener">Tickets ↗</a>}
+                </div>
+              </div>
+            ))}
+            {day.games.length > 6 && <a class="hs-ev-more" href="/high-school/#schedule">+{day.games.length - 6} more games that day →</a>}
+          </div>
+        ))}
+      </section>
+    )}
   </div>
 
   <h2>Where the big shows are</h2>
@@ -88,6 +178,22 @@ const weeklyJSON = JSON.stringify(weekly);
   </div>
 
   <style is:global>
+    /* High school games: only when the High School tab is on in Display settings */
+    html:not([data-showpreps]) .hs-only { display: none !important; }
+    .hs-events { margin: 8px 0 24px; }
+    .hs-ev-day { margin: 0 0 14px; }
+    .hs-ev-dayname { margin: 0 0 8px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-on-photo); }
+    .hs-ev { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin: 0 0 8px; }
+    .hs-ev-main { min-width: 0; }
+    .hs-ev-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 3px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+    .hs-ev-title { font-size: 16px; font-weight: 800; color: var(--ink); text-decoration: none; }
+    .hs-ev-title:hover { text-decoration: underline; }
+    .hs-ev-where { margin: 2px 0 0; font-size: 12px; color: var(--ink-3); }
+    .hs-ev-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; flex: none; }
+    .hs-ev-more { display: inline-block; margin: 0 0 4px 4px; font-size: 13px; font-weight: 800; color: var(--button-orange); text-decoration: none; }
+    .hs-ev-more:hover { text-decoration: underline; }
+    .hs-ev-tix { display: inline-flex; padding: 4px 12px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); font-size: 12px; font-weight: 800; text-decoration: none; box-shadow: var(--pill-depth); }
+    @media (max-width: 560px) { .hs-ev { flex-direction: column; align-items: stretch; } .hs-ev-actions { justify-content: flex-start; } }
     .ev-cal { margin: 24px 0 32px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
     .ev-cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
     .ev-cal-nav strong { font-size: 16px; }
@@ -115,6 +221,11 @@ const weeklyJSON = JSON.stringify(weekly);
     .ev-cal-item-body span { font-size: 12px; color: var(--ink-3); }
     .ev-cal-item-body a { color: var(--green); text-decoration: none; font-size: 12px; }
     .ev-cal-item-body a:hover { text-decoration: underline; }
+    .ev-cal-item-body { flex: 1; min-width: 0; }
+    .ev-cal-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 7px; }
+    .ev-cal-item-body a.ev-cal-tix { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); font-size: 12px; font-weight: 800; text-decoration: none; box-shadow: var(--pill-depth); }
+    .ev-cal-item-body a.ev-cal-tix:hover { text-decoration: none; transform: translateY(-1px); }
+    .ev-cal-tix img { width: 16px; height: 16px; border-radius: 4px; background: #fff; }
 
     /* Big rooms grid */
     .big-rooms-grid {
@@ -285,8 +396,15 @@ const weeklyJSON = JSON.stringify(weekly);
     }
   </style>
 
-  <script define:vars={{ datedJSON, weeklyJSON }}>
-    const DATED = JSON.parse(datedJSON);
+  <script define:vars={{ datedJSON, weeklyJSON, hsCalJSON }}>
+    const DATED_BASE = JSON.parse(datedJSON);
+    const HS = JSON.parse(hsCalJSON);
+    // high school games join the calendar only while the High School tab is on
+    let DATED = DATED_BASE;
+    const syncHs = () => { DATED = document.documentElement.hasAttribute('data-showpreps') ? DATED_BASE.concat(HS) : DATED_BASE; };
+    syncHs();
+    new MutationObserver(() => { const before = DATED; syncHs(); if (before !== DATED) render(); })
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-showpreps'] });
     const WEEKLY = JSON.parse(weeklyJSON);
     const WD = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
     const CAT_COLOR = {
@@ -295,6 +413,7 @@ const weeklyJSON = JSON.stringify(weekly);
       'nightlife':'#b3003b',
       'arts':     '#b35a00',
       'festival': '#0066b3',
+      'high-school': '#E85D3F',
     };
 
     let curYear = new Date().getFullYear();
@@ -381,6 +500,9 @@ const weeklyJSON = JSON.stringify(weekly);
       }
     }
 
+    const esc = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    const goingBtn = (e) => `<button type="button" class="going-btn" data-show-key="${esc(e.go[0])}" data-slug="${esc(e.go[1])}" data-date="${esc(e.date)}" data-artist="${esc(e.go[2])}" aria-pressed="false"><span class="going-icon" aria-hidden="true">✓</span><span class="going-label">I'm going</span><span class="going-count" hidden></span></button>`;
+
     function showDetail(day, events, cell) {
       document.querySelectorAll('.ev-cal-day--active').forEach(c => c.classList.remove('ev-cal-day--active'));
       cell.classList.add('ev-cal-day--active');
@@ -395,10 +517,13 @@ const weeklyJSON = JSON.stringify(weekly);
           <div class="ev-cal-item-body">
             <strong>${e.title}</strong>
             <span>${e.city} · ${e.time} · ${e.price}</span>
-            ${e.source ? `<br><a href="${e.source}" target="_blank" rel="noopener">Details ↗</a>` : ''}
+            ${e.source ? `<br><a href="${e.source}"${e.source.startsWith('/') ? '' : ' target="_blank" rel="noopener"'}>Details ${e.source.startsWith('/') ? '→' : '↗'}</a>` : ''}
+            ${(e.go || e.tix) ? `<div class="ev-cal-actions">${e.go ? goingBtn(e) : ''}${e.tix ? `<a class="ev-cal-tix" href="${esc(e.tix)}" target="_blank" rel="noopener">${/seatgeek\.com/.test(e.tix) ? '<img src="https://seatgeek.com/favicon-192x192.png" alt="" width="16" height="16" referrerpolicy="no-referrer">' : ''}Tickets</a>` : ''}</div>` : ''}
           </div>
         </div>`).join('');
       detail.hidden = false;
+      // let the page's module script fill in going counts / my state for these buttons
+      document.dispatchEvent(new CustomEvent('cal-detail-rendered'));
       detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -421,6 +546,14 @@ const weeklyJSON = JSON.stringify(weekly);
     });
 
     render();
+  </script>
+
+  <script>
+    import { paintGoing } from '../lib/going';
+    document.addEventListener('cal-detail-rendered', () => {
+      const el = document.getElementById('cal-detail');
+      if (el) paintGoing(el);
+    });
   </script>
 
   <script>
@@ -466,6 +599,7 @@ const weeklyJSON = JSON.stringify(weekly);
   <script>
     const chips = Array.from(document.querySelectorAll('#chips .chip'));
     const cards = Array.from(document.querySelectorAll('#list .card'));
+    const hsSection = document.getElementById('hs-list');
     const active = new Set();
     function run() {
       const side = document.documentElement.dataset.side || 'all';
@@ -473,6 +607,8 @@ const weeklyJSON = JSON.stringify(weekly);
         const ok = (side === 'all' || c.dataset.side === side) && (active.size === 0 || active.has(c.dataset.category || ''));
         c.classList.toggle('hidden', !ok);
       }
+      // the high school block follows the chips too
+      if (hsSection) hsSection.classList.toggle('hidden', active.size > 0 && !active.has('high-school'));
     }
     chips.forEach((b) => b.addEventListener('click', () => {
       const t = b.dataset.cat;

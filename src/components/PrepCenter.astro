@@ -1,0 +1,467 @@
+---
+/** PrepCenter -- the High School page's tabbed hub: Scores, Schedule and
+ *  Standings for Corridor schools (from Bound, the IHSAA/IGHSAU scheduling
+ *  platform), plus slots for State rankings and Headlines. Games ship as a
+ *  compact JSON blob and are drawn client-side, so "this week" and "coming
+ *  up" are worked out in Central time on the visitor's clock, not at build. */
+import { getBoards, SCHOOLS, CONF_NAMES, type Side, type RankTag } from '../lib/scores';
+
+const boards = await getBoards().catch(() => []);
+const tag = (r: RankTag | null) => (r ? `${r.rank}|${r.cls}` : '');
+// Trim the repeated URL prefixes; the client puts them back.
+const CDN = 'https://d2uxtb165k2tu5.cloudfront.net/';
+const lg = (u: string | null | undefined) => (u ?? '').replace(CDN, '~');
+const tk = (u: string | null) => (u ? u.replace(/^https:\/\/www\.gobound\.com\/events\/([^/]+)\/tickets$/, '$1') : '');
+
+// Compact payload: one team table per sport, games reference it by index.
+const payload = boards.map((b) => {
+  const T: [string, string, string, string][] = [];
+  const idx = new Map<string, number>();
+  const ref = (s: Side) => {
+    const k = s.name;
+    if (!idx.has(k)) { idx.set(k, T.length); T.push([s.name, lg(s.logo), s.school ?? '', tag(s.rank)]); }
+    return idx.get(k)!;
+  };
+  const G = b.games.map((g) => [
+    g.date, g.time ?? '', ref(g.away), ref(g.home), g.away.score ?? '', g.home.score ?? '',
+    // result code: 1 home won, 0 away won, 2 tie, 3 meet scored, -1 not played yet
+    b.meets ? (g.final ? 3 : -1) : g.winner === 'home' ? 1 : g.winner === 'away' ? 0 : g.winner === 'tie' ? 2 : -1,
+    g.detail, g.conf ? 1 : 0, g.kind === 'event' ? 1 : 0, g.caption, g.location, g.url.split('/comps/')[1] ?? g.url, tk(g.tickets),
+    ...(b.meets ? [(g.field ?? []).map((f) => [f.school, f.place ?? '', f.pts ?? '']), g.status ?? ''] : []),
+  ]);
+  const U = b.games.find((g) => g.url.includes('/comps/'))?.url.split('/comps/')[0] + '/comps/';
+  return { key: b.key, name: b.name, sets: b.sets, meets: b.meets, live: b.live, off: b.offseason, U, T, G,
+    teams: b.teams.map((t) => ({ slug: t.slug, name: t.name, short: t.short, logo: lg(t.logo), area: t.area, url: t.url, rank: tag(t.rank), conf: CONF_NAMES[SCHOOLS.find((s) => s.slug === t.slug)?.conf ?? ''] ?? '' })) };
+});
+const first = boards[0]?.key;
+const pct = (w: number, l: number, t = 0) => (w + l + t ? ((w + t / 2) / (w + l + t)).toFixed(3).replace(/^0/, '') : '—');
+const VIEWS = [
+  { key: 'scores', label: 'Scores' }, { key: 'schedule', label: 'Schedule' }, { key: 'standings', label: 'Standings' },
+  { key: 'rankings', label: 'State rankings' }, { key: 'headlines', label: 'Headlines' },
+];
+---
+<section class="pc" id="pc" data-first={first}>
+  <div class="pc-views" role="tablist" aria-label="High school sports">
+    {VIEWS.map((v, i) => (
+      <button type="button" role="tab" class="pc-view" id={`pc-tab-${v.key}`} aria-controls={`pc-${v.key}`} aria-selected={String(i === 0)} data-view={v.key}>{v.label}</button>
+    ))}
+  </div>
+
+  <div class="pc-bar" id="pc-bar">
+    {boards.length > 1 && (
+      <div class="pc-sports" role="group" aria-label="Sport">
+        {boards.map((b) => <button type="button" class="chip" data-sport={b.key} aria-pressed={String(b.key === first)}>{b.live && <span class="pc-live" aria-hidden="true"></span>}{b.name}</button>)}
+      </div>
+    )}
+    <div class="pc-filters">
+      <label class="pc-select">
+        <span class="sr-only">School</span>
+        <select id="pc-team" aria-label="School">
+          <option value="">All Corridor schools</option>
+          {['Iowa City', 'Cedar Rapids', 'Area'].map((area) => (
+            <optgroup label={area === 'Area' ? 'Around the Corridor' : area}>
+              {SCHOOLS.filter((s) => s.area === area).map((s) => <option value={s.slug}>{s.name}</option>)}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+      <div class="pc-areas" role="group" aria-label="Area">
+        {['All', 'Iowa City', 'Cedar Rapids', 'Area'].map((a, i) => <button type="button" class="chip" data-area={a === 'All' ? '' : a} aria-pressed={String(i === 0)}>{a === 'Area' ? 'Around the area' : a}</button>)}
+      </div>
+    </div>
+  </div>
+
+  <div class="pc-panel" role="tabpanel" id="pc-scores" aria-labelledby="pc-tab-scores">
+    <div class="pc-teamhead" data-teamhead hidden></div>
+    <div class="pc-weeknav" data-weeknav>
+      <button type="button" class="pc-arrow" data-week="-1" aria-label="Previous week">‹</button>
+      <p class="pc-weeklabel" data-weeklabel></p>
+      <button type="button" class="pc-arrow" data-week="1" aria-label="Next week">›</button>
+    </div>
+    <div class="pc-days" data-list="scores"></div>
+  </div>
+
+  <div class="pc-panel" role="tabpanel" id="pc-schedule" aria-labelledby="pc-tab-schedule" hidden>
+    <div class="pc-teamhead" data-teamhead hidden></div>
+    <p class="pc-note" data-schednote></p>
+    <div class="pc-days" data-list="schedule"></div>
+  </div>
+
+  <div class="pc-panel" role="tabpanel" id="pc-standings" aria-labelledby="pc-tab-standings" hidden>
+    {boards.map((b) => (
+      <div class="pc-stand" data-sport-panel={b.key} hidden={b.key !== first}>
+        <p class="pc-note">{b.standingsNote} {!b.meets && (b.live ? 'Ranks are this week’s state poll.' : 'Ranks are the final state poll.')}</p>
+        <div class="pc-stand-grid">
+          {b.standings.map((t) => (
+            <div class="card pc-table">
+              <div class="pc-table-head">
+                <p class="pc-table-title">{t.title}</p>
+                {t.sub && <p class="pc-table-sub">{t.sub}</p>}
+              </div>
+              <table>
+                <thead><tr><th class="l">Team</th><th>{t.grpLabel}</th><th>Overall</th>{b.key === 'football' && <><th class="ppg" title="Points per game">PPG</th><th class="ppg" title="Opponent points per game">OPP</th></>}</tr></thead>
+                <tbody>
+                  {t.rows.map((r) => (
+                    <tr class:list={[{ corridor: !!r.school }]} data-school={r.school ?? ''}>
+                      <td class="l"><span class="pc-st-team">{r.logo ? <img src={r.logo} alt="" width="20" height="20" loading="lazy" referrerpolicy="no-referrer" /> : <span class="pc-st-dot"></span>}{r.rank && <span class="pc-rk" title={`No. ${r.rank.rank} in Class ${r.rank.cls}`}>{r.rank.rank}</span>}<span class="pc-st-name">{r.name}</span></span></td>
+                      <td class="n strong">{r.grp[0]}-{r.grp[1]}{r.grpT !== undefined && `-${r.grpT}`}</td>
+                      <td class="n">{r.all[0]}-{r.all[1]}{r.allT !== undefined && `-${r.allT}`} <span class="pc-pct">{pct(r.all[0], r.all[1], r.allT)}</span></td>
+                      {b.key === 'football' && <><td class="n ppg">{Number.isFinite(r.pf) ? r.pf!.toFixed(1) : '—'}</td><td class="n ppg">{Number.isFinite(r.pa) ? r.pa!.toFixed(1) : '—'}</td></>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <a class="pc-more" href={t.url} target="_blank" rel="noopener">Full standings ↗</a>
+            </div>
+          ))}
+        </div>
+        {!b.standings.length && !b.meets && <p class="pc-empty card">Standings aren’t posted yet.</p>}
+      </div>
+    ))}
+  </div>
+
+  <div class="pc-panel" role="tabpanel" id="pc-rankings" aria-labelledby="pc-tab-rankings" hidden><slot name="rankings" /></div>
+  <div class="pc-panel" role="tabpanel" id="pc-headlines" aria-labelledby="pc-tab-headlines" hidden><slot name="headlines" /></div>
+
+  {!boards.length && <p class="pc-empty card">No high school sports are in season right now. Check back when practices start.</p>}
+  <p class="pc-credit">Scores, schedules and standings from <a href="https://www.gobound.com/ia" target="_blank" rel="noopener">Bound</a>, the IHSAA and IGHSAU’s official scheduling platform. Tap any game for the box score. State ranks from the weekly Radio Iowa football poll and the IGHSAU rankings.</p>
+</section>
+
+<script type="application/json" id="pc-data" set:html={JSON.stringify(payload).replace(/</g, '\\u003c')}></script>
+
+<script>
+  type Row = [string, string, number, number, number | '', number | '', number, string, number, number, string, string, string, string, ([string, string, string][])?, string?];
+  type Board = { key: string; name: string; sets: boolean; meets: boolean; live: boolean; off: null | { starts: string | null; year: number; finalYear: number }; U: string; T: [string, string, string, string][]; G: Row[]; teams: { slug: string; name: string; short: string; logo: string | null; area: string; url: string; rank: string; conf: string }[] };
+  const root = document.getElementById('pc');
+  const dataEl = document.getElementById('pc-data');
+  if (root && dataEl) {
+    const boards: Board[] = JSON.parse(dataEl.textContent || '[]');
+    const areaOf = new Map<string, string>();
+    boards.forEach((b) => b.teams.forEach((t) => areaOf.set(t.slug, t.area)));
+    const store = { get: (k: string) => { try { return localStorage.getItem('the380.hs.' + k) || ''; } catch { return ''; } }, set: (k: string, v: string) => { try { localStorage.setItem('the380.hs.' + k, v); } catch {} } };
+    const at = new URLSearchParams(location.search).get('at');
+    const today = at && /^\d{4}-\d{2}-\d{2}/.test(at) ? at.slice(0, 10) : new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date());
+
+    const state = {
+      view: 'scores', sport: store.get('sport') || root.dataset.first || '', team: store.get('team'), area: '',
+      week: '' as string,
+    };
+    if (!boards.some((b) => b.key === state.sport)) state.sport = boards[0]?.key ?? '';
+
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+    const dayMs = 86400000;
+    const toUtc = (d: string) => Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10));
+    const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+    const weekOf = (d: string) => { const t = toUtc(d); const dow = (new Date(t).getUTCDay() + 6) % 7; return iso(t - dow * dayMs); };
+    const fmt = (d: string, o: Intl.DateTimeFormatOptions) => new Date(toUtc(d)).toLocaleDateString('en-US', { timeZone: 'UTC', ...o });
+    const dayLabel = (d: string) => d === today ? 'Today' : d === iso(toUtc(today) + dayMs) ? 'Tomorrow' : d === iso(toUtc(today) - dayMs) ? 'Yesterday' : fmt(d, { weekday: 'long', month: 'short', day: 'numeric' });
+    const weekLabel = (w: string) => { const e = iso(toUtc(w) + 6 * dayMs); const same = w.slice(5, 7) === e.slice(5, 7); return `${fmt(w, { month: 'short', day: 'numeric' })} – ${same ? fmt(e, { day: 'numeric' }) : fmt(e, { month: 'short', day: 'numeric' })}`; };
+    const board = () => boards.find((b) => b.key === state.sport)!;
+    const UNAVAILABLE = '<p class="pc-empty card">The scoreboard didn’t load this time. Scores and schedules are on <a href="https://www.gobound.com/ia" target="_blank" rel="noopener">Bound</a> in the meantime.</p>';
+
+    const rankBadge = (r: string) => { if (!r) return ''; const [n, c] = r.split('|'); return `<span class="pc-rk" title="No. ${n} in Class ${esc(c)}">${n}</span>`; };
+    const logo = (src: string) => src ? `<img src="${esc(src.replace(/^~/, 'https://d2uxtb165k2tu5.cloudfront.net/'))}" alt="" width="26" height="26" loading="lazy" referrerpolicy="no-referrer">` : '<span class="pc-st-dot"></span>';
+
+    const matches = (b: Board, g: Row) => {
+      // meets list every Corridor school entered; games have the two sides
+      const ours = b.meets ? (g[14] ?? []).map((f) => f[0]) : [b.T[g[2]][2], b.T[g[3]][2]];
+      if (state.team) return ours.includes(state.team);
+      if (state.area) return ours.some((s) => areaOf.get(s) === state.area);
+      return true;
+    };
+    const isResult = (b: Board, g: Row) => (b.meets ? g[6] === 3 && g[15] !== 'cxl' : g[6] !== -1 && !g[9]);
+    const PLACE_ORDER = (p: string) => (p ? parseInt(p, 10) : 99);
+    function meetCard(b: Board, g: Row) {
+      const [, time, ai, , , , win, , conf, , caption, loc, id, , field = [], status = ''] = g;
+      const url = /^https?:/.test(id) ? id : b.U + id;
+      const scored = win === 3;
+      const entries = [...field].sort((x, y) => PLACE_ORDER(x[1]) - PLACE_ORDER(y[1]));
+      const team = (slug: string) => b.teams.find((t) => t.slug === slug);
+      // before it's scored, just who's entered (compact chips); after, each school's finish
+      const chips = `<div class="pc-meet-chips">${entries.map(([slug]) => { const t = team(slug); return `<span>${logo(t?.logo || '')}${esc(t?.short ?? slug)}</span>`; }).join('')}</div>`;
+      const rows = !scored ? chips : entries.map(([slug, place, pts]) => {
+        const t = team(slug);
+        return `<div class="pc-side pc-meet-row${scored && place ? '' : ' plain'}">${logo(t?.logo || '')}<span class="pc-name">${esc(t?.name ?? slug)}</span><span class="pc-place">${place ? esc(place) : ''}${pts ? `<small>${esc(pts)} pts</small>` : ''}</span></div>`;
+      }).join('');
+      const head = status === 'cxl' ? 'Cancelled' : status === 'ppd' ? 'Postponed' : scored ? 'Final' : time ? esc(time) : 'Time TBA';
+      return `<div class="pc-cell"><a class="pc-game pc-meet${scored ? ' final' : ''}${status ? ' scrim' : ''}" href="${esc(url)}" target="_blank" rel="noopener">
+        <p class="pc-meta"><span class="pc-status">${head}</span>${conf ? '<span class="pc-conf">Conference</span>' : ''}</p>
+        <p class="pc-event-name"><span>${esc(b.T[ai][0])}</span></p>
+        ${rows}
+        ${loc ? `<p class="pc-foot">${esc(loc)}</p>` : ''}</a></div>`;
+    }
+
+    function gameCard(b: Board, g: Row) {
+      const [date, time, ai, hi, as, hs, win, detail, conf, event, caption, loc, id, tix] = g;
+      const url = /^https?:/.test(id) ? id : b.U + id;
+      const final = win !== -1;
+      if (event) {
+        // tournament / invite: "away" carries the event name, "home" is our school
+        const who = b.T[hi];
+        return `<a class="pc-game pc-event" href="${esc(url)}" target="_blank" rel="noopener">
+          <p class="pc-meta"><span class="pc-status">${time ? esc(time) : 'All day'}</span>${caption && caption !== b.T[ai][0] ? `<span class="pc-cap">${esc(caption)}</span>` : ''}</p>
+          <p class="pc-event-name">${logo(who[1])}<span>${esc(b.T[ai][0])}</span></p>
+          <p class="pc-foot">${esc(who[0])}${loc ? ` · ${esc(loc)}` : ''}</p></a>`;
+      }
+      const side = (i: number, sc: number | '', won: boolean) => {
+        const t = b.T[i];
+        return `<div class="pc-side${final ? (won ? ' won' : ' lost') : ''}${t[2] ? ' ours' : ''}">
+          ${logo(t[1])}${rankBadge(t[3])}<span class="pc-name">${esc(t[0])}</span><span class="pc-score">${final ? sc : ''}</span></div>`;
+      };
+      const status = final ? (win === 2 ? 'Final · tie' : 'Final') : (time ? esc(time) : 'Time TBA');
+      const scrim = caption === 'Scrimmage';
+      return `<div class="pc-cell"><a class="pc-game${final ? ' final' : ''}${scrim ? ' scrim' : ''}" href="${esc(url)}" target="_blank" rel="noopener">
+        <p class="pc-meta"><span class="pc-status">${status}</span>${conf ? '<span class="pc-conf">Conference</span>' : ''}${caption && !scrim ? `<span class="pc-cap">${esc(caption)}</span>` : ''}${scrim ? '<span class="pc-cap">Scrimmage</span>' : ''}</p>
+        ${side(ai, as, win === 0)}${side(hi, hs, win === 1)}
+        ${(detail || loc) ? `<p class="pc-foot">${detail ? `<span class="pc-sets">${esc(detail)}</span>` : ''}${loc && !final ? esc(loc) : ''}</p>` : ''}
+        </a>${tix && !final ? `<a class="pc-tix" href="https://www.gobound.com/events/${esc(tix)}/tickets" target="_blank" rel="noopener">Tickets</a>` : ''}</div>`;
+    }
+
+    function days(b: Board, games: Row[], desc: boolean) {
+      const by = new Map<string, Row[]>();
+      games.forEach((g) => { if (!by.has(g[0])) by.set(g[0], []); by.get(g[0])!.push(g); });
+      const keys = [...by.keys()].sort(); if (desc) keys.reverse();
+      return keys.map((d) => {
+        const list = by.get(d)!;
+        const n = b.meets ? list.length : list.filter((g) => !g[9]).length;
+        const noun = b.meets ? (n === 1 ? 'meet' : 'meets') : (n === 1 ? 'game' : 'games');
+        return `<section class="pc-day"><h3 class="pc-dayname">${dayLabel(d)}<span>${n} ${noun}</span></h3><div class="pc-grid">${list.map((g) => (b.meets ? meetCard(b, g) : gameCard(b, g))).join('')}</div></section>`;
+      }).join('');
+    }
+
+    function teamHead(b: Board) {
+      const t = b.teams.find((x) => x.slug === state.team);
+      if (!t) return '';
+      if (b.meets) {
+        const mine = b.G.filter((g) => matches(b, g));
+        const done = mine.filter((g) => g[6] === 3).map((g) => (g[14] ?? []).find((f) => f[0] === t.slug)?.[1]).filter(Boolean) as string[];
+        const best = done.sort((x, y) => PLACE_ORDER(x) - PLACE_ORDER(y))[0];
+        const nx = mine.find((g) => g[6] === -1 && g[15] !== 'cxl' && g[0] >= today);
+        return `${logo(t.logo || '')}<div><p class="pc-th-name">${esc(t.name)}</p>
+          <p class="pc-th-rec"><strong>${mine.length}</strong> meets${done.length ? ` · ${done.length} scored` : ''}${best ? ` · best finish ${esc(best)}` : ''}${t.conf ? ` · ${esc(t.conf)}` : ''}</p>
+          ${nx ? `<p class="pc-th-next">Next: ${dayLabel(nx[0])}${nx[1] ? ', ' + esc(nx[1]) : ''} · ${esc(b.T[nx[2]][0])}</p>` : ''}</div>
+          <a class="pc-th-link" href="${esc(t.url)}" target="_blank" rel="noopener">Full schedule ↗</a>`;
+      }
+      let w = 0, l = 0, tie = 0, cw = 0, cl = 0;
+      b.G.forEach((g) => {
+        if (g[6] === -1 || g[9] || g[10] === 'Scrimmage') return;
+        const home = b.T[g[3]][2] === t.slug; if (!home && b.T[g[2]][2] !== t.slug) return;
+        const won = g[6] === (home ? 1 : 0), tied = g[6] === 2;
+        if (tied) tie++; else if (won) w++; else l++;
+        if (g[8] && !tied) won ? cw++ : cl++;
+      });
+      const next = b.G.find((g) => g[6] === -1 && g[0] >= today && (b.T[g[2]][2] === t.slug || b.T[g[3]][2] === t.slug));
+      return `${logo(t.logo || '')}<div><p class="pc-th-name">${rankBadge(t.rank)}${esc(t.name)}</p>
+        <p class="pc-th-rec"><strong>${w}-${l}${tie ? '-' + tie : ''}</strong> overall${cw + cl ? ` · ${cw}-${cl} conference` : ''}${t.conf ? ` · ${esc(t.conf)}` : ''}${t.rank ? ` · No. ${t.rank.split('|')[0]} in ${esc(t.rank.split('|')[1])}` : ''}</p>
+        ${next ? `<p class="pc-th-next">Next: ${dayLabel(next[0])}${next[1] ? ', ' + esc(next[1]) : ''} ${b.T[next[3]][2] === t.slug ? 'vs' : '@'} ${esc(b.T[next[3]][2] === t.slug ? b.T[next[2]][0] : b.T[next[3]][0])}</p>` : ''}</div>
+        <a class="pc-th-link" href="${esc(t.url)}" target="_blank" rel="noopener">Full schedule ↗</a>`;
+    }
+
+    function renderScores() {
+      const b = board(); const panel = document.getElementById('pc-scores')!;
+      const list = panel.querySelector<HTMLElement>('[data-list]')!;
+      const nav = panel.querySelector<HTMLElement>('[data-weeknav]')!;
+      const head = panel.querySelector<HTMLElement>('[data-teamhead]')!;
+      const finals = b.G.filter((g) => isResult(b, g) && matches(b, g));
+      head.hidden = !state.team; head.innerHTML = teamHead(b);
+      if (state.team) {
+        nav.hidden = true;
+        list.innerHTML = finals.length ? days(b, finals, true) : '<p class="pc-empty card">No results yet this season.</p>';
+        return;
+      }
+      if (b.off) {
+        nav.hidden = true;
+        const when = b.off.starts ? fmt(b.off.starts, { weekday: 'long', month: 'long', day: 'numeric' }) : 'in the spring';
+        const rest = b.meets ? 'The meet schedule is under Schedule.'
+          : `The schedule is under Schedule, last spring’s final ${b.off.finalYear} conference standings under Standings, and the final state rankings under State rankings.`;
+        list.innerHTML = `<p class="pc-empty card"><strong>${esc(b.name)} is between seasons.</strong> The ${b.off.year} season opens ${b.off.starts ? 'on ' : ''}${when}. ${rest}</p>`;
+        return;
+      }
+      const weeks = [...new Set(finals.map((g) => weekOf(g[0])))].sort();
+      if (!weeks.includes(state.week)) state.week = weeks.filter((w) => w <= weekOf(today)).pop() ?? weeks[weeks.length - 1] ?? '';
+      nav.hidden = !weeks.length;
+      const i = weeks.indexOf(state.week);
+      nav.querySelector<HTMLElement>('[data-weeklabel]')!.innerHTML = state.week ? `<strong>${state.week === weekOf(today) ? 'This week' : state.week === iso(toUtc(weekOf(today)) - 7 * dayMs) ? 'Last week' : 'Week of'}</strong> ${weekLabel(state.week)}` : '';
+      (nav.querySelector('[data-week="-1"]') as HTMLButtonElement).disabled = i <= 0;
+      (nav.querySelector('[data-week="1"]') as HTMLButtonElement).disabled = i >= weeks.length - 1;
+      const inWeek = finals.filter((g) => weekOf(g[0]) === state.week);
+      list.innerHTML = inWeek.length ? days(b, inWeek, true) : b.G.length ? '<p class="pc-empty card">No final scores yet.</p>' : UNAVAILABLE;
+    }
+
+    function renderSchedule() {
+      const b = board(); const panel = document.getElementById('pc-schedule')!;
+      const list = panel.querySelector<HTMLElement>('[data-list]')!;
+      const head = panel.querySelector<HTMLElement>('[data-teamhead]')!;
+      const note = panel.querySelector<HTMLElement>('[data-schednote]')!;
+      head.hidden = !state.team; head.innerHTML = teamHead(b);
+      if (state.team) {
+        const all = b.G.filter((g) => matches(b, g));
+        note.textContent = 'Full season — results link to box scores.';
+        list.innerHTML = all.length ? days(b, all, false) : '<p class="pc-empty card">No games posted yet.</p>';
+        return;
+      }
+      const start = b.off?.starts && b.off.starts > today ? b.off.starts : today;
+      const end = iso(toUtc(start) + 13 * dayMs);
+      const up = b.G.filter((g) => g[0] >= start && g[0] <= end && g[6] === -1 && matches(b, g));
+      note.textContent = start !== today
+        ? `The ${b.off!.year} season opens ${fmt(start, { month: 'long', day: 'numeric' })}. Here are the first two weeks; pick a school for its whole season.`
+        : 'The next two weeks. Pick a school to see its whole season.';
+      list.innerHTML = up.length ? days(b, up, false) : b.G.length ? '<p class="pc-empty card">Nothing on the schedule in the next two weeks.</p>' : UNAVAILABLE;
+    }
+
+    function renderStandings() {
+      root!.querySelectorAll<HTMLElement>('[data-sport-panel]').forEach((p) => { p.hidden = p.dataset.sportPanel !== state.sport; });
+      root!.querySelectorAll<HTMLElement>('.pc-table tr[data-school]').forEach((tr) => {
+        tr.classList.toggle('picked', !!state.team && tr.dataset.school === state.team);
+      });
+    }
+
+    function render() {
+      root!.querySelectorAll<HTMLButtonElement>('.pc-view').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.view === state.view)));
+      root!.querySelectorAll<HTMLElement>('.pc-panel').forEach((p) => { p.hidden = p.id !== `pc-${state.view}`; });
+      const bar = document.getElementById('pc-bar')!;
+      bar.hidden = state.view === 'rankings' || state.view === 'headlines' || !boards.length;
+      bar.querySelector<HTMLElement>('.pc-areas')!.hidden = state.view === 'standings' || !!state.team;
+      root!.querySelectorAll<HTMLButtonElement>('[data-sport]').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.sport === state.sport)));
+      root!.querySelectorAll<HTMLButtonElement>('[data-area]').forEach((c) => c.setAttribute('aria-pressed', String((c.dataset.area || '') === state.area)));
+      (document.getElementById('pc-team') as HTMLSelectElement).value = state.team;
+      if (!boards.length) return;
+      if (state.view === 'scores') renderScores();
+      if (state.view === 'schedule') renderSchedule();
+      if (state.view === 'standings') renderStandings();
+    }
+
+    const fromHash = () => { const h = location.hash.slice(1); if (['scores', 'schedule', 'standings', 'rankings', 'headlines'].includes(h)) state.view = h; };
+    fromHash();
+    window.addEventListener('hashchange', () => { fromHash(); render(); });
+    root.querySelectorAll<HTMLButtonElement>('.pc-view').forEach((t) => t.addEventListener('click', () => {
+      state.view = t.dataset.view!; history.replaceState(null, '', '#' + state.view); render();
+    }));
+    root.querySelectorAll<HTMLButtonElement>('[data-sport]').forEach((c) => c.addEventListener('click', () => {
+      state.sport = c.dataset.sport!; state.week = ''; store.set('sport', state.sport); render();
+      document.getElementById(`sr-tab-${state.sport}`)?.click();
+    }));
+    root.querySelectorAll<HTMLButtonElement>('[data-area]').forEach((c) => c.addEventListener('click', () => { state.area = c.dataset.area || ''; render(); }));
+    document.getElementById('pc-team')!.addEventListener('change', (e) => { state.team = (e.target as HTMLSelectElement).value; store.set('team', state.team); render(); });
+    root.querySelectorAll<HTMLButtonElement>('[data-week]').forEach((btn) => btn.addEventListener('click', () => {
+      const b = board();
+      const weeks = [...new Set(b.G.filter((g) => isResult(b, g) && matches(b, g)).map((g) => weekOf(g[0])))].sort();
+      const i = weeks.indexOf(state.week) + Number(btn.dataset.week);
+      if (weeks[i]) { state.week = weeks[i]; renderScores(); }
+    }));
+    render();
+  }
+</script>
+
+<style is:global>
+  .pc { margin: 6px 0 28px; }
+  .pc .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .pc-views { display: flex; gap: 4px; margin: 0 -16px 14px; padding: 4px 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(247,241,230,.18); }
+  .pc-views::-webkit-scrollbar { display: none; }
+  .pc-view { flex: none; appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 12px 9px; font: 800 15px/1 var(--font); color: var(--ink-on-photo-2); cursor: pointer; white-space: nowrap; }
+  .pc-view:hover { color: var(--ink-on-photo); }
+  .pc-view[aria-selected="true"] { color: var(--ink-on-photo); border-bottom-color: var(--button-orange); }
+  .pc-view:focus-visible { outline: 2px solid var(--button-orange); outline-offset: 2px; border-radius: 6px; }
+  @media (min-width: 720px) { .pc-views { margin: 0 0 16px; padding: 0; } }
+
+  .pc-bar { display: flex; flex-direction: column; gap: 10px; margin: 0 0 16px; }
+  .pc-bar[hidden], .pc-areas[hidden] { display: none; }
+  .pc-sports, .pc-areas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pc-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .pc-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3CCB6E; margin-right: 6px; box-shadow: 0 0 0 2px rgba(60,203,110,.25); vertical-align: middle; }
+  .pc-select select { font: 700 14px var(--font); color: var(--ink); background: var(--card, #fff); border: 1px solid var(--chip-border); border-radius: 999px; padding: 8px 34px 8px 14px; max-width: 100%;
+    appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ink-2) 50%), linear-gradient(135deg, var(--ink-2) 50%, transparent 50%); background-position: calc(100% - 18px) 55%, calc(100% - 13px) 55%; background-size: 5px 5px; background-repeat: no-repeat; background-color: rgba(255,255,255,.9); }
+
+  .pc-panel[hidden], .pc-stand[hidden], .pc-teamhead[hidden], .pc-weeknav[hidden] { display: none; }
+  .pc-note { margin: 0 0 12px; font-size: 13px; color: var(--ink-on-photo-2); }
+  .pc-empty { padding: 18px; margin: 0; font-size: 14px; color: var(--ink-2); }
+  .pc-empty a { color: var(--button-orange); font-weight: 700; }
+  .pc-credit { margin: 18px 0 0; font-size: 12px; color: var(--ink-on-photo-2); max-width: 70ch; }
+  .pc-credit a { color: var(--button-orange); font-weight: 700; }
+
+  .pc-weeknav { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+  .pc-weeklabel { margin: 0; font-size: 15px; color: var(--ink-on-photo); min-width: 12ch; text-align: center; }
+  .pc-weeklabel strong { color: var(--button-orange); margin-right: 4px; }
+  .pc-arrow { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(247,241,230,.3); background: rgba(247,241,230,.1); color: var(--ink-on-photo); font: 700 20px/1 var(--font); cursor: pointer; }
+  .pc-arrow:disabled { opacity: .3; cursor: default; }
+  .pc-arrow:not(:disabled):hover { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+
+  .pc-teamhead { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin: 0 0 16px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--card-depth, var(--shadow)); backdrop-filter: blur(14px); color: var(--ink); }
+  .pc-teamhead > img { width: 44px; height: 44px; object-fit: contain; flex: none; }
+  .pc-teamhead > div { flex: 1; min-width: 0; }
+  .pc-th-name { margin: 0; font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+  .pc-th-rec { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+  .pc-th-rec strong { color: var(--ink); }
+  .pc-th-next { margin: 3px 0 0; font-size: 13px; font-weight: 700; color: var(--button-orange); }
+  .pc-th-link { flex: none; font-size: 13px; font-weight: 800; color: var(--button-orange); text-decoration: none; }
+  @media (max-width: 560px) { .pc-teamhead { flex-wrap: wrap; } .pc-th-link { width: 100%; padding-left: 56px; } }
+
+  .pc-day { margin: 0 0 18px; }
+  .pc-dayname { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-on-photo); }
+  .pc-dayname span { font-size: 11px; font-weight: 700; letter-spacing: .04em; color: var(--ink-on-photo-2); text-transform: none; }
+  .pc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .pc-cell { position: relative; display: flex; }
+  .pc-cell > .pc-game { flex: 1; }
+  .pc-cell:has(.pc-tix) .pc-meta { padding-right: 64px; }
+  .pc-game { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px 10px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--card-depth, var(--shadow)); backdrop-filter: blur(14px); color: var(--ink); text-decoration: none; transition: transform .12s ease; }
+  .pc-game:hover { transform: translateY(-1px); }
+  .pc-game:focus-visible { outline: 2px solid var(--button-orange); outline-offset: 2px; }
+  .pc-game.scrim { opacity: .75; }
+  .pc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0 0 2px; font-size: 11px; font-weight: 700; color: var(--ink-3); }
+  .pc-status { text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+  .pc-game:not(.final) .pc-status { color: var(--button-orange); }
+  .pc-conf { padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, var(--btn) 12%, transparent); color: var(--button-orange); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+  .pc-cap { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .pc-side { display: grid; grid-template-columns: 26px auto 1fr auto; align-items: center; gap: 8px; min-height: 30px; }
+  .pc-side img, .pc-st-dot { width: 26px; height: 26px; object-fit: contain; }
+  .pc-st-dot { display: inline-block; border-radius: 50%; background: var(--chip-bg); }
+  .pc-side .pc-rk:empty { display: none; }
+  .pc-side:not(:has(.pc-rk)) { grid-template-columns: 26px 1fr auto; }
+  .pc-name { font-size: 15px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-side.ours .pc-name { font-weight: 800; }
+  .pc-score { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+  .pc-side.lost { color: var(--ink-3); }
+  .pc-side.won .pc-score { color: var(--ink); }
+  .pc-side.won .pc-score::after { content: '◀'; font-size: 9px; margin-left: 4px; color: var(--button-orange); vertical-align: 3px; }
+  .pc-foot { margin: 2px 0 0; font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pc-sets { font-variant-numeric: tabular-nums; color: var(--ink-2); font-weight: 600; margin-right: 6px; }
+  .pc-tix { position: absolute; top: 9px; right: 12px; text-decoration: none; z-index: 1; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--btn-ink); background: var(--btn); padding: 2px 7px; border-radius: 999px; }
+  .pc-event-name { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; font-weight: 800; }
+  .pc-event-name img { width: 26px; height: 26px; object-fit: contain; }
+  .pc-meet .pc-event-name { margin-bottom: 2px; }
+  .pc-meet-row { grid-template-columns: 26px 1fr auto !important; min-height: 28px; }
+  .pc-place { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .pc-place small { display: block; font-size: 10px; font-weight: 700; color: var(--ink-3); }
+  .pc-meet-row.plain .pc-name { font-weight: 600; }
+  .pc-meet-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0; }
+  .pc-meet-chips span { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 3px; border-radius: 999px; background: var(--chip-bg); font-size: 12px; font-weight: 700; }
+  .pc-meet-chips img, .pc-meet-chips .pc-st-dot { width: 18px; height: 18px; }
+
+  .pc-rk { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; min-width: 20px; height: 18px; padding: 0 4px; border-radius: 5px; background: var(--btn); color: var(--btn-ink); font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .pc-rk::before { content: '#'; font-size: 9px; opacity: .8; margin-right: 1px; }
+
+  .pc-stand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  @media (max-width: 420px) { .pc-stand-grid { grid-template-columns: 1fr; } }
+  .pc-table { padding: 12px 14px 10px; margin: 0; overflow-x: auto; }
+  .pc-table-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 0 6px; }
+  .pc-table-title { margin: 0; font-size: 16px; font-weight: 800; color: var(--ink); }
+  .pc-table-sub { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--button-orange); }
+  .pc-table table { width: 100%; border-collapse: collapse; font-size: 13px; color: var(--ink); background: none; box-shadow: none; border: 0; border-radius: 0; overflow: visible; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  @media (max-width: 480px) { .pc-table .ppg { display: none; } .pc-st-name { max-width: 150px; } }
+  .pc-table th { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); text-align: right; padding: 4px 6px; border-bottom: 1px solid var(--line); background: none; }
+  .pc-table td { padding: 5px 6px; border-bottom: 1px solid rgba(30,24,18,.06); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pc-table .l { text-align: left; }
+  .pc-table .strong { font-weight: 800; }
+  .pc-pct { color: var(--ink-3); font-size: 11px; margin-left: 2px; }
+  .pc-st-team { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .pc-st-team img, .pc-st-team .pc-st-dot { width: 20px; height: 20px; flex: none; }
+  .pc-st-name { overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+  .pc-table tr.corridor td { background: color-mix(in srgb, var(--btn) 8%, transparent); }
+  .pc-table tr.corridor .pc-st-name { color: var(--button-orange); font-weight: 800; }
+  .pc-table tr.picked td { background: color-mix(in srgb, var(--btn) 20%, transparent); }
+  .pc-more { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 800; color: var(--button-orange); text-decoration: none; }
+  .pc-more:hover, .pc-th-link:hover { text-decoration: underline; }
+  /* the rankings component keeps its own heading; inside the tab it's redundant */
+  #pc-rankings .sr > h2 { display: none; }
+  @media (prefers-reduced-motion: reduce) { .pc-game { transition: none; } }
+</style>

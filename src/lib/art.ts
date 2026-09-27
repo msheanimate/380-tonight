@@ -44,3 +44,27 @@ export function iconSvg(name: string, extra = '') {
   const body = ICONS[name] ?? ICONS.other;
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${body}</svg>`;
 }
+
+
+/** A venue's logo, best-effort: the icon its own website publishes (via
+ *  Google's favicon service at 128px). Sites with no icon come back as a
+ *  generic 16px globe -- the <img> onload handler in the cards drops those
+ *  so the lettered fallback shows instead. */
+const NOT_A_VENUE_SITE = [
+  'thinkiowacity.com', 'yelp.com', 'facebook.com', 'instagram.com', 'tourismcedarrapids.com', 'downtowniowacity.com',
+  'downtowncr.org', 'khak.com', 'traveliowa.com', 'thegazette.com', 'google.com', 'tripadvisor.com', 'doordash.com',
+];
+export function logoFor(site?: string | null): string | null {
+  if (!site) return null;
+  try {
+    const host = new URL(site).hostname.replace(/^www\./, '');
+    // A listing page (Yelp, Think Iowa City...) would give us THEIR logo, not the bar's.
+    if (NOT_A_VENUE_SITE.some((d) => host === d || host.endsWith('.' + d))) return null;
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+  } catch { return null; }
+}
+
+/** "Joe's Place" -> "JP", "2 Dogs Pub" -> "2D" -- for the lettered logo fallback. */
+export function monogram(name: string): string {
+  return name.replace(/[^A-Za-z0-9 ]/g, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+}

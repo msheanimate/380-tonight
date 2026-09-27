@@ -5,6 +5,7 @@ import VenuePhotoGrid from '../../components/VenuePhotoGrid.astro';
 import VenueCalendar from '../../components/VenueCalendar.astro';
 import { venues, districtBySlug, TYPE_LABEL, events } from '../../lib/data';
 import { iconSvg } from '../../lib/art';
+import { showKey } from '../../lib/show-key';
 
 export function getStaticPaths() {
   return venues.map((v) => ({ params: { slug: v.slug }, props: { venue: v } }));
@@ -105,8 +106,19 @@ const nextUpLabel = !nextShow ? null
 
 // Non-calendar venues (most bars/restaurants) show quick facts in that quadrant instead.
 // (Hours is omitted here since it's already surfaced in the Type/Hours row above.)
+// Daily specials (bars like 2 Dogs that run a different deal each day).
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+type Special = { day: number; food?: string[]; drinks?: string[]; event?: string };
+const specials: Special[] = ((v as any).specials ?? []).slice().sort((a: Special, b: Special) => a.day - b.day);
+const todayDow = new Date(todayStr + 'T12:00:00').getDay();
+const todaySpecial = specials.find((sp) => sp.day === todayDow);
+const todaySpecialLine = todaySpecial
+  ? [...(todaySpecial.food ?? []), ...(todaySpecial.drinks ?? [])].join(' · ')
+  : null;
+
 const compactFacts = [
   { label: 'Address', value: v.address },
+  todaySpecialLine ? { label: `Today's specials`, value: todaySpecialLine } : null,
   v.happy_hour ? { label: 'Happy hour', value: v.happy_hour } : null,
   site ? { label: 'Web', value: site } : null,
 ].filter((f): f is { label: string; value: string } => f !== null);
@@ -175,7 +187,13 @@ const compactFacts = [
                   <div class="vp-show-info">
                     <span class="vp-show-name">{s.artist}</span>
                     {fmtShowTime(s.time) && <span class="vp-show-time">{fmtShowTime(s.time)}</span>}
+                    <span class="going-friends" data-show-key={showKey(v.slug, s.date, s.artist)} hidden></span>
                   </div>
+                  <button type="button" class="going-btn" data-show-key={showKey(v.slug, s.date, s.artist)} data-slug={v.slug} data-date={s.date} data-artist={s.artist} aria-pressed="false">
+                    <span class="going-icon" aria-hidden="true">✓</span>
+                    <span class="going-label">I'm going</span>
+                    <span class="going-count" hidden></span>
+                  </button>
                 </div>
               ))}
             </div>
@@ -228,6 +246,26 @@ const compactFacts = [
 
   {v.verify && <p class="verify">Seeded from <a href={v.source} rel="noopener">a public listing</a> and not yet walked by us. Hours and specials change; check before you go.</p>}
 
+  {specials.length > 0 && (
+    <section class="specials-board" data-today={String(todayDow)}>
+      <h2>This week's specials <a class="more" href={(v as any).specials_source ?? v.website} rel="noopener" target="_blank">From the bar ↗</a></h2>
+      <div class="specials-grid">
+        {specials.map((sp) => (
+          <div class:list={['specials-day', { today: sp.day === todayDow }]} data-day={String(sp.day)}>
+            <div class="specials-day-head">
+              <span class="specials-day-name">{DAY_NAMES[sp.day]}</span>
+              {sp.day === todayDow && <span class="badge today-badge">Today</span>}
+            </div>
+            {sp.food?.length ? <ul class="specials-list food">{sp.food.map((f) => <li>{f}</li>)}</ul> : null}
+            {sp.drinks?.length ? <ul class="specials-list drinks">{sp.drinks.map((d) => <li>{d}</li>)}</ul> : null}
+            {sp.event && <p class="specials-event">{sp.event}</p>}
+          </div>
+        ))}
+      </div>
+      {(v as any).specials_note && <p class="specials-note">{(v as any).specials_note}</p>}
+    </section>
+  )}
+
   {showCalendar && (
     <div class="facts">
       <div class="fact"><b>Address</b>{v.address}</div>
@@ -272,11 +310,13 @@ const compactFacts = [
       content: '';
       position: absolute;
       inset: -60px;
-      background-image: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,.3)), var(--photo-url);
+      /* White wash raised from .30 to .46 (plus a touch of brightness) so the
+         panel reads lighter while the blurred photo still shows through. */
+      background-image: linear-gradient(rgba(255,255,255,.46), rgba(255,255,255,.46)), var(--photo-url);
       background-size: cover, cover;
       background-position: center, center 30%;
       background-repeat: no-repeat, no-repeat;
-      filter: blur(34px);
+      filter: blur(34px) brightness(1.06);
       z-index: 0;
     }
     .venue-dashboard > .vp-cell {
@@ -317,7 +357,13 @@ const compactFacts = [
     .venue-dashboard h2 { color: var(--ink); margin: 0 0 12px; }
     .venue-dashboard .kicker { color: var(--green-dark); }
     .venue-dashboard .lede { color: var(--ink-2); margin: 0; font-size: 15px; line-height: 1.55; }
-    .venue-dashboard .btn { font-size: 13px; }
+    /* Directions / Website: bright-orange pills with white text, matching
+       the signup, Game Day and "See full calendar" buttons. */
+    .venue-dashboard .btn, .venue-dashboard .btn.secondary {
+      font-size: 13px; background: var(--btn); color: var(--btn-ink);
+      box-shadow: 0 4px 12px var(--btn-glow); transition: filter .15s, transform .15s;
+    }
+    .venue-dashboard .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
     /* "Comments" should read at the same small, compact weight as "Upcoming
        shows" (comp styles both as 14px/700 labels, not as a full h2). */
     .venue-dashboard .vp-comments-cell h2 { font-size: 14px; font-weight: 700; margin: 0 0 10px; }
@@ -372,7 +418,7 @@ const compactFacts = [
     }
     .vp-next-up { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .vp-next-up-label { font-size: 11px; color: var(--ink-2); }
-    .vp-next-up-value { font-size: 11px; font-weight: 700; color: var(--ink); background: var(--green); border-radius: 999px; padding: 3px 10px; }
+    .vp-next-up-value { font-size: 11px; font-weight: 700; color: var(--btn-ink); background: var(--btn); border-radius: 999px; padding: 3px 10px; }
     .vp-shows-list { display: flex; flex-direction: column; }
     .vp-show-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--chip-border); }
     .vp-show-row:last-child { border-bottom: none; }
@@ -382,15 +428,18 @@ const compactFacts = [
     .vp-show-info { display: flex; flex-direction: column; min-width: 0; flex-grow: 1; }
     .vp-show-name { font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .vp-show-time { font-size: 11px; color: var(--ink-2); }
+    .vp-show-info .going-friends { margin-top: 3px; }
     .vp-shows-empty { font-size: 13px; color: var(--ink-2); font-style: italic; margin: 0; }
-    /* Kept amber, but bigger/bolder with a soft drop shadow so it lifts off
-       the blurred-photo glass instead of sinking into it. */
+    /* Bright-orange pill button (same orange as the signup / Game Day
+       buttons) so it reads as a real action on the blurred-photo glass. */
     .vp-shows-more {
-      display: inline-block; font-size: 13px; font-weight: 700; color: var(--green-dark);
+      display: inline-block; align-self: flex-start; width: max-content; font-size: 13px; font-weight: 700; color: var(--btn-ink);
+      background: var(--btn); border-radius: 999px; padding: 8px 14px;
       margin-top: 10px; text-decoration: none;
-      text-shadow: 0 1px 2px rgba(0,0,0,.35);
+      box-shadow: 0 4px 12px var(--btn-glow);
+      transition: filter .15s, transform .15s;
     }
-    .vp-shows-more:hover { text-decoration: underline; }
+    .vp-shows-more:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
     .vp-facts-list { display: flex; flex-direction: column; }
     .vp-fact-row { display: flex; flex-direction: column; gap: 1px; padding: 7px 0; border-bottom: 1px solid var(--chip-border); }
@@ -401,12 +450,14 @@ const compactFacts = [
     .vp-comments-cell .venue-comments { margin: 0; }
     .vp-comments-cell .vc-list { max-height: 260px; overflow-y: auto; }
 
-    .like-btn.liked { color: var(--button-orange); border-color: var(--button-orange); }
+    .like-btn.liked { color: var(--btn-on-light); border-color: var(--btn); }
     .venue-dashboard .vp-info-cell .like-btn {
       width: 38px; height: 38px; padding: 0; gap: 0;
       border-radius: 999px; background: var(--chip-bg); border: 1px solid var(--chip-border);
-      box-shadow: none;
+      box-shadow: none; color: var(--ink); /* stays a neutral chip, not an orange pill */
     }
+    .venue-dashboard .vp-info-cell .like-btn:hover { filter: none; transform: none; }
+    .venue-dashboard .vp-info-cell .like-btn.liked { color: var(--btn-on-light); }
     .venue-dashboard .vp-info-cell .like-btn .like-icon { font-size: 16px; line-height: 1; }
     .venue-dashboard .vp-info-cell .like-btn #like-count-label {
       position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -449,6 +500,26 @@ const compactFacts = [
     .vc-login-prompt a { color: var(--green-dark); font-weight: 700; text-decoration: none; }
     .vc-login-prompt a:hover { text-decoration: underline; }
     .vc-login-prompt[hidden], .auth-unconfigured[hidden] { display: none; }
+    /* ── Weekly specials board ─────────────────────────────────────────── */
+    .specials-board { margin: 24px 0 8px; }
+    .specials-board h2 { display: flex; align-items: baseline; gap: 12px; }
+    .specials-board h2 .more { margin-left: auto; font-size: 13px; }
+    .specials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+    .specials-day {
+      display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: var(--radius-sm);
+      background: var(--card); box-shadow: var(--shadow); color: var(--ink);
+      -webkit-backdrop-filter: blur(var(--glass-blur)); backdrop-filter: blur(var(--glass-blur));
+    }
+    .specials-day.today { outline: 2px solid var(--button-orange); outline-offset: -2px; }
+    .specials-day-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .specials-day-name { font-weight: 800; font-size: 14px; }
+    .specials-list { list-style: none; margin: 0; padding: 0; font-size: 13px; line-height: 1.35; }
+    .specials-list li { padding-left: 16px; position: relative; }
+    .specials-list li::before { position: absolute; left: 0; top: 0; font-size: 12px; }
+    .specials-list.food li::before { content: '🍔'; }
+    .specials-list.drinks li::before { content: '🍺'; }
+    .specials-event { margin: 2px 0 0; font-size: 12px; font-weight: 700; color: var(--green-dark); }
+    .specials-note { margin: 10px 0 0; font-size: 13px; color: var(--ink-on-photo-2); }
   </style>
 
   <script>
@@ -499,8 +570,11 @@ const compactFacts = [
         commentRows.forEach((c) => {
           const card = document.createElement('div');
           card.className = 'vc-comment';
-          const avatarEl = document.createElement('div');
-          avatarEl.className = 'avatar avatar-sm';
+          // Avatar links to the commenter's page, same as their name.
+          const avatarEl = document.createElement('a');
+          avatarEl.className = 'avatar avatar-sm vc-comment-avatar';
+          avatarEl.href = `/u/?u=${encodeURIComponent(c.username)}`;
+          avatarEl.setAttribute('aria-label', c.display_name || c.username);
           paintAvatar(avatarEl, c.avatar_url, c.display_name, undefined);
           const bodyWrap = document.createElement('div');
           bodyWrap.className = 'vc-comment-body';

@@ -1,0 +1,111 @@
+---
+/** StateRankings -- Iowa high school state rankings by sport (High School
+ *  page). In-season sports first; live top-10 per class where the poll is
+ *  parseable (Radio Iowa football, IGHSAU girls' sports), links otherwise. */
+import { getRankings, inSeason, CORRIDOR_RE } from '../lib/rankings';
+const sports = await getRankings();
+const first = sports[0]?.key;
+const move = (rank: number, lw: string) => {
+  const prev = parseInt(lw, 10);
+  if (!lw || /nr/i.test(lw) || isNaN(prev)) return { cls: 'new', label: lw ? 'NR' : '', title: 'Newly ranked' };
+  if (prev > rank) return { cls: 'up', label: `▲${prev - rank}`, title: `Up from ${prev}` };
+  if (prev < rank) return { cls: 'down', label: `▼${rank - prev}`, title: `Down from ${prev}` };
+  return { cls: 'same', label: '–', title: 'Same as last week' };
+};
+---
+<section class="sr" aria-labelledby="sr-title">
+  <h2 id="sr-title">State rankings</h2>
+  <div class="sr-tabs" role="tablist" aria-label="Sport">
+    {sports.map((s) => (
+      <button type="button" role="tab" class="chip" id={`sr-tab-${s.key}`} aria-controls={`sr-panel-${s.key}`}
+        aria-selected={String(s.key === first)} aria-pressed={String(s.key === first)} data-key={s.key}>
+        {inSeason(s) && <span class="sr-live" aria-hidden="true"></span>}{s.name}
+      </button>
+    ))}
+  </div>
+
+  {sports.map((s) => (
+    <div class="sr-panel card" role="tabpanel" id={`sr-panel-${s.key}`} aria-labelledby={`sr-tab-${s.key}`} hidden={s.key !== first}>
+      <div class="sr-head">
+        <div>
+          <p class="sr-sport">{s.name} <span class="sr-who">{s.who}</span></p>
+          <p class="sr-status">
+            {inSeason(s) ? <><span class="sr-live" aria-hidden="true"></span>In season · {s.seasonLabel}</> : <>Off-season · plays {s.seasonLabel}</>}
+          </p>
+        </div>
+        {s.poll && <p class="sr-src">{s.poll.title}{s.poll.date ? ` · ${s.poll.date}` : ''}</p>}
+      </div>
+
+      {s.poll ? (
+        <div class="sr-grid">
+          {s.poll.classes.map((c) => (
+            <div class="sr-class">
+              <p class="sr-class-name">{c.name}</p>
+              <ol class="sr-list">
+                {c.rows.map((r) => {
+                  const m = move(r.rank, r.lw);
+                  return (
+                    <li class:list={['sr-row', { corridor: CORRIDOR_RE.test(r.school) }]}>
+                      <span class="sr-rank">{r.rank}</span>
+                      <span class="sr-school">{r.school}</span>
+                      <span class="sr-rec">{r.record}</span>
+                      <span class={`sr-move ${m.cls}`} title={m.title}>{m.label}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p class="sr-empty">
+          {s.note ?? (inSeason(s) ? 'This season’s rankings are on the official site:' : 'Final rankings from last season are on the official site:')}
+        </p>
+      )}
+
+      <p class="sr-links">
+        {s.poll && <a href={s.poll.url} target="_blank" rel="noopener">Full {s.poll.source} rankings ↗</a>}
+        {s.links.map((l) => <a href={l.url} target="_blank" rel="noopener">{l.label} ↗</a>)}
+      </p>
+      {s.poll && <p class="sr-key"><span class="sr-swatch"></span>Corridor schools · ▲▼ vs. last week</p>}
+    </div>
+  ))}
+</section>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.sr-tabs [role="tab"]');
+  tabs.forEach((t) => t.addEventListener('click', () => {
+    tabs.forEach((x) => { const on = x === t; x.setAttribute('aria-selected', String(on)); x.setAttribute('aria-pressed', String(on)); });
+    document.querySelectorAll<HTMLElement>('.sr-panel').forEach((p) => { p.hidden = p.id !== `sr-panel-${t.dataset.key}`; });
+  }));
+</script>
+
+<style>
+  .sr { margin: 8px 0 28px; }
+  .sr-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+  .sr-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #3CCB6E; margin-right: 6px; box-shadow: 0 0 0 2px rgba(60,203,110,.25); vertical-align: middle; }
+  .sr-panel { padding: 16px 18px 14px; margin: 0; }
+  .sr-panel[hidden] { display: none; }
+  .sr-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 6px 16px; margin-bottom: 12px; }
+  .sr-sport { margin: 0; font-size: 20px; font-weight: 800; color: var(--ink); }
+  .sr-who { font-size: 12px; font-weight: 700; color: var(--ink-3); margin-left: 4px; }
+  .sr-status { margin: 2px 0 0; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+  .sr-src { margin: 0; font-size: 12px; color: var(--ink-2); }
+  .sr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px 18px; }
+  .sr-class-name { margin: 0 0 4px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--button-orange); }
+  .sr-list { list-style: none; margin: 0; padding: 0; }
+  .sr-row { display: grid; grid-template-columns: 22px 1fr auto 30px; align-items: baseline; gap: 6px; padding: 4px 0; border-bottom: 1px solid rgba(30,24,18,.07); font-size: 13px; color: var(--ink); }
+  .sr-rank { font-weight: 800; color: var(--ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+  .sr-school { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sr-rec { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .sr-move { font-size: 11px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+  .sr-move.up { color: #1F9D55; } .sr-move.down { color: #C2410C; } .sr-move.same, .sr-move.new { color: var(--ink-3); }
+  .sr-row.corridor { background: color-mix(in srgb, var(--btn) 10%, transparent); border-radius: 6px; margin: 0 -6px; padding-left: 6px; padding-right: 6px; }
+  .sr-row.corridor .sr-school { color: var(--button-orange); font-weight: 800; }
+  .sr-empty { margin: 0 0 4px; font-size: 14px; color: var(--ink-2); }
+  .sr-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0 0; font-size: 13px; font-weight: 700; }
+  .sr-links a { color: var(--button-orange); text-decoration: none; }
+  .sr-links a:hover { text-decoration: underline; }
+  .sr-key { margin: 8px 0 0; font-size: 11px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; }
+  .sr-swatch { width: 12px; height: 12px; border-radius: 3px; background: color-mix(in srgb, var(--btn) 25%, transparent); }
+</style>

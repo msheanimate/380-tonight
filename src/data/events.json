@@ -13,6 +13,22 @@
     "verify": true
   },
   {
+    "title": "African Festival of Arts and Culture",
+    "date": "2026-09-26",
+    "time": "12:00 PM – 9:00 PM",
+    "venue_slug": "iowa-city-ped-mall",
+    "city": "Iowa City",
+    "category": "festival",
+    "price": "Free",
+    "pick": true,
+    "blurb": "The Ped Mall turns into an African marketplace for the day: Parade of Nations fashion show, Congolese jazz, Sudanese oud, dance troupes from Sudan, Togo and Benin, and food from Nigeria, Congo, Togo and Sudan. Free, noon to 9.",
+    "source": "https://www.africafestiowa.com/",
+    "verify": false,
+    "location": "Iowa City Ped Mall",
+    "image": "/event-photos/african-fest-2026.jpg",
+    "image_credit": "Photo: DITV / The Daily Iowan"
+  },
+  {
     "title": "Iowa City Book Festival",
     "date": "2026-10-18",
     "end_date": "2026-10-25",
@@ -182,7 +198,7 @@
     "category": "festival",
     "price": "Free",
     "pick": true,
-    "blurb": "Big Grove goes full Bavaria for the afternoon \u2014 lederhosen optional, steins mandatory. Runs noon to 3 PM on the brewery floor.",
+    "blurb": "Big Grove goes full Bavaria for the afternoon — lederhosen optional, steins mandatory. Runs noon to 3 PM on the brewery floor.",
     "source": "https://www.eventbrite.com/e/oktoberfest-iowa-city-tickets-1998891267590",
     "verify": false
   },
@@ -196,7 +212,7 @@
     "category": "nightlife",
     "price": "Free",
     "pick": true,
-    "blurb": "Big Grove turns every Sunday into an ice cream affair \u2014 build-your-own sundaes for the table while the pitchers stay cold. Is it even the weekend without a cherry on top?",
+    "blurb": "Big Grove turns every Sunday into an ice cream affair — build-your-own sundaes for the table while the pitchers stay cold. Is it even the weekend without a cherry on top?",
     "source": "https://www.eventbrite.com/e/sundae-sundays-tickets-1986229237116",
     "verify": false
   },
@@ -222,7 +238,7 @@
     "category": "nightlife",
     "price": "Free",
     "pick": false,
-    "blurb": "Not trivia \u2014 a full-on pub puzzle hunt. Teams solve a set of puzzles before the night is up. Love trivia? This is the next level.",
+    "blurb": "Not trivia — a full-on pub puzzle hunt. Teams solve a set of puzzles before the night is up. Love trivia? This is the next level.",
     "source": "https://www.eventbrite.com/e/puzzled-pint-iowa-city-tickets-1993709214931",
     "verify": false
   },
@@ -250,8 +266,22 @@
     "category": "nightlife",
     "price": "Free",
     "pick": false,
-    "blurb": "Sundae Sundays comes to the Solon brewpub \u2014 ice cream sundaes for the kids, craft beer for the grown-ups. Perfect end to the weekend.",
+    "blurb": "Sundae Sundays comes to the Solon brewpub — ice cream sundaes for the kids, craft beer for the grown-ups. Perfect end to the weekend.",
     "source": "https://www.eventbrite.com/e/sundae-sundays-solon-tickets-1986230948234",
+    "verify": false
+  },
+  {
+    "title": "Bingo Night at 2 Dogs Pub",
+    "date": "weekly",
+    "weekday": "Wed",
+    "time": "7:00 PM",
+    "venue_slug": "two-dogs-pub",
+    "city": "Iowa City",
+    "category": "nightlife",
+    "price": "$5 boards",
+    "pick": false,
+    "blurb": "$5 bingo boards, proceeds go to a local organization, and it lands on $9 Reuben and $3 Busch Light night.",
+    "source": "https://www.2dogspub.com/events",
     "verify": false
   }
 ]

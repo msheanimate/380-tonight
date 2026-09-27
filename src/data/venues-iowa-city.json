@@ -47,14 +47,158 @@
       "patio",
       "sports-bar",
       "game-day",
-      "late-night"
+      "late-night",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Daily 4 PM–8 PM · $1 off all drafts, $10 domestic pitchers",
     "hours_note": "Hours not published on source listing.",
     "website": "http://www.joesplace-ic.com",
     "blurb": "Open since 1934 with three bars, 25-plus TVs, pool, darts and the town's first rooftop patio. It's a rite of passage.",
     "source": "https://thinkiowacity.com/listing/joes-place/",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "16:00",
+        "end": "20:00",
+        "deal": "$1 off all drafts, $10 domestic pitchers",
+        "source": "https://www.joesplace-ic.com/"
+      }
+    ]
+  },
+  {
+    "name": "2 Dogs Pub",
+    "slug": "two-dogs-pub",
+    "city": "Iowa City",
+    "district": "east-side",
+    "type": "bar",
+    "address": "1705 S 1st Ave, Iowa City, IA 52240",
+    "phone": "(319) 337-9047",
+    "tags": [
+      "sports-bar",
+      "game-day",
+      "happy-hour",
+      "patio",
+      "breakfast",
+      "trivia"
+    ],
+    "happy_hour": "Mon–Fri 2 PM–6 PM · $3 domestic tallboys, $3 wine, $3 Hazy Little Thing & Busch Light drafts, $6 pretzels",
+    "hours_note": "Mon–Sat 10 AM–11 PM, Sun 10 AM–10 PM. Kitchen till 10:30 PM (9:30 Sun); breakfast daily 10 AM–1 PM.",
+    "website": "https://www.2dogspub.com",
+    "menu_url": "https://www.2dogspub.com/menu",
+    "blurb": "East-side neighborhood pub with a different food-and-drink deal every day of the week, breakfast till 1, and Wednesday bingo for charity. The specials board is the reason to go.",
+    "source": "https://www.2dogspub.com/events",
+    "verify": false,
+    "happy_hours": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "14:00",
+        "end": "18:00",
+        "deal": "$3 domestic tallboys, $3 wine, $3 Hazy Little Thing & Busch Light drafts, $6 pretzels",
+        "source": "https://www.2dogspub.com/events"
+      }
+    ],
+    "specials": [
+      {
+        "day": 1,
+        "food": [
+          "$10 boneless wing baskets",
+          "$10 any mac and cheese"
+        ],
+        "drinks": [
+          "$3 Neighborhood drafts",
+          "$3 well drinks"
+        ]
+      },
+      {
+        "day": 2,
+        "food": [
+          "$7 all dog and brat baskets"
+        ],
+        "drinks": [
+          "$4 Moscow mules",
+          "$5 Easy Eddy drafts"
+        ]
+      },
+      {
+        "day": 3,
+        "food": [
+          "$9 Reubens"
+        ],
+        "drinks": [
+          "$3 Busch Light drafts",
+          "$4 Tito's cocktails"
+        ],
+        "event": "Bingo 7–9 PM · $5 boards, proceeds to local orgs"
+      },
+      {
+        "day": 4,
+        "food": [
+          "$2 beef tacos",
+          "$5 beef burritos",
+          "$3 off pub tacos"
+        ],
+        "drinks": [
+          "$3 Modelo drafts"
+        ]
+      },
+      {
+        "day": 5,
+        "food": [
+          "$8 half fish and chips",
+          "$8 fish tacos"
+        ],
+        "drinks": [
+          "$8 Slow & Low Old Fashioned",
+          "$4 Greek Goddesses",
+          "$4 Citrus Surfer drafts",
+          "$4 mules"
+        ]
+      },
+      {
+        "day": 6,
+        "food": [
+          "$10 boneless wing baskets"
+        ],
+        "drinks": [
+          "$4 Ultra & Neighborhood drafts",
+          "$4 Teremana palomas",
+          "$4 seltzers & canned cocktails"
+        ]
+      },
+      {
+        "day": 0,
+        "food": [
+          "$8 chicken finger baskets"
+        ],
+        "drinks": [
+          "$4 Busch Light drafts",
+          "$4 mimosas",
+          "$4 Witchslap drafts"
+        ],
+        "end": "22:00"
+      }
+    ],
+    "specials_note": "Late-night happy hour: half-price select appetizers.",
+    "specials_source": "https://www.2dogspub.com/events",
+    "specials_window": {
+      "start": "10:00",
+      "end": "23:00"
+    }
   },
   {
     "name": "The Dandy Lion",
@@ -86,15 +230,27 @@
     "tags": [
       "sports-bar",
       "game-day",
-      "late-night"
+      "late-night",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Fri 3 PM–8 PM · Friday After Class: $3 wells, $3 Busch Light drafts",
     "hours_note": null,
     "website": "https://www.brothersbar.com",
     "blurb": "Big, loud and packed on game day; Brothers is where the undergrad energy peaks and the pitchers keep coming.",
     "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
     "verify": true,
-    "menu_url": "https://www.brothersbar.com/menu-iowacity"
+    "menu_url": "https://www.brothersbar.com/menu-iowacity",
+    "happy_hours": [
+      {
+        "days": [
+          5
+        ],
+        "start": "15:00",
+        "end": "20:00",
+        "deal": "Friday After Class: $3 wells, $3 Busch Light drafts",
+        "source": "https://www.brothersbar.com/iowacity"
+      }
+    ]
   },
   {
     "name": "The Summit Restaurant & Bar",
@@ -407,15 +563,27 @@
     "address": "209 N Linn St, Iowa City, IA 52245",
     "tags": [
       "cocktails",
-      "patio"
+      "patio",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Mon 3 PM–9 PM · Half-price wine night",
     "hours_note": "Confirm address.",
     "website": "https://brixiowacity.com",
     "blurb": "Wine flights, cheese boards and a patio on the Northside; the chill date-night move when bars feel too loud.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://brixcheeseshop.com/menus"
+    "menu_url": "https://brixcheeseshop.com/menus",
+    "happy_hours": [
+      {
+        "days": [
+          1
+        ],
+        "start": "15:00",
+        "end": "21:00",
+        "deal": "Half-price wine night",
+        "source": "https://brixcheeseshop.com/"
+      }
+    ]
   },
   {
     "name": "The Stuffed Olive",
@@ -425,15 +593,32 @@
     "type": "bar",
     "address": "104 S Dubuque St, Iowa City, IA 52240",
     "tags": [
-      "cocktails"
+      "cocktails",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Sun/Tue/Wed/Thu/Fri/Sat 10 PM–close · $8 martinis (late night)",
     "hours_note": "Confirm address.",
     "website": "https://www.thestuffedolive.com",
     "blurb": "A martini menu longer than your reading list; sweet, boozy and the right call before a show at the Englert.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://www.thestuffedolive.com/location/iowacity/"
+    "menu_url": "https://www.thestuffedolive.com/location/iowacity/",
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "22:00",
+        "end": "close",
+        "deal": "$8 martinis (late night)",
+        "source": "https://www.thestuffedolive.com/location/iowacity/"
+      }
+    ]
   },
   {
     "name": "The Airliner",
@@ -486,15 +671,31 @@
     "address": "110 E College St, Iowa City, IA 52240",
     "tags": [
       "patio",
-      "all-ages"
+      "all-ages",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Sun–Thu 3 PM–6 PM · $2 off pints, $6 margaritas, $6 Old Fashioneds, $2 off apps",
     "hours_note": "Confirm address.",
     "website": "https://www.reunionbrewery.com",
     "blurb": "House beers and brewpub food right on the Ped Mall; a good middle ground between a dive and a dinner.",
     "source": "https://downtowniowacity.com/",
     "verify": true,
-    "menu_url": "https://reunionbrewery.com/iowacitymenu"
+    "menu_url": "https://reunionbrewery.com/iowacitymenu",
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "$2 off pints, $6 margaritas, $6 Old Fashioneds, $2 off apps",
+        "source": "https://reunionbrewery.com/iowacitymenu"
+      }
+    ]
   },
   {
     "name": "ReUnion Brewery – Coralville",
@@ -1593,14 +1794,40 @@
       "sports-bar",
       "game-day",
       "pizza",
-      "all-ages"
+      "all-ages",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Tue–Fri 3 PM–5:30 PM · 2-for-1 'Grand Slam' happy hour; Mon 11 AM–9 PM · 2-for-1 'Grand Slam' happy hour, all day",
     "hours_note": "Sun–Thu 11am–9pm; Fri–Sat 11am–midnight.",
     "website": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
     "blurb": "Tavern pizza, wings and arcade games attached to Xtream Arena; a sports bar built for before and after the game.",
     "source": "https://khak.com/shops-restaurants-iowa-river-landing-coralville/",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "15:00",
+        "end": "17:30",
+        "deal": "2-for-1 'Grand Slam' happy hour",
+        "source": "https://happyhopper.app/restaurant/iowa-athletic-club-coralville-2950290",
+        "verify": true
+      },
+      {
+        "days": [
+          1
+        ],
+        "start": "11:00",
+        "end": "21:00",
+        "deal": "2-for-1 'Grand Slam' happy hour, all day",
+        "source": "https://happyhopper.app/restaurant/iowa-athletic-club-coralville-2950290",
+        "verify": true
+      }
+    ]
   },
   {
     "name": "Vesta",
@@ -1728,14 +1955,46 @@
     "tags": [
       "sports-bar",
       "dive",
-      "game-day"
+      "game-day",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Sun–Fri 2 PM–6 PM · 2-for-1 beer, wine & wells (not on game days); Daily 9 PM–close · $3 domestics & wells, $4 Tito's / Jameson / seltzers",
     "hours_note": "On 5th Street in old Coralville, not inside Iowa River Landing proper.",
     "website": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
     "blurb": "Neighborhood bar and grill in old Coralville with TVs, burgers and regulars who will absolutely talk Hawkeye football.",
     "source": "https://www.thinkiowacity.com/things-to-do/bars-nightlife/",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "14:00",
+        "end": "18:00",
+        "deal": "2-for-1 beer, wine & wells (not on game days)",
+        "source": "https://www.patandfrans.com/events/2-for-1-happy-hour"
+      },
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "21:00",
+        "end": "close",
+        "deal": "$3 domestics & wells, $4 Tito's / Jameson / seltzers",
+        "source": "https://www.patandfrans.com/events/late-night-happy-hour"
+      }
+    ]
   },
   {
     "slug": "big-grove-solon",
@@ -1750,13 +2009,27 @@
       "game-day",
       "happy-hour"
     ],
-    "happy_hour": "Mon–Fri 3–6 PM",
+    "happy_hour": "Mon–Fri 3 PM–6 PM",
     "hours_note": null,
     "website": "https://biggrove.com/pages/solon-brewpub",
     "blurb": "The original Big Grove location — open since 2013 — with house-brewed ales and stouts, globally inspired bistro fare, a patio, and the best game-day energy in Solon.",
     "source": "https://biggrove.com/pages/solon-brewpub",
     "verify": false,
-    "menu_url": "https://cdn.shopify.com/s/files/1/0604/5551/8396/files/Solon-FullMenu-July2026-Online.pdf"
+    "menu_url": "https://cdn.shopify.com/s/files/1/0604/5551/8396/files/Solon-FullMenu-July2026-Online.pdf",
+    "happy_hours": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "source": "https://biggrove.com/pages/solon-brewpub"
+      }
+    ]
   },
   {
     "slug": "els-sol-mexican-cuisine",
@@ -1831,15 +2104,31 @@
     "tags": [
       "patio",
       "game-day",
-      "all-ages"
+      "all-ages",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Mon–Fri 3 PM–6 PM · Half-price HH beers / mules / martinis / wine",
     "hours_note": "Hours not published on source listing.",
     "website": "http://www.redsalehouse.com",
     "blurb": "18 rotating taps, flatbreads and one of the area's best patios; the reason people in North Liberty stay in North Liberty.",
     "source": "https://thinkiowacity.com/listing/reds-alehouse/",
     "verify": true,
-    "menu_url": "https://www.toasttab.com/redsalehouse"
+    "menu_url": "https://www.toasttab.com/redsalehouse",
+    "happy_hours": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "Half-price HH beers / mules / martinis / wine",
+        "source": "https://redsalehouse.com/happy-hour/"
+      }
+    ]
   },
   {
     "name": "Rayo Mexican Bar & Grill",
@@ -2874,15 +3163,27 @@
       "family-friendly",
       "bowling",
       "all-ages",
-      "patio"
+      "patio",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Sun 11 AM–close · SoCal Sunday: $4 West Coast IPA, $5 THC drafts, SoCal cocktails",
     "hours_note": null,
     "website": "https://fielddaybrewing.com/",
     "blurb": "North Liberty's community brewery with duckpin bowling, a full scratch kitchen, a kids' park, and a lineup of craft beers, spirits, ciders, and non-alcoholic drinks for all ages.",
     "source": "https://fielddaybrewing.com/",
     "verify": false,
-    "menu_url": "https://fielddaybrewing.com/wp-content/uploads/2026/01/Final_FDBC-Menu.pdf"
+    "menu_url": "https://fielddaybrewing.com/wp-content/uploads/2026/01/Final_FDBC-Menu.pdf",
+    "happy_hours": [
+      {
+        "days": [
+          0
+        ],
+        "start": "11:00",
+        "end": "close",
+        "deal": "SoCal Sunday: $4 West Coast IPA, $5 THC drafts, SoCal cocktails",
+        "source": "https://fielddaybrewing.com/event/socal-sunday-north-liberty-every-sunday-at-field-day-brewing-co/"
+      }
+    ]
   },
   {
     "slug": "j-and-a-tap",
@@ -3389,13 +3690,39 @@
       "cocktails",
       "coffee",
       "plant-themed",
-      "work-friendly"
+      "work-friendly",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Mon–Fri 3 PM–6 PM · $2 off cocktails / wine / beer / kombucha; Sun/Sat 2 PM–5 PM · $2 off cocktails / wine / beer / kombucha",
     "hours_note": "Verify current hours at thegreenhouseic.com.",
     "website": "https://www.thegreenhouseic.com",
     "blurb": "Plant-themed cocktail lounge and coffee bar on East Washington. Craft drinks surrounded by greenery — equally good for a morning latte or an evening pour.",
     "source": "https://www.yelp.com/biz/the-green-house-iowa-city-2",
-    "verify": false
+    "verify": false,
+    "happy_hours": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "$2 off cocktails / wine / beer / kombucha",
+        "source": "https://www.thegreenhouseic.com/"
+      },
+      {
+        "days": [
+          0,
+          6
+        ],
+        "start": "14:00",
+        "end": "17:00",
+        "deal": "$2 off cocktails / wine / beer / kombucha",
+        "source": "https://www.thegreenhouseic.com/"
+      }
+    ]
   }
 ]

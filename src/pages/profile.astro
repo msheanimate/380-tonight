@@ -34,16 +34,15 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         <label for="bio-input">About you</label>
         <textarea id="bio-input" maxlength="160" rows="2" placeholder="A line about what you're into around town"></textarea>
 
-        <label for="home-city-input">Home base</label>
-        <div class="dd-picker" id="home-city-picker">
-          <input type="text" id="home-city-input" autocomplete="off" placeholder="Prefer not to say" />
-          <button type="button" class="dd-clear" id="home-city-clear" hidden aria-label="Clear home base">&times;</button>
-          <div class="hs-dropdown" id="home-city-dropdown" hidden></div>
+        <label for="home-city-other-input">Home base</label>
+        <div class="home-other-row" id="home-other-row">
+          <input id="home-city-other-input" type="text" placeholder="City" maxlength="60" autocomplete="address-level2" list="home-city-suggestions" />
+          <input id="home-state-other-input" type="text" placeholder="State" maxlength="30" autocomplete="address-level1" />
         </div>
-        <div class="home-other-row" id="home-other-row" hidden>
-          <input id="home-city-other-input" type="text" placeholder="City" maxlength="60" />
-          <input id="home-state-other-input" type="text" placeholder="State" maxlength="30" />
-        </div>
+        <datalist id="home-city-suggestions">
+          <option value="Iowa City"></option><option value="Coralville"></option><option value="North Liberty"></option>
+          <option value="Cedar Rapids"></option><option value="Marion"></option><option value="Solon"></option>
+        </datalist>
 
         <label for="favorite-type-input">Favorite kind of night out</label>
         <div class="dd-picker" id="favorite-type-picker">
@@ -63,6 +62,15 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
       <label class="btn secondary" for="gallery-file-input" id="gallery-add-label">Add photos</label>
       <input type="file" id="gallery-file-input" accept="image/*" multiple hidden />
       <p class="avatar-error" id="gallery-error" hidden></p>
+
+      <h2>You're going</h2>
+      <div id="going-list" class="going-list"></div>
+      <p id="going-empty" hidden>Nothing on the books -- tap <strong>I'm going</strong> on any show. <a href="/search/?q=concert">Find a show</a>.</p>
+
+      <div id="friends-going-section" hidden>
+        <h2>Friends are going</h2>
+        <div id="friends-going-list" class="going-list"></div>
+      </div>
 
       <h2>Your go-to's</h2>
       <div id="liked-venues" class="liked-grid"></div>
@@ -124,9 +132,9 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
       border-radius: var(--radius-sm); background: var(--card); color: var(--ink);
     }
     .dn-form textarea { resize: vertical; }
-    .home-other-row { display: flex; gap: 8px; margin-top: 6px; }
-    .home-other-row[hidden] { display: none; }
-    .home-other-row input { flex: 1; }
+    .home-other-row { display: flex; gap: 8px; }
+    .home-other-row input { flex: 1; min-width: 0; }
+    .home-other-row input:last-child { flex: 0 0 110px; }
     .dn-form input:focus, .dn-form textarea:focus { outline: 2px solid var(--green); outline-offset: 1px; }
     .dn-form .btn { margin-top: 18px; align-self: flex-start; }
     .dn-form .dd-picker { position: relative; }
@@ -172,6 +180,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     import { supabase, supabaseConfigured } from '../lib/supabase';
     import { paintAvatar } from '../lib/avatar';
     import { createDropdownPicker } from '../lib/dropdown';
+    import { paintGoing } from '../lib/going';
 
     interface VenueRef { slug: string; name: string; city: string; type: string }
 
@@ -189,20 +198,19 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     } else {
       const nameInput = document.getElementById('display-name-input') as HTMLInputElement | null;
       const bioInput = document.getElementById('bio-input') as HTMLTextAreaElement | null;
-      const homeCityInput = document.getElementById('home-city-input') as HTMLInputElement | null;
       const favoriteTypeInput = document.getElementById('favorite-type-input') as HTMLInputElement | null;
-      const homeCityPickerRoot = document.getElementById('home-city-picker') as HTMLElement | null;
-      const homeCityClear = document.getElementById('home-city-clear') as HTMLButtonElement | null;
-      const homeCityDropdown = document.getElementById('home-city-dropdown') as HTMLElement | null;
       const favoriteTypePickerRoot = document.getElementById('favorite-type-picker') as HTMLElement | null;
       const favoriteTypeClear = document.getElementById('favorite-type-clear') as HTMLButtonElement | null;
       const favoriteTypeDropdown = document.getElementById('favorite-type-dropdown') as HTMLElement | null;
-      const homeOtherRow = document.getElementById('home-other-row') as HTMLElement | null;
       const homeCityOtherInput = document.getElementById('home-city-other-input') as HTMLInputElement | null;
       const homeStateOtherInput = document.getElementById('home-state-other-input') as HTMLInputElement | null;
       const profileForm = document.getElementById('profile-form');
       const likedGrid = document.getElementById('liked-venues');
       const likedEmpty = document.getElementById('liked-empty') as HTMLElement | null;
+      const goingList = document.getElementById('going-list') as HTMLElement | null;
+      const goingEmpty = document.getElementById('going-empty') as HTMLElement | null;
+      const friendsGoingSection = document.getElementById('friends-going-section') as HTMLElement | null;
+      const friendsGoingList = document.getElementById('friends-going-list') as HTMLElement | null;
       const logoutBtn = document.getElementById('logout-btn');
       const avatarEl = document.getElementById('profile-avatar') as HTMLElement | null;
       const avatarFileInput = document.getElementById('avatar-file-input') as HTMLInputElement | null;
@@ -225,18 +233,6 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
       const friendSearchInput = document.getElementById('friend-search-input') as HTMLInputElement | null;
       const friendSearchResults = document.getElementById('friend-search-results') as HTMLElement | null;
 
-      const KNOWN_CITIES = ['Iowa City', 'Coralville', 'North Liberty', 'Cedar Rapids', 'Marion', 'Solon'];
-
-      const HOME_CITY_OPTIONS = [
-        { value: '', label: 'Prefer not to say' },
-        { value: 'Iowa City', label: 'Iowa City' },
-        { value: 'Coralville', label: 'Coralville' },
-        { value: 'North Liberty', label: 'North Liberty' },
-        { value: 'Cedar Rapids', label: 'Cedar Rapids' },
-        { value: 'Marion', label: 'Marion' },
-        { value: 'Solon', label: 'Solon' },
-        { value: 'other', label: 'Other' },
-      ];
       const FAVORITE_TYPE_OPTIONS = [
         { value: '', label: 'Prefer not to say' },
         { value: 'bar', label: 'Bar' },
@@ -250,19 +246,6 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         { value: 'other', label: 'Something else' },
       ];
 
-      const homeCityPicker = (homeCityPickerRoot && homeCityInput && homeCityDropdown)
-        ? createDropdownPicker({
-            root: homeCityPickerRoot,
-            input: homeCityInput,
-            dropdown: homeCityDropdown,
-            clearBtn: homeCityClear,
-            options: HOME_CITY_OPTIONS,
-            showAllWhenEmpty: true,
-            maxResults: HOME_CITY_OPTIONS.length,
-            onChange: (value) => { if (homeOtherRow) homeOtherRow.hidden = value !== 'other'; },
-          })
-        : null;
-
       const favoriteTypePicker = (favoriteTypePickerRoot && favoriteTypeInput && favoriteTypeDropdown)
         ? createDropdownPicker({
             root: favoriteTypePickerRoot,
@@ -275,15 +258,13 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
           })
         : null;
 
+      // Home base is stored as one string, "City, State" (or just the city),
+      // which is what the public page shows as a badge.
       function resolveHomeCity(): string | null {
-        const value = homeCityPicker?.getValue() || '';
-        if (value === 'other') {
-          const city = homeCityOtherInput?.value.trim() || '';
-          const state = homeStateOtherInput?.value.trim() || '';
-          if (!city && !state) return null;
-          return state ? `${city}, ${state}` : city;
-        }
-        return value || null;
+        const city = homeCityOtherInput?.value.trim() || '';
+        const state = homeStateOtherInput?.value.trim() || '';
+        if (!city && !state) return null;
+        return city && state ? `${city}, ${state}` : (city || state);
       }
 
       function showAvatarError(msg: string) {
@@ -527,6 +508,65 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         }
       });
 
+      // ── "You're going" + "Friends are going" ──────────────────────────
+      const MONTHS_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const WDAYS_S = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      function esc(v: string) { return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+      function goingRow(r: { show_key: string; venue_slug: string; show_date: string; artist: string }, whoHtml: string, withButton: boolean) {
+        const d = new Date(`${r.show_date}T12:00:00`);
+        const ven = venueBySlug.get(r.venue_slug);
+        const venueName = ven?.name || r.venue_slug;
+        const btn = withButton ? `
+          <button type="button" class="going-btn" data-show-key="${esc(r.show_key)}" data-slug="${esc(r.venue_slug)}" data-date="${esc(r.show_date)}" data-artist="${esc(r.artist)}" aria-pressed="false">
+            <span class="going-icon" aria-hidden="true">✓</span><span class="going-label">I'm going</span><span class="going-count" hidden></span>
+          </button>` : '';
+        return `<div class="going-row">
+          <div class="going-row-date"><span class="going-row-wd">${WDAYS_S[d.getDay()]}</span><span class="going-row-dom">${d.getDate()}</span><span class="going-row-mon">${MONTHS_S[d.getMonth()]}</span></div>
+          <div class="going-row-info">
+            <a class="going-row-name" href="/venues/${esc(r.venue_slug)}/#venue-calendar">${esc(r.artist)}</a>
+            <span class="going-row-venue">at ${esc(venueName)}</span>
+            ${whoHtml}
+          </div>
+          ${btn}
+        </div>`;
+      }
+      async function loadGoing(userId: string) {
+        if (!goingList) return;
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+        const { data } = await supabase!
+          .from('show_rsvps')
+          .select('show_key, venue_slug, show_date, artist')
+          .eq('user_id', userId)
+          .gte('show_date', today)
+          .order('show_date');
+        const rows = (data || []) as any[];
+        goingList.innerHTML = rows.map((r) => goingRow(r, '', true)).join('');
+        if (goingEmpty) goingEmpty.hidden = rows.length > 0;
+        paintGoing(goingList);
+      }
+      async function loadFriendsGoing() {
+        if (!friendsGoingSection || !friendsGoingList) return;
+        const { data } = await supabase!.rpc('friends_going');
+        const rows = (data || []) as any[];
+        // One row per show, with every friend going to it grouped together.
+        const byShow = new Map<string, { row: any; who: any[] }>();
+        rows.forEach((r) => {
+          const g = byShow.get(r.show_key) || { row: r, who: [] };
+          g.who.push(r);
+          byShow.set(r.show_key, g);
+        });
+        friendsGoingSection.hidden = byShow.size === 0;
+        friendsGoingList.innerHTML = Array.from(byShow.values()).map(({ row, who }) => {
+          const faces = who.slice(0, 4).map((f: any) =>
+            `<a class="avatar" href="/u/?u=${encodeURIComponent(f.username)}" title="${esc(f.display_name || f.username)}" data-avatar="${esc(f.avatar_url || '')}" data-name="${esc(f.display_name || f.username)}"></a>`).join('');
+          const names = who.map((f: any) => f.display_name || f.username);
+          const text = names.length === 1 ? `${names[0]} is going` : names.length <= 3 ? `${names.join(', ')} are going` : `${names.slice(0, 2).join(', ')} +${names.length - 2} are going`;
+          return goingRow(row, `<span class="going-row-who">${faces}<span>${esc(text)}</span></span>`, true);
+        }).join('');
+        friendsGoingList.querySelectorAll<HTMLElement>('a.avatar[data-name]').forEach((a) => paintAvatar(a, a.dataset.avatar || null, a.dataset.name, undefined));
+        paintGoing(friendsGoingList);
+      }
+
       async function loadProfile(userId: string) {
         const { data: profile } = await supabase!
           .from('profiles')
@@ -536,23 +576,16 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         if (nameInput) nameInput.value = profile?.display_name || '';
         if (bioInput) bioInput.value = profile?.bio || '';
         const homeCity = profile?.home_city || '';
-        if (homeCity && !KNOWN_CITIES.includes(homeCity)) {
-          homeCityPicker?.setValue('other', { silent: true });
-          if (homeOtherRow) homeOtherRow.hidden = false;
-          const lastComma = homeCity.lastIndexOf(',');
-          if (homeCityOtherInput) homeCityOtherInput.value = lastComma > -1 ? homeCity.slice(0, lastComma).trim() : homeCity;
-          if (homeStateOtherInput) homeStateOtherInput.value = lastComma > -1 ? homeCity.slice(lastComma + 1).trim() : '';
-        } else {
-          homeCityPicker?.setValue(homeCity, { silent: true });
-          if (homeOtherRow) homeOtherRow.hidden = true;
-        }
+        const lastComma = homeCity.lastIndexOf(',');
+        if (homeCityOtherInput) homeCityOtherInput.value = lastComma > -1 ? homeCity.slice(0, lastComma).trim() : homeCity;
+        if (homeStateOtherInput) homeStateOtherInput.value = lastComma > -1 ? homeCity.slice(lastComma + 1).trim() : '';
         favoriteTypePicker?.setValue(profile?.favorite_type || '', { silent: true });
         updateUsernameLink(profile?.username || '');
         paintAvatar(avatarEl, profile?.avatar_url, profile?.display_name, undefined);
         if (avatarRemoveBtn) avatarRemoveBtn.hidden = !profile?.avatar_url;
 
         await loadGallery(userId);
-        await Promise.all([loadFriends(), loadPendingRequests()]);
+        await Promise.all([loadFriends(), loadPendingRequests(), loadGoing(userId), loadFriendsGoing()]);
 
         const { data: likes } = await supabase!.from('likes').select('venue_slug').eq('user_id', userId);
         const slugs = (likes || []).map((l: { venue_slug: string }) => l.venue_slug);

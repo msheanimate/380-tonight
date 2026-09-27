@@ -23,7 +23,7 @@ const endStr = e.end_date ? ' – ' + new Date(e.end_date + 'T12:00:00').toLocal
     </div>
     <h3>{e.title}</h3>
     <p class="meta" style="margin-top:2px">
-      {venue ? <a href={`/venues/${venue.slug}/`}>{venue.name}</a> : e.city}
+      {venue ? <a href={`/venues/${venue.slug}/`}>{venue.name}</a> : (e.location ?? e.city)}
       <span>{weekly ? `${e.weekday}s` : ''}{endStr} · {e.time} · {e.price}</span>
     </p>
     <p>{e.blurb}</p>

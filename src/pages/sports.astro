@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsFeed from '../components/NewsFeed.astro';
+import LocalTeams from '../components/LocalTeams.astro';
+---
+<Base title="Local sports" current="Sports" description="Hawkeyes and local sports headlines from Iowa City and Cedar Rapids outlets.">
+  <p class="kicker">Local sports</p>
+  <h1>Hawkeyes and local sports</h1>
+  <p class="lede">The latest from Hawkeye Sports, KCRG, CBS2 Iowa, The Daily Iowan, HawkFanatic and Black Heart Gold Pants.</p>
+  <LocalTeams />
+  <a class="hs-callout card" href="/high-school/#scores">
+    <span><strong>High school scores, schedules &amp; standings</strong>City High, West, Liberty, Kennedy, Xavier, Linn-Mar, Regina, Solon and more — with state ranks.</span>
+    <span class="hs-callout-go" aria-hidden="true">→</span>
+  </a>
+  <h2>Latest sports headlines</h2>
+  <NewsFeed kind="sports" />
+</Base>
+
+<style>
+  .hs-callout { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px; margin: 0 0 26px; color: var(--ink); text-decoration: none; }
+  .hs-callout strong { display: block; font-size: 16px; color: var(--button-orange); margin-bottom: 2px; }
+  .hs-callout span:first-child { font-size: 13px; color: var(--ink-2); }
+  .hs-callout-go { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--btn); color: var(--btn-ink); font-weight: 800; }
+  .hs-callout:hover .hs-callout-go { transform: translateX(2px); }
+</style>

@@ -161,14 +161,49 @@
     "tags": [
       "patio",
       "cocktails",
-      "game-day"
+      "game-day",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Daily 3 PM–6 PM · Daily drink & food specials; Daily 6 AM–9 AM · Morning happy hour: Bloody Marys & mimosa flights",
     "hours_note": "Verify current hours.",
     "website": "https://www.luckyson16th.net",
     "blurb": "Casual Czech Village bar with a loyal crowd, solid burgers, and drinks that don't require a lecture.",
     "source": "https://www.czechvillagecedarrapids.com/members",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "Daily drink & food specials",
+        "source": "https://www.tourismcedarrapids.com/blog/luckys-on-16th/",
+        "verify": true
+      },
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "06:00",
+        "end": "09:00",
+        "deal": "Morning happy hour: Bloody Marys & mimosa flights",
+        "source": "https://www.tourismcedarrapids.com/blog/luckys-on-16th/",
+        "verify": true
+      }
+    ]
   },
   {
     "name": "National Czech & Slovak Museum & Library",
@@ -483,14 +518,28 @@
     "address": "616 2nd Ave SE, Cedar Rapids, IA 52401",
     "tags": [
       "pizza",
-      "late-night"
+      "late-night",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Wed–Fri 3 PM–6 PM · $4 house beers",
     "hours_note": "Wed–Thu 3–9pm; Fri 3–11pm; Sat 11am–11pm; Sun 11am–8pm; kitchen closes 10pm Fri–Sat.",
     "website": "https://www.thequarterbarrel.com",
     "blurb": "House beer, pizza, and a wall of pinball and arcade cabinets; the nerdiest good time downtown.",
     "source": "https://www.thequarterbarrel.com/location",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          3,
+          4,
+          5
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "$4 house beers",
+        "source": "https://www.thequarterbarrel.com/specials-and-happyhour"
+      }
+    ]
   },
   {
     "name": "Clock House Brewing",
@@ -723,14 +772,32 @@
     "address": "760 11th St, Marion, IA 52302",
     "tags": [
       "cocktails",
-      "live-music"
+      "live-music",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Daily 3 PM–6 PM · $1 off beer / house wine / wells",
     "hours_note": "Shares a building with Uptown Coffee Company; verify hours.",
     "website": "https://uptownsnug.com",
     "blurb": "Cozy Irish-style snug bar attached to a coffee shop, so the transition from latte to whiskey is seamless.",
     "source": "https://www.uptownmarion.com/food_drink.html",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "$1 off beer / house wine / wells",
+        "source": "https://uptownsnug.com/"
+      }
+    ]
   },
   {
     "name": "Brick Alley Pub & Sports Bar",
@@ -742,14 +809,31 @@
     "tags": [
       "sports-bar",
       "game-day",
-      "trivia"
+      "trivia",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Mon–Fri 4 PM–6 PM · $1 off all draws & wells",
     "hours_note": "Trivia nights listed on Untappd; verify schedule.",
     "website": "https://brickalleymarion.com",
     "blurb": "Uptown's sports bar with trivia nights, wings, and enough screens to catch every game at once.",
     "source": "https://www.uptownmarion.com/food_drink.html",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "16:00",
+        "end": "18:00",
+        "deal": "$1 off all draws & wells",
+        "source": "https://brickalleymarion.com/",
+        "verify": true
+      }
+    ]
   },
   {
     "name": "The Hip-Stir",
@@ -760,15 +844,33 @@
     "address": "1120 7th Ave, Marion, IA 52302",
     "tags": [
       "cocktails",
-      "brunch"
+      "brunch",
+      "happy-hour"
     ],
-    "happy_hour": "Happy hour offered; times not published on site",
+    "happy_hour": "Daily 3 PM–6 PM",
     "hours_note": "Mon–Thu 11am–10pm; Fri–Sat 11am–late; Sun 11am–10pm per funnotfancy.com.",
     "website": "https://www.funnotfancy.com/the-hip-stir",
     "blurb": "Playful cocktails and a menu that's better than it needs to be, in the old Ramsey's Wine Bistro space.",
     "source": "https://www.uptownmarion.com/food_drink.html",
     "verify": true,
-    "doordash_url": "https://www.doordash.com/search/store/The%20Hip-Stir%20Marion%2C%20IA/"
+    "doordash_url": "https://www.doordash.com/search/store/The%20Hip-Stir%20Marion%2C%20IA/",
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "source": "https://www.facebook.com/thehipstir/",
+        "verify": true
+      }
+    ]
   },
   {
     "name": "Zoey's Pizzeria",
@@ -926,14 +1028,29 @@
     "address": "3207 1st Ave SE, Cedar Rapids, IA 52402",
     "tags": [
       "patio",
-      "sports-bar"
+      "sports-bar",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Mon–Fri 3 PM–6 PM",
     "hours_note": "Verify current hours.",
     "website": "https://www.tourismcedarrapids.com/things-to-do/cedar-rapids-area-nightlife/",
     "blurb": "Cedar Rapids institution on 1st Ave with a big patio, pub food, and a crowd of regulars.",
     "source": "https://www.tourismcedarrapids.com/things-to-do/cedar-rapids-area-nightlife/",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "source": "https://www.irishdemocratcr.com/"
+      }
+    ]
   },
   {
     "name": "Zeppelins Bar & Grill",
@@ -944,14 +1061,33 @@
     "address": "5300 Edgewood Rd NE, Cedar Rapids, IA 52411",
     "tags": [
       "sports-bar",
-      "game-day"
+      "game-day",
+      "happy-hour"
     ],
-    "happy_hour": null,
+    "happy_hour": "Daily 3 PM–6 PM · 2-for-1 drinks",
     "hours_note": "Verify current hours.",
     "website": "https://www.tourismcedarrapids.com/things-to-do/cedar-rapids-area-nightlife/",
     "blurb": "Sprawling north-side bar and grill with volleyball courts and plenty of TVs for a rowdy weekend.",
     "source": "https://www.tourismcedarrapids.com/things-to-do/cedar-rapids-area-nightlife/",
-    "verify": true
+    "verify": true,
+    "happy_hours": [
+      {
+        "days": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "start": "15:00",
+        "end": "18:00",
+        "deal": "2-for-1 drinks",
+        "source": "https://www.zeppelinscr.com/",
+        "verify": true
+      }
+    ]
   },
   {
     "name": "Otis' Tailgators Sports Bar",

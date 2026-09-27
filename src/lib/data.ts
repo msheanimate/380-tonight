@@ -4,9 +4,21 @@ import districtsRaw from '../data/districts.json';
 import eventsRaw from '../data/events.json';
 import gamesRaw from '../data/games.json';
 
+export type HappyHourWindow = {
+  days: number[];        // 0 = Sun … 6 = Sat
+  start: string;         // "15:00" (24h, Central)
+  end: string;           // "18:00" or "close"
+  deal?: string;
+  source?: string;
+  verify?: boolean;      // true = from a third-party listing, not the bar itself
+};
+
 export type Venue = {
   name: string; slug: string; city: string; district: string; type: string;
   address: string; tags: string[]; happy_hour: string | null; hours_note: string | null;
+  /** Structured happy-hour windows (drives the "right now" strip on Tonight);
+   *  `happy_hour` above is the human-readable summary of these. */
+  happy_hours?: HappyHourWindow[];
   website: string; blurb: string; source: string; verify: boolean; menu_url?: string | null;
   doordash_url?: string | null;
 };
@@ -15,9 +27,11 @@ export type District = {
 };
 export type Event = {
   title: string; date: string; end_date?: string; weekday?: string; time: string; venue_slug: string; city: string;
+  location?: string;  // place name when the event isn't at a listed venue (e.g. the Ped Mall)
+  image?: string;     // optional hero image URL; otherwise the venue's Google photo is used
   category: string; price: string; pick: boolean; blurb: string; source: string; verify: boolean;
 };
-export type Game = { date: string; opponent: string; home: boolean; time: string };
+export type Game = { date: string; opponent: string; home: boolean; time: string; tv?: string; seatgeek?: string };
 
 export const venues: Venue[] = [...(ic as Venue[]), ...(cr as Venue[])];
 export const districts: District[] = districtsRaw as District[];

@@ -858,3 +858,95 @@ drop policy if exists "Users can remove their own push subscriptions" on public.
 create policy "Users can remove their own push subscriptions"
   on public.push_subscriptions for delete
   using (auth.uid() = user_id);
+
+
+-- ─── show RSVPs ("I'm going") ───────────────────────────────────────────────
+-- One row per (user, show). A show is identified by a text key the client
+-- builds from the venue slug, the date and a normalized artist name --
+-- "gabes|2026-10-02|bayway" -- so the venue page, the calendar panel and the
+-- search results all agree on which show they mean without a shows table.
+create table if not exists public.show_rsvps (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  show_key text not null,
+  venue_slug text not null,
+  show_date date not null,
+  artist text not null,
+  created_at timestamptz not null default now(),
+  unique (user_id, show_key)
+);
+create index if not exists show_rsvps_key_idx on public.show_rsvps (show_key);
+create index if not exists show_rsvps_date_idx on public.show_rsvps (show_date);
+
+alter table public.show_rsvps enable row level security;
+
+drop policy if exists "Users can view their own rsvps" on public.show_rsvps;
+create policy "Users can view their own rsvps"
+  on public.show_rsvps for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can rsvp to shows" on public.show_rsvps;
+create policy "Users can rsvp to shows"
+  on public.show_rsvps for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Users can un-rsvp" on public.show_rsvps;
+create policy "Users can un-rsvp"
+  on public.show_rsvps for delete
+  using (auth.uid() = user_id);
+
+-- Public "going" info for a batch of shows: the total count (visible to
+-- everyone), whether the caller is going, and which of the CALLER'S FRIENDS
+-- are going (name + avatar). Nobody else's identity is ever exposed.
+create or replace function public.show_going_info(p_keys text[])
+returns table (show_key text, going_count bigint, going_by_me boolean, friends jsonb)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  with my_friends as (
+    select case when fr.requester_id = auth.uid() then fr.addressee_id else fr.requester_id end as id
+    from public.friend_requests fr
+    where fr.status = 'accepted' and (fr.requester_id = auth.uid() or fr.addressee_id = auth.uid())
+  )
+  select
+    r.show_key,
+    count(*) as going_count,
+    coalesce(bool_or(r.user_id = auth.uid()), false) as going_by_me,
+    coalesce(
+      jsonb_agg(jsonb_build_object('username', p.username, 'display_name', p.display_name, 'avatar_url', p.avatar_url))
+        filter (where p.id is not null),
+      '[]'::jsonb
+    ) as friends
+  from public.show_rsvps r
+  left join my_friends f on f.id = r.user_id
+  left join public.profiles p on p.id = f.id
+  where r.show_key = any (p_keys)
+  group by r.show_key;
+$$;
+
+grant execute on function public.show_going_info(text[]) to anon, authenticated;
+
+-- Upcoming shows the caller's friends are going to, one row per friend per
+-- show, soonest first -- for the "Friends are going" list on /profile/.
+create or replace function public.friends_going()
+returns table (show_key text, venue_slug text, show_date date, artist text, username text, display_name text, avatar_url text)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select r.show_key, r.venue_slug, r.show_date, r.artist, p.username, p.display_name, p.avatar_url
+  from public.show_rsvps r
+  join public.friend_requests fr
+    on fr.status = 'accepted'
+   and ((fr.requester_id = auth.uid() and fr.addressee_id = r.user_id)
+     or (fr.addressee_id = auth.uid() and fr.requester_id = r.user_id))
+  join public.profiles p on p.id = r.user_id
+  where r.show_date >= (now() at time zone 'America/Chicago')::date
+  order by r.show_date, r.artist;
+$$;
+
+revoke execute on function public.friends_going() from public;
+grant execute on function public.friends_going() to authenticated;

@@ -1,0 +1,101 @@
+---
+/** NewsFeed -- the shared layout for /news/ and /sports/: a lead story, then
+ *  a grid of headline cards, with source filter chips. Every card links out
+ *  to the outlet (new tab); we only show the headline, the feed's own short
+ *  summary and photo. */
+import { getArticles, FEEDS, type Kind } from '../lib/news';
+interface Props { kind: Kind }
+const { kind } = Astro.props;
+const articles = await getArticles(kind);
+const sources = FEEDS[kind]
+  .map((f) => ({ ...f, count: articles.filter((a) => a.sourceSlug === f.slug).length }))
+  .filter((f, i, arr) => f.count && arr.findIndex((x) => x.slug === f.slug) === i);
+const lead = articles.find((a) => a.image) ?? articles[0];
+const rest = articles.filter((a) => a !== lead);
+const fmt = (iso: string) => new Date(iso).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+---
+{articles.length === 0 ? (
+  <p class="nf-empty">Couldn't reach the local news feeds just now. Try again in a few minutes.</p>
+) : (
+  <div class="nf" data-kind={kind}>
+    <div class="nf-filters" role="group" aria-label="Filter by outlet">
+      <button type="button" class="chip" data-src="" aria-pressed="true">All <span class="nf-count">{articles.length}</span></button>
+      {sources.map((s) => <button type="button" class="chip" data-src={s.slug} aria-pressed="false">{s.source} <span class="nf-count">{s.count}</span></button>)}
+    </div>
+
+    {lead && (
+      <a class="card nf-lead" href={lead.link} target="_blank" rel="noopener" data-src={lead.sourceSlug}>
+        {lead.image && <div class="nf-lead-img" style={`background-image:url('${lead.image}')`}></div>}
+        <div class="nf-lead-body">
+          <p class="nf-meta"><span class="badge">{lead.source}</span><time datetime={lead.date} data-ago>{fmt(lead.date)}</time></p>
+          <h2 class="nf-lead-title">{lead.title}</h2>
+          {lead.summary && <p class="nf-summary">{lead.summary}</p>}
+          <span class="nf-read">Read on {lead.source} ↗</span>
+        </div>
+      </a>
+    )}
+
+    <div class="nf-grid">
+      {rest.map((a) => (
+        <a class="card nf-card" href={a.link} target="_blank" rel="noopener" data-src={a.sourceSlug}>
+          {a.image && <div class="nf-img" style={`background-image:url('${a.image}')`}></div>}
+          <div class="nf-body">
+            <p class="nf-meta"><span class="badge">{a.source}</span><time datetime={a.date} data-ago>{fmt(a.date)}</time></p>
+            <h3 class="nf-title">{a.title}</h3>
+            {a.summary && <p class="nf-summary">{a.summary}</p>}
+          </div>
+        </a>
+      ))}
+    </div>
+    <p class="verify nf-note">Headlines and summaries come from each outlet's public feed; stories open on their sites.</p>
+  </div>
+)}
+
+<script>
+  // "3h ago" in the reader's own clock, and the outlet filter chips.
+  function ago(iso: string) {
+    const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.round(h / 24);
+    return d === 1 ? 'yesterday' : `${d}d ago`;
+  }
+  document.querySelectorAll<HTMLTimeElement>('.nf time[data-ago]').forEach((t) => { t.textContent = ago(t.dateTime); t.title = new Date(t.dateTime).toLocaleString(); });
+  const root = document.querySelector('.nf');
+  root?.querySelector('.nf-filters')?.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-src]');
+    if (!b) return;
+    root.querySelectorAll('.nf-filters button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    const src = b.dataset.src;
+    root.querySelectorAll<HTMLElement>('.nf-card, .nf-lead').forEach((c) => { c.hidden = !!src && c.dataset.src !== src; });
+  });
+</script>
+
+<style>
+  .nf-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 16px; }
+  .nf-count { opacity: .6; font-weight: 700; margin-left: 2px; }
+  .nf-lead { display: grid; grid-template-columns: 1fr; gap: 0; padding: 0; overflow: hidden; text-decoration: none; color: var(--ink); margin-bottom: 16px; }
+  .nf-lead-img { aspect-ratio: 16 / 8; background: var(--ink-4) center/cover no-repeat; }
+  .nf-lead-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; }
+  .nf-lead-title { margin: 0; font-size: 24px; line-height: 1.2; color: var(--ink); text-shadow: none; display: block; }
+  @media (min-width: 860px) {
+    .nf-lead { grid-template-columns: 1.35fr 1fr; }
+    .nf-lead-img { aspect-ratio: auto; min-height: 300px; }
+    .nf-lead-body { padding: 22px 24px; justify-content: center; }
+    .nf-lead-title { font-size: 28px; }
+  }
+  .nf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .nf-card { display: flex; flex-direction: column; padding: 0; overflow: hidden; text-decoration: none; color: var(--ink); margin: 0; }
+  .nf-card[hidden], .nf-lead[hidden] { display: none; }
+  .nf-img { aspect-ratio: 16 / 9; background: var(--ink-4) center/cover no-repeat; }
+  .nf-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 5px; }
+  .nf-title { margin: 0; font-size: 16px; line-height: 1.3; }
+  .nf-meta { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; color: var(--ink-2); }
+  .nf-summary { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); }
+  .nf-read { font-size: 13px; font-weight: 800; color: var(--button-orange); margin-top: 4px; }
+  .nf-lead:hover .nf-lead-title, .nf-card:hover .nf-title { text-decoration: underline; }
+  .nf-note { margin-top: 18px; }
+  .nf-empty { color: var(--ink-on-photo-2); }
+</style>

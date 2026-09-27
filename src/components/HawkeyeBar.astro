@@ -1,0 +1,112 @@
+---
+/** HawkeyeBar -- the "next Hawkeye game" banner: opponent helmet vs. Iowa
+ *  helmet, the game line, a live kickoff countdown and a SeatGeek ticket link.
+ *  Used on the home page and Game Day. The page is static, so the browser
+ *  picks the game, counts down, and rolls over to the next one after a game
+ *  ends. Preview any moment with ?at=2026-10-03T14:00 (Central). */
+import { games, fmtDate } from '../lib/data';
+import { zonedToEpoch, parseClock } from '../lib/time';
+
+interface Props {
+  prefix?: string;          // "Next Hawkeye game: " / "Next up: "
+  awayPrefix?: string;      // text before away opponents ("Iowa " -> "Iowa at Washington")
+  showTv?: boolean;
+  gameDayLink?: boolean;    // the white "Game Day" button (off on the Game Day page itself)
+  endedTitle?: string;
+  endedNote?: string;
+}
+const {
+  prefix = 'Next Hawkeye game: ', awayPrefix = '', showTv = true, gameDayLink = true,
+  endedTitle = 'Football season is over.', endedNote = 'Wrestling and basketball picks live on the Events page.',
+} = Astro.props;
+
+const isoToday = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+// Helmet art in public/helmets/; opponents without one just show no matchup.
+const HELMETS = new Set(['illinois', 'indiana', 'iowa', 'maryland', 'michigan-state', 'michigan', 'minnesota', 'nebraska', 'northwestern', 'ohio-state', 'oregon', 'penn-state', 'purdue', 'rutgers', 'ucla', 'usc', 'washington', 'wisconsin']);
+const helmetFor = (opponent: string) => {
+  const key = opponent.replace(/^at\s+/i, '').toLowerCase().replace(/\s+/g, '-');
+  return HELMETS.has(key) ? `/helmets/${key}.png` : null;
+};
+const label = (g: (typeof games)[number]) => (g.home ? `${g.opponent} at Kinnick` : `${awayPrefix}${g.opponent}`);
+const sub = (g: (typeof games)[number]) => `${fmtDate(g.date)} · kickoff ${g.time}${showTv && g.tv ? ` · ${g.tv}` : ''}`;
+const next = games.find((g) => g.date >= isoToday);
+const schedule = games.filter((g) => g.date >= isoToday).map((g) => {
+  const clock = parseClock(g.time);
+  return { helmet: helmetFor(g.opponent), seatgeek: g.seatgeek ?? null, date: g.date,
+    kickoff: clock ? zonedToEpoch(g.date, clock[0], clock[1]) : null, title: prefix + label(g), sub: sub(g) };
+});
+const nextHelmet = next ? helmetFor(next.opponent) : null;
+---
+<div class="nowbar" data-hawkbar data-games={JSON.stringify(schedule)}>
+  {next && (
+    <div class="matchup" data-matchup hidden={!nextHelmet} aria-hidden="true">
+      <img class="matchup-opp" data-opp src={nextHelmet ?? ''} alt="" width="206" height="175" />
+      <span class="matchup-vs">vs</span>
+      <img class="matchup-iowa" src="/helmets/iowa.png" alt="" width="207" height="176" />
+    </div>
+  )}
+  <div class="nowbar-text">
+    {next ? (
+      <><span data-title>{prefix}{label(next)}</span>
+      <small data-sub>{sub(next)}</small></>
+    ) : (
+      <>{endedTitle} <small>{endedNote}</small></>
+    )}
+  </div>
+  {next && <div class="kickoff" data-kickoff hidden><span class="kickoff-label" data-klabel>Kickoff in</span><span class="kickoff-clock" data-kclock></span></div>}
+  {next && (next.seatgeek || gameDayLink) && (
+    <div class="nowbar-actions">
+      {next.seatgeek && (
+        <a class="sg-btn" data-seatgeek href={next.seatgeek} target="_blank" rel="noopener" aria-label="Tickets on SeatGeek">
+          <img src="https://seatgeek.com/favicon-192x192.png" alt="" width="22" height="22" referrerpolicy="no-referrer" />
+          <span>Tickets</span>
+        </a>
+      )}
+      {gameDayLink && <a class="btn secondary" href="/game-day/" style="background:#fff;color:var(--btn-on-light)">Game Day</a>}
+    </div>
+  )}
+</div>
+
+<script>
+  import { fmtDuration } from '../lib/time';
+  const GAME_LENGTH_MS = 4 * 60 * 60 * 1000;
+  const atParam = new URLSearchParams(location.search).get('at');
+  const previewAt = atParam ? Date.parse(atParam.length <= 16 ? atParam + ':00-05:00' : atParam) : NaN;
+  const now = () => (Number.isFinite(previewAt) ? previewAt : Date.now());
+  type G = { helmet: string | null; seatgeek: string | null; date: string; kickoff: number | null; title: string; sub: string };
+
+  document.querySelectorAll<HTMLElement>('[data-hawkbar]').forEach((bar) => {
+    const schedule: G[] = JSON.parse(bar.dataset.games || '[]');
+    const q = <T extends HTMLElement>(k: string) => bar.querySelector<T>(`[data-${k}]`);
+    const kickoff = q('kickoff'), klabel = q('klabel'), kclock = q('kclock'), title = q('title'), sub = q('sub');
+    const sg = q<HTMLAnchorElement>('seatgeek'), matchup = q('matchup'), opp = q<HTMLImageElement>('opp');
+    function tick() {
+      if (!kickoff || !kclock || !klabel) return;
+      const t = now();
+      // First game that hasn't finished yet (a TBA-time game counts as all day).
+      const g = schedule.find((x) => (x.kickoff ? x.kickoff + GAME_LENGTH_MS : Date.parse(x.date + 'T23:59:59-05:00')) > t);
+      if (!g) { kickoff.hidden = true; return; }
+      if (title) title.textContent = g.title;
+      if (sub) sub.textContent = g.sub;
+      if (sg && g.seatgeek) sg.href = g.seatgeek;
+      if (matchup && opp) {
+        matchup.hidden = !g.helmet;
+        if (g.helmet && opp.getAttribute('src') !== g.helmet) opp.src = g.helmet;
+      }
+      if (!g.kickoff) { kickoff.hidden = true; return; }
+      const diff = g.kickoff - t;
+      kickoff.hidden = false;
+      if (diff > 0) {
+        klabel.textContent = 'Kickoff in';
+        kclock.textContent = fmtDuration(diff, diff < 60 * 60 * 1000);
+        kickoff.classList.remove('live');
+      } else {
+        klabel.textContent = 'Game on';
+        kclock.textContent = `kicked off ${fmtDuration(-diff)} ago`;
+        kickoff.classList.add('live');
+      }
+    }
+    tick();
+    setInterval(tick, 1000);
+  });
+</script>

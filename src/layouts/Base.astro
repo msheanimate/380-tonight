@@ -5,8 +5,14 @@ import venuesIC from '../data/venues-iowa-city.json';
 import venuesCR from '../data/venues-cedar-rapids.json';
 interface Props { title: string; description?: string; current?: string }
 const { title, description = "What's on tonight in the Cedar Rapids–Iowa City Corridor.", current = '' } = Astro.props;
+import { buildShowIndex } from '../lib/shows-index';
 const searchData = [...venuesIC, ...venuesCR].map((v) => ({
   n: v.name, s: v.slug, t: v.type, c: v.city, b: v.blurb.slice(0, 80)
+}));
+// Upcoming shows for the header box, trimmed to what the dropdown needs:
+// artist, date (or weekday for weekly rows), time, venue name + slug.
+const showData = buildShowIndex().map((sh) => ({
+  a: sh.artist, d: sh.date, w: sh.weekday, tm: sh.time, v: sh.venue, s: sh.slug, c: sh.city,
 }));
 const pathname = Astro.url.pathname;
 const cityActive = pathname.startsWith('/iowa-city') ? 'ic' : pathname.startsWith('/cedar-rapids') ? 'cr' : 'all';
@@ -20,6 +26,18 @@ const nav = [
   ['/party-pics/', 'Party Pics', 'more'],
 ];
 const tabs = nav.slice(0, 5);
+
+// Display settings: background photo choices (Google Places photos we already
+// store for these spots). 'kinnick' is the stylesheet default (--photo-url).
+import venuePhotosRaw from '../data/venue-photos.json';
+const PLACES_KEY = 'AIzaSyAfgZvvM4cJxLg9vhi0xPkZSTn6OIWLi8M';
+const vp = venuePhotosRaw as Record<string, string[]>;
+const bgPhoto = (slug: string, i: number) => vp[slug]?.[i] ? `https://places.googleapis.com/v1/${vp[slug][i]}/media?maxWidthPx=1920&key=${PLACES_KEY}` : null;
+const bgChoices: Record<string, string | null> = {
+  pedmall: bgPhoto('iowa-city-ped-mall', 0),
+  newbo: bgPhoto('newbo-city-market', 0),
+  hancher: bgPhoto('hancher-auditorium', 2),
+};
 ---
 <!doctype html>
 <html lang="en">
@@ -27,6 +45,28 @@ const tabs = nav.slice(0, 5);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#1C1A22" />
+    <script is:inline define:vars={{ bgChoices }}>
+      // Display settings (theme, background, text color, text size), applied
+      // before first paint so there's no flash of the default look. Saved per
+      // device. window.__the380bg is reused by the settings panel script.
+      window.__the380bg = bgChoices;
+      try {
+        var d = document.documentElement;
+        var t = localStorage.getItem('the380.theme'); if (t) d.dataset.theme = t;
+        var z = localStorage.getItem('the380.textsize'); if (z) d.dataset.textsize = z;
+        var c = localStorage.getItem('the380.textcolor'); if (c) d.dataset.textcolor = c;
+        var bc = localStorage.getItem('the380.btncolor'); if (bc) d.dataset.btncolor = bc;
+        if (localStorage.getItem('the380.shownews') === '1') d.dataset.shownews = '1';
+        if (localStorage.getItem('the380.showsports') === '1') d.dataset.showsports = '1';
+        if (localStorage.getItem('the380.showpreps') === '1') d.dataset.showpreps = '1';
+        var b = localStorage.getItem('the380.bg');
+        if (b) {
+          d.dataset.bg = b;
+          if (b === 'none') d.style.setProperty('--photo-url', 'none');
+          else if (bgChoices[b]) d.style.setProperty('--photo-url', 'url("' + bgChoices[b] + '")');
+        }
+      } catch (e) {}
+    </script>
     <title>{title} · The 380</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -43,9 +83,13 @@ const tabs = nav.slice(0, 5);
   <body>
     <header class="site-header">
       <div class="wrap site-header-top">
-        <a class="brand" href="/">
-          <span class="word">THE 380</span>
-        </a>
+        <div class="brand-block">
+          <a class="brand" href="/">
+            <span class="word">THE 380</span>
+          </a>
+          <!-- Local weather (filled in by script below; follows the city toggle) -->
+          <a class="wx" id="wx" href="https://forecast.weather.gov/MapClick.php?lat=41.6611&lon=-91.5302" target="_blank" rel="noopener" hidden></a>
+        </div>
         <div class="site-header-tools">
           <div class="city-toggle" role="group" aria-label="Which end of the Corridor">
             <button type="button" data-side="all" aria-pressed={cityActive === "all" ? "true" : "false"}>Both</button>
@@ -54,7 +98,7 @@ const tabs = nav.slice(0, 5);
           </div>
           <div class="header-search" id="header-search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input id="hs-input" type="search" placeholder="Search…" aria-label="Search venues" autocomplete="off" />
+            <input id="hs-input" type="search" placeholder="Bar, band, show…" aria-label="Search venues and shows" autocomplete="off" />
             <div class="hs-dropdown" id="hs-dropdown" hidden></div>
           </div>
           <div class="auth-widget" id="auth-widget">
@@ -64,6 +108,60 @@ const tabs = nav.slice(0, 5);
               <div class="avatar avatar-sm" id="auth-avatar"></div>
               <span id="auth-display-name"></span>
             </a>
+            <div class="settings" id="settings">
+              <button type="button" class="settings-btn" id="settings-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel" aria-label="Display settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+              <div class="settings-panel" id="settings-panel" role="dialog" aria-label="Display settings" hidden>
+                <p class="settings-title">Display</p>
+                <p class="settings-label" id="settings-theme-label">Theme</p>
+                <div class="settings-seg" role="radiogroup" aria-labelledby="settings-theme-label" data-setting="theme">
+                  <button type="button" role="radio" data-value="stadium"><span class="swatch swatch-stadium" aria-hidden="true"></span>Stadium</button>
+                  <button type="button" role="radio" data-value="light"><span class="swatch swatch-light" aria-hidden="true"></span>Light</button>
+                  <button type="button" role="radio" data-value="dark"><span class="swatch swatch-dark" aria-hidden="true"></span>Dark</button>
+                </div>
+                <p class="settings-label" id="settings-bg-label">Background</p>
+                <div class="settings-seg settings-seg-bg" role="radiogroup" aria-labelledby="settings-bg-label" data-setting="bg">
+                  <button type="button" role="radio" data-value="kinnick"><span class="bg-thumb" style="background-image:var(--photo-url-default)" aria-hidden="true"></span>Kinnick</button>
+                  {bgChoices.pedmall && <button type="button" role="radio" data-value="pedmall"><span class="bg-thumb" style={`background-image:url('${bgChoices.pedmall.replace('1920', '240')}')`} aria-hidden="true"></span>Ped Mall</button>}
+                  {bgChoices.newbo && <button type="button" role="radio" data-value="newbo"><span class="bg-thumb" style={`background-image:url('${bgChoices.newbo.replace('1920', '240')}')`} aria-hidden="true"></span>NewBo</button>}
+                  {bgChoices.hancher && <button type="button" role="radio" data-value="hancher"><span class="bg-thumb" style={`background-image:url('${bgChoices.hancher.replace('1920', '240')}')`} aria-hidden="true"></span>Hancher</button>}
+                  <button type="button" role="radio" data-value="none"><span class="bg-thumb bg-thumb-none" aria-hidden="true"></span>None</button>
+                </div>
+                <p class="settings-label" id="settings-color-label">Text color</p>
+                <div class="settings-seg settings-seg-color" role="radiogroup" aria-labelledby="settings-color-label" data-setting="textcolor">
+                  <button type="button" role="radio" data-value="cream"><span class="color-dot" style="background:#F7F1E6" aria-hidden="true"></span>Cream</button>
+                  <button type="button" role="radio" data-value="white"><span class="color-dot" style="background:#FFFFFF" aria-hidden="true"></span>White</button>
+                  <button type="button" role="radio" data-value="gold"><span class="color-dot" style="background:#FFCD00" aria-hidden="true"></span>Gold</button>
+                  <button type="button" role="radio" data-value="orange"><span class="color-dot" style="background:#E85D3F" aria-hidden="true"></span>Orange</button>
+                </div>
+                <p class="settings-note settings-color-note">Light theme uses dark text.</p>
+                <p class="settings-label" id="settings-btn-label">Button color</p>
+                <div class="settings-seg settings-seg-color settings-seg-btn" role="radiogroup" aria-labelledby="settings-btn-label" data-setting="btncolor">
+                  <button type="button" role="radio" data-value="orange"><span class="color-dot" style="background:#E85D3F" aria-hidden="true"></span>Orange</button>
+                  <button type="button" role="radio" data-value="gold"><span class="color-dot" style="background:#FFCD00" aria-hidden="true"></span>Gold</button>
+                  <button type="button" role="radio" data-value="red"><span class="color-dot" style="background:#D62828" aria-hidden="true"></span>Red</button>
+                  <button type="button" role="radio" data-value="blue"><span class="color-dot" style="background:#2F6FED" aria-hidden="true"></span>Blue</button>
+                  <button type="button" role="radio" data-value="green"><span class="color-dot" style="background:#1F9D55" aria-hidden="true"></span>Green</button>
+                  <button type="button" role="radio" data-value="purple"><span class="color-dot" style="background:#7C3AED" aria-hidden="true"></span>Purple</button>
+                  <button type="button" role="radio" data-value="black"><span class="color-dot" style="background:#1C1A22" aria-hidden="true"></span>Black</button>
+                </div>
+                <p class="settings-label" id="settings-size-label">Text size</p>
+                <div class="settings-seg settings-seg-size" role="radiogroup" aria-labelledby="settings-size-label" data-setting="textsize">
+                  <button type="button" role="radio" data-value="normal"><span class="size-a" style="font-size:13px">A</span>Normal</button>
+                  <button type="button" role="radio" data-value="large"><span class="size-a" style="font-size:16px">A</span>Large</button>
+                  <button type="button" role="radio" data-value="xl"><span class="size-a" style="font-size:19px">A</span>Larger</button>
+                  <button type="button" role="radio" data-value="xxl"><span class="size-a" style="font-size:23px">A</span>Largest</button>
+                </div>
+                <p class="settings-label">Add to menu</p>
+                <div class="settings-checks">
+                  <label class="settings-check"><input type="checkbox" data-flag="shownews" /><span class="settings-check-box" aria-hidden="true"></span><span>Local news</span></label>
+                  <label class="settings-check"><input type="checkbox" data-flag="showsports" /><span class="settings-check-box" aria-hidden="true"></span><span>Local sports</span></label>
+                  <label class="settings-check"><input type="checkbox" data-flag="showpreps" /><span class="settings-check-box" aria-hidden="true"></span><span>High school sports</span></label>
+                </div>
+                <button type="button" class="settings-reset" id="settings-reset">Reset to defaults</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -72,6 +170,20 @@ const tabs = nav.slice(0, 5);
           {nav.map(([href, label]) => (
             <a href={href} aria-current={current === label ? 'page' : undefined}>{label}</a>
           ))}
+          {/* Optional tabs -- shown in orange when turned on in Display settings
+              (and always on their own page). */}
+          <a href="/news/" class="nav-optional nav-news" aria-current={current === 'News' ? 'page' : undefined}>News</a>
+          <a href="/sports/" class="nav-optional nav-sports" aria-current={current === 'Sports' ? 'page' : undefined}>Sports</a>
+          <a href="/high-school/" class="nav-optional nav-preps" aria-current={current === 'High School' ? 'page' : undefined}>High School</a>
+        </div>
+      </nav>
+      {/* Phones: the optional News / Sports / High School tabs sit up here as
+          buttons instead of crowding the bottom tab bar. */}
+      <nav class="mobile-extra" aria-label="News and sports">
+        <div class="wrap">
+          <a href="/news/" class="nav-optional nav-news" aria-current={current === 'News' ? 'page' : undefined}>News</a>
+          <a href="/sports/" class="nav-optional nav-sports" aria-current={current === 'Sports' ? 'page' : undefined}>Sports</a>
+          <a href="/high-school/" class="nav-optional nav-preps" aria-current={current === 'High School' ? 'page' : undefined}>High School</a>
         </div>
       </nav>
     </header>
@@ -85,7 +197,10 @@ const tabs = nav.slice(0, 5);
         border: 1px solid var(--field-border);
         border-radius: 999px;
         padding: 7px 14px 7px 10px;
-        width: 280px;
+        /* Grow to fill whatever the row has left between the city toggle and
+           the log-in / profile link. */
+        flex: 1 1 280px;
+        min-width: 180px;
       }
       .header-search svg {
         width: 15px;
@@ -104,7 +219,7 @@ const tabs = nav.slice(0, 5);
         min-width: 0;
       }
       .header-search input::placeholder { color: var(--ink-3); }
-      @media (max-width: 500px) { .header-search { width: 130px; } }
+      @media (max-width: 500px) { .header-search { flex-basis: 130px; min-width: 130px; } }
 
       .auth-widget { display: flex; align-items: center; flex-shrink: 0; gap: 4px; }
       .auth-link {
@@ -117,19 +232,21 @@ const tabs = nav.slice(0, 5);
       }
       .auth-link:hover { text-decoration: underline; }
       .auth-messages-link[hidden] { display: none; }
+      /* Avatar + full display name. The cap only kicks in for very long names
+         (and tighter on phones), so normal usernames always show in full. */
       .auth-loggedin {
         display: flex;
         align-items: center;
         gap: 6px;
-        max-width: 132px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: 240px;
+        min-width: 0;
       }
+      .auth-loggedin .avatar { flex-shrink: 0; }
       .auth-loggedin[hidden] { display: none; }
-      .auth-loggedin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .auth-loggedin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
       @media (max-width: 500px) {
         .auth-link { font-size: 13px; }
-        .auth-loggedin { max-width: 90px; }
+        .auth-loggedin { max-width: 150px; }
       }
     </style>
     <main>
@@ -151,6 +268,18 @@ const tabs = nav.slice(0, 5);
           {label}
         </a>
       ))}
+      <a href="/news/" class="nav-optional nav-news" aria-current={current === 'News' ? 'page' : undefined}>
+        <Fragment set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/><path d="M7 9h7M7 12h7M7 15h4"/></svg>`} />
+        News
+      </a>
+      <a href="/sports/" class="nav-optional nav-sports" aria-current={current === 'Sports' ? 'page' : undefined}>
+        <Fragment set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><path d="M5.6 5.6c3.4 3.4 3.4 9.4 0 12.8M18.4 5.6c-3.4 3.4-3.4 9.4 0 12.8"/></svg>`} />
+        Sports
+      </a>
+      <a href="/high-school/" class="nav-optional nav-preps" aria-current={current === 'High School' ? 'page' : undefined}>
+        <Fragment set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>`} />
+        HS Sports
+      </a>
     </nav>
     <script>
       // City toggle: remembered per device, filters anything with data-side.
@@ -197,31 +326,203 @@ const tabs = nav.slice(0, 5);
         apply(side);
       }));
     </script>
-    <script define:vars={{ searchData }}>
+    <script>
+      // Display settings panel (theme + text size). Values live on <html>
+      // as data-theme / data-textsize and in localStorage.
+      const root = document.documentElement;
+      const btn = document.getElementById('settings-btn');
+      const panel = document.getElementById('settings-panel');
+      const DEFAULTS: Record<string, string> = { theme: 'stadium', textsize: 'normal', bg: 'kinnick', textcolor: 'cream', btncolor: 'orange' };
+      const KEYS: Record<string, string> = { theme: 'the380.theme', textsize: 'the380.textsize', bg: 'the380.bg', textcolor: 'the380.textcolor', btncolor: 'the380.btncolor' };
+      const BG = ((window as any).__the380bg || {}) as Record<string, string | null>;
+      function applyBg(value: string) {
+        if (value === 'kinnick') root.style.removeProperty('--photo-url');
+        else if (value === 'none') root.style.setProperty('--photo-url', 'none');
+        else if (BG[value]) root.style.setProperty('--photo-url', `url("${BG[value]}")`);
+      }
+
+      function current(setting: string) { return root.dataset[setting] || DEFAULTS[setting]; }
+      const FLAGS = ['shownews', 'showsports', 'showpreps'];
+      function setFlag(flag: string, on: boolean) {
+        if (on) root.dataset[flag] = '1'; else delete root.dataset[flag];
+        try { on ? localStorage.setItem(`the380.${flag}`, '1') : localStorage.removeItem(`the380.${flag}`); } catch {}
+      }
+      panel?.querySelectorAll<HTMLInputElement>('input[data-flag]').forEach((cb) => {
+        cb.addEventListener('change', () => setFlag(cb.dataset.flag!, cb.checked));
+      });
+      function paint() {
+        panel?.querySelectorAll<HTMLInputElement>('input[data-flag]').forEach((cb) => { cb.checked = root.dataset[cb.dataset.flag!] === '1'; });
+        panel?.querySelectorAll<HTMLElement>('.settings-seg').forEach((seg) => {
+          const setting = seg.dataset.setting!;
+          seg.querySelectorAll<HTMLButtonElement>('button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.value === current(setting))));
+        });
+      }
+      function set(setting: string, value: string) {
+        if (value === DEFAULTS[setting]) delete root.dataset[setting]; else root.dataset[setting] = value;
+        try { value === DEFAULTS[setting] ? localStorage.removeItem(KEYS[setting]) : localStorage.setItem(KEYS[setting], value); } catch {}
+        if (setting === 'bg') applyBg(value);
+        paint();
+      }
+      function open(show: boolean) {
+        if (!panel || !btn) return;
+        panel.hidden = !show;
+        btn.setAttribute('aria-expanded', String(show));
+        if (show) { paint(); fitPanel(); (panel.querySelector('[aria-checked="true"]') as HTMLElement | null)?.focus({ preventScroll: true }); }
+      }
+      // Keep the whole panel on screen: it scrolls inside itself, stopping above
+      // the phone tab bar, however far down the gear sits.
+      function fitPanel() {
+        if (!panel || panel.hidden) return;
+        const tabbar = document.querySelector<HTMLElement>('.tabbar');
+        const bottomBar = tabbar && getComputedStyle(tabbar).display !== 'none' ? tabbar.offsetHeight : 0;
+        const vh = window.visualViewport?.height ?? window.innerHeight;
+        const room = vh - panel.getBoundingClientRect().top - bottomBar - 12;
+        panel.style.maxHeight = `${Math.max(220, room)}px`;
+      }
+      window.addEventListener('resize', fitPanel);
+      window.visualViewport?.addEventListener('resize', fitPanel);
+      btn?.addEventListener('click', (e) => { e.stopPropagation(); open(panel!.hidden); });
+      panel?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.settings-seg button');
+        if (b) set(b.closest<HTMLElement>('.settings-seg')!.dataset.setting!, b.dataset.value!);
+      });
+      // Phone tab bar can scroll sideways (optional tabs) -- keep the current page's tab in view.
+      document.querySelector<HTMLElement>('.tabbar a[aria-current="page"]')?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+      document.getElementById('settings-reset')?.addEventListener('click', () => {
+        Object.keys(DEFAULTS).forEach((k) => set(k, DEFAULTS[k]));
+        FLAGS.forEach((f) => setFlag(f, false));
+        paint();
+      });
+      document.addEventListener('click', () => open(false));
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel && !panel.hidden) { open(false); btn?.focus(); } });
+    </script>
+    <script>
+      // ── Local weather under the logo (Open-Meteo: free, no key). Both cities
+      // in one request; cached 15 min per tab; shows IC, CR or both to match
+      // the city toggle.
+      type Wx = { t: number; code: number; day: boolean; hi: number; lo: number; pop: number };
+      const WX_KEY = 'the380.wx';
+      const CITIES = [
+        { side: 'ic', short: 'IC', name: 'Iowa City', nws: 'https://forecast.weather.gov/MapClick.php?lat=41.6611&lon=-91.5302' },
+        { side: 'cr', short: 'CR', name: 'Cedar Rapids', nws: 'https://forecast.weather.gov/MapClick.php?lat=41.9779&lon=-91.6656' },
+      ];
+      const ICON: Record<string, string> = {
+        sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>',
+        moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+        partly: '<path d="M8 3.5v1.6M3.5 8h1.6M4.8 4.8l1.1 1.1M11.2 4.8l-1.1 1.1"/><path d="M5.6 10.4A3 3 0 1 1 10.9 7.6"/><path d="M8.5 19h9a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.6 1.2A3 3 0 0 0 8.5 19z"/>',
+        cloud: '<path d="M7 18.5h10.5a4 4 0 0 0 .4-8 5.8 5.8 0 0 0-11.2 1.3A3.4 3.4 0 0 0 7 18.5z"/>',
+        fog: '<path d="M4 9h16M3 13h18M5 17h14"/>',
+        rain: '<path d="M7 14.5h10.5a4 4 0 0 0 .4-8 5.8 5.8 0 0 0-11.2 1.3A3.4 3.4 0 0 0 7 14.5z"/><path d="M8 17.5l-1 2.5M12 17.5l-1 2.5M16 17.5l-1 2.5"/>',
+        snow: '<path d="M7 14.5h10.5a4 4 0 0 0 .4-8 5.8 5.8 0 0 0-11.2 1.3A3.4 3.4 0 0 0 7 14.5z"/><path d="M8 18.5h.01M12 20h.01M16 18.5h.01"/>',
+        storm: '<path d="M7 14.5h10.5a4 4 0 0 0 .4-8 5.8 5.8 0 0 0-11.2 1.3A3.4 3.4 0 0 0 7 14.5z"/><path d="M12.5 15l-2 3.5h3l-2 3.5"/>',
+      };
+      // WMO weather codes -> icon + words
+      function describe(code: number, day: boolean): [string, string] {
+        if (code === 0) return [day ? 'sun' : 'moon', 'Clear'];
+        if (code <= 2) return [day ? 'partly' : 'moon', 'Partly cloudy'];
+        if (code === 3) return ['cloud', 'Cloudy'];
+        if (code === 45 || code === 48) return ['fog', 'Fog'];
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ['snow', 'Snow'];
+        if (code >= 95) return ['storm', 'Thunderstorms'];
+        if (code >= 51) return ['rain', code <= 57 ? 'Drizzle' : 'Rain'];
+        return ['cloud', 'Cloudy'];
+      }
+      const svg = (name: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`;
+
+      async function loadWx(): Promise<Wx[] | null> {
+        try {
+          const c = JSON.parse(sessionStorage.getItem(WX_KEY) || 'null');
+          if (c && Date.now() - c.at < 15 * 60 * 1000) return c.data;
+        } catch {}
+        try {
+          const u = 'https://api.open-meteo.com/v1/forecast?latitude=41.6611,41.9779&longitude=-91.5302,-91.6656'
+            + '&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max'
+            + '&temperature_unit=fahrenheit&timezone=America%2FChicago&forecast_days=1';
+          const j = await (await fetch(u)).json();
+          const data: Wx[] = (Array.isArray(j) ? j : [j]).map((d: any) => ({
+            t: Math.round(d.current.temperature_2m), code: d.current.weather_code, day: !!d.current.is_day,
+            hi: Math.round(d.daily.temperature_2m_max[0]), lo: Math.round(d.daily.temperature_2m_min[0]), pop: d.daily.precipitation_probability_max[0] ?? 0,
+          }));
+          try { sessionStorage.setItem(WX_KEY, JSON.stringify({ at: Date.now(), data })); } catch {}
+          return data;
+        } catch { return null; }
+      }
+
+      const wxEl = document.getElementById('wx') as HTMLAnchorElement | null;
+      let wxData: Wx[] | null = null;
+      function paintWx() {
+        if (!wxEl || !wxData) return;
+        const side = document.documentElement.dataset.side || 'all';
+        const shown = CITIES.map((c, i) => ({ c, w: wxData![i] })).filter(({ c, w }) => w && (side === 'all' || side === c.side));
+        wxEl.innerHTML = shown.map(({ c, w }) => {
+          const [icon] = describe(w.code, w.day);
+          return `<span class="wx-city">${svg(icon)}<b>${w.t}°</b>${shown.length > 1 ? `<span class="wx-name">${c.short}</span>` : `<span class="wx-name">${c.name}</span>`}</span>`;
+        }).join('<span class="wx-sep" aria-hidden="true">·</span>');
+        const tip = shown.map(({ c, w }) => `${c.name}: ${w.t}°F, ${describe(w.code, w.day)[1].toLowerCase()}. High ${w.hi}°, low ${w.lo}°${w.pop ? `, ${w.pop}% chance of rain` : ''}.`).join(' ');
+        wxEl.title = tip + ' Tap for the full forecast.';
+        wxEl.setAttribute('aria-label', 'Local weather. ' + tip);
+        wxEl.href = shown.length === 1 ? shown[0].c.nws : CITIES[0].nws;
+        wxEl.hidden = !shown.length;
+      }
+      loadWx().then((d) => { wxData = d; paintWx(); });
+      document.addEventListener('sidechange', paintWx);
+    </script>
+    <script define:vars={{ searchData, showData }}>
       const input = document.getElementById('hs-input');
       const dropdown = document.getElementById('hs-dropdown');
 
-      function normalize(s) { return s.toLowerCase().replace(/[^a-z0-9]/g, ''); }
+      // Loose matching: case-insensitive, apostrophes/periods ignored, so
+      // "gabes" finds Gabe's and "st vincent" finds St. Vincent.
+      function normalize(s) { return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+      function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+      const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      function when(sh) {
+        if (sh.d === 'weekly') return sh.w ? `Every ${sh.w}` : 'Weekly';
+        const [y, m, d] = sh.d.split('-').map(Number);
+        const dt = new Date(y, m - 1, d);
+        const wd = dt.toLocaleDateString('en-US', { weekday: 'short' });
+        return `${wd} ${MONTHS[m - 1]} ${d}`;
+      }
+      function fullSearchUrl(q) { return `/search/?q=${encodeURIComponent(q)}`; }
 
       function render(q) {
         const n = normalize(q);
         if (!n) { dropdown.hidden = true; dropdown.innerHTML = ''; return; }
-        const results = searchData.filter((v) =>
+        const venues = searchData.filter((v) =>
           normalize(v.n).includes(n) || normalize(v.t).includes(n) || normalize(v.c).includes(n)
-        ).slice(0, 8);
-        if (!results.length) {
-          dropdown.innerHTML = '<div class="hs-no-results">No venues found</div>';
-        } else {
-          dropdown.innerHTML = results.map((v) =>
-            `<a class="hs-result" href="/venues/${v.s}/"><strong>${v.n}</strong><span>${v.c} · ${v.t}</span></a>`
-          ).join('');
+        ).slice(0, 5);
+        const shows = showData.filter((sh) =>
+          normalize(sh.a).includes(n) || normalize(sh.v).includes(n)
+        ).slice(0, 5);
+        const parts = [];
+        if (shows.length) {
+          parts.push('<div class="hs-group">Shows</div>');
+          parts.push(...shows.map((sh) =>
+            `<a class="hs-result hs-show" href="${sh.s ? `/venues/${sh.s}/#venue-calendar` : '/events/'}"><strong>${esc(sh.a)}</strong><span>${esc(when(sh))} · at ${esc(sh.v)}</span></a>`
+          ));
         }
+        if (venues.length) {
+          parts.push('<div class="hs-group">Places</div>');
+          parts.push(...venues.map((v) =>
+            `<a class="hs-result" href="/venues/${v.s}/"><strong>${esc(v.n)}</strong><span>${esc(v.c)} · ${esc(v.t)}</span></a>`
+          ));
+        }
+        if (!parts.length) {
+          parts.push('<div class="hs-no-results">Nothing by that name</div>');
+        }
+        parts.push(`<a class="hs-result hs-more" href="${fullSearchUrl(q)}"><strong>Search everything for “${esc(q)}”</strong><span>Vibes, tags, happy hours &amp; more</span></a>`);
+        dropdown.innerHTML = parts.join('');
         dropdown.hidden = false;
       }
 
       input?.addEventListener('input', (e) => render(e.target.value.trim()));
       input?.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') { dropdown.hidden = true; input.blur(); }
+        if (e.key === 'Enter') {
+          const q = input.value.trim();
+          if (q) { e.preventDefault(); location.href = fullSearchUrl(q); }
+        }
       });
       document.addEventListener('click', (e) => {
         if (!document.getElementById('header-search')?.contains(e.target)) {
@@ -233,6 +534,7 @@ const tabs = nav.slice(0, 5);
       import { supabase, supabaseConfigured } from '../lib/supabase';
       import { paintAvatar } from '../lib/avatar';
       import { enableCardLikes } from '../lib/likes';
+      import { enableGoing } from '../lib/going';
 
       const loginLink = document.getElementById('auth-login-link') as HTMLElement | null;
       const messagesLink = document.getElementById('auth-messages-link') as HTMLElement | null;
@@ -247,9 +549,12 @@ const tabs = nav.slice(0, 5);
           if (messagesLink) messagesLink.hidden = false;
           profileLink.hidden = false;
           if (nameSpan && supabase) {
-            const { data } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', session.user.id).maybeSingle();
+            const { data } = await supabase.from('profiles').select('display_name, avatar_url, username').eq('id', session.user.id).maybeSingle();
             nameSpan.textContent = data?.display_name || session.user.email?.split('@')[0] || 'Account';
             paintAvatar(avatarEl, data?.avatar_url, data?.display_name, session.user.email);
+            // Avatar + name open your public page (/u/), same place a comment
+            // name link goes; /profile/ (edit) stays reachable from there.
+            (profileLink as HTMLAnchorElement).href = data?.username ? `/u/?u=${encodeURIComponent(data.username)}` : '/profile/';
           }
         } else {
           loginLink.hidden = false;
@@ -260,6 +565,7 @@ const tabs = nav.slice(0, 5);
 
       if (supabaseConfigured && supabase) {
         enableCardLikes();
+        enableGoing();
         supabase.auth.getSession().then(({ data }) => reflect(data.session));
         supabase.auth.onAuthStateChange((_event, session) => reflect(session));
       }

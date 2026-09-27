@@ -1,58 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
-import venuesIC from '../data/venues-iowa-city.json';
-import venuesCR from '../data/venues-cedar-rapids.json';
-import eventsRaw from '../data/events.json';
-
-const allVenues = [...venuesIC, ...venuesCR];
-// Central-Time "today", same convention as events.astro and the venue pages.
-const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+import { allVenues, todayStr, buildShowIndex } from '../lib/shows-index';
 
 // Every upcoming show/event in the area as its own searchable row, so a
 // band name finds the gig (date, venue, tickets) rather than just the venue.
-// Sources: each venue's `shows` listings plus events.json (dated entries,
-// and weekly recurring ones like trivia or DJ nights).
-type ShowHit = {
-  artist: string; date: string; weekday: string | null; time: string | null; url: string | null;
-  slug: string; venue: string; city: string; kind: string;
-};
-// Generic words a person might type instead of a band name ("concert",
-// "live music", "game"), derived from the venue type and event category.
-const KIND_BY_TYPE: Record<string, string> = {
-  'music-venue': 'concert concerts show shows live music band bands gig gigs',
-  theater: 'concert concerts show shows theater theatre performance live music',
-  arena: 'concert concerts show shows game games live music sports',
-};
-const KIND_BY_CATEGORY: Record<string, string> = {
-  music: 'concert concerts show shows live music band bands',
-  'game-day': 'game games watch party football hawkeyes sports game day',
-  nightlife: 'nightlife night out',
-  arts: 'arts art show',
-  festival: 'festival festivals fest',
-};
-const kindFor = (v: any, extra = '') => `${KIND_BY_TYPE[v.type] ?? 'event events'} ${(v.tags ?? []).join(' ').replace(/-/g, ' ')} ${extra}`.toLowerCase();
-const venueBySlug = new Map(allVenues.map((v) => [v.slug, v]));
-const shows: ShowHit[] = [];
-for (const v of allVenues) {
-  for (const sh of ((v as any).shows ?? []) as any[]) {
-    if (typeof sh.date !== 'string' || sh.date < todayStr) continue;
-    shows.push({ artist: sh.artist, date: sh.date, weekday: null, time: sh.time ?? null, url: sh.url ?? null, slug: v.slug, venue: v.name, city: v.city, kind: kindFor(v) });
-  }
-}
-for (const e of eventsRaw as any[]) {
-  const ven = venueBySlug.get(e.venue_slug);
-  if (!ven) continue;
-  if (e.date === 'weekly') {
-    shows.push({ artist: e.title, date: 'weekly', weekday: e.weekday ?? null, time: e.time ?? null, url: null, slug: ven.slug, venue: ven.name, city: ven.city, kind: kindFor(ven, `${e.category} ${KIND_BY_CATEGORY[e.category] ?? ''} weekly`) });
-  } else if ((e.end_date ?? e.date) >= todayStr) {
-    shows.push({ artist: e.title, date: e.date, weekday: null, time: e.time ?? null, url: null, slug: ven.slug, venue: ven.name, city: ven.city, kind: kindFor(ven, `${e.category} ${KIND_BY_CATEGORY[e.category] ?? ''}`) });
-  }
-}
-// Soonest first; weekly recurring rows sort after every dated one.
-shows.sort((a, b) =>
-  Number(a.date === 'weekly') - Number(b.date === 'weekly') ||
-  a.date.localeCompare(b.date) ||
-  (a.time ?? '').localeCompare(b.time ?? ''));
+// Built in src/lib/shows-index.ts and shared with the header search box.
+const shows = buildShowIndex();
 
 const searchable = allVenues.map((v) => ({
   slug: v.slug,
@@ -216,6 +169,11 @@ const searchable = allVenues.map((v) => ({
     return `${h}:${m[2]} ${ampm}`;
   }
 
+  // Same as src/lib/show-key.ts (this script can't import, it's define:vars).
+  function showKey(slug, date, artist) {
+    const a = artist.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, '-').slice(0, 80);
+    return `${slug}|${date}|${a}`;
+  }
   function renderShow(sh) {
     const side = sideOf(sh.city);
     let dateBlock;
@@ -235,8 +193,15 @@ const searchable = allVenues.map((v) => ({
             <span class="badge ${side}">${cityLabel(sh.city)}</span>
             <span class="rc-type">Show${time ? ' &middot; ' + esc(time) : ''}</span>
           </p>
-          <strong class="rc-name"><a class="rc-link" href="/venues/${sh.slug}/#venue-calendar">${esc(sh.artist)}</a></strong>
+          <strong class="rc-name"><a class="rc-link" href="${sh.slug ? `/venues/${sh.slug}/#venue-calendar` : '/events/'}">${esc(sh.artist)}</a></strong>
           <p class="rc-blurb">at ${esc(sh.venue)}</p>
+          ${sh.date === 'weekly' || !sh.slug ? '' : `
+          <div class="rc-going">
+            <button type="button" class="going-btn" data-show-key="${esc(showKey(sh.slug, sh.date, sh.artist))}" data-slug="${esc(sh.slug)}" data-date="${esc(sh.date)}" data-artist="${esc(sh.artist)}" aria-pressed="false">
+              <span class="going-icon" aria-hidden="true">✓</span><span class="going-label">I'm going</span><span class="going-count" hidden></span>
+            </button>
+            <span class="going-friends" data-show-key="${esc(showKey(sh.slug, sh.date, sh.artist))}" hidden></span>
+          </div>`}
           ${tix}
         </div>
         <svg class="rc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -332,9 +297,10 @@ const searchable = allVenues.map((v) => ({
 
 <script>
   import { paintLikeButtons } from '../lib/likes';
+  import { paintGoing } from '../lib/going';
   const resultsEl = document.getElementById('results');
   document.addEventListener('resultsrendered', () => {
-    if (resultsEl) paintLikeButtons(resultsEl);
+    if (resultsEl) { paintLikeButtons(resultsEl); paintGoing(resultsEl); }
   });
 </script>
 
@@ -599,6 +565,7 @@ const searchable = allVenues.map((v) => ({
   .rc-dom { font-size: 1.4rem; font-weight: 800; color: var(--ink); }
   .rc-dom-sm { font-size: 0.95rem; }
   .rc-mon { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; color: var(--ink-2); }
+  .rc-going { position: relative; z-index: 2; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; } /* sits above the stretched link */
   .rc-link { color: inherit; text-decoration: none; }
   .rc-link::after { content: ''; position: absolute; inset: 0; }
   .show-card:hover .rc-link { text-decoration: underline; }

@@ -356,6 +356,8 @@ const { slug, name, shows = [], apis } = Astro.props;
 </style>
 
 <script>
+  import { showKey } from '../lib/show-key';
+  import { paintGoing } from '../lib/going';
   const section = document.querySelector<HTMLElement>('.vc');
   if (section) {
     const slug   = section.dataset.slug ?? '';
@@ -825,16 +827,25 @@ const { slug, name, shows = [], apis } = Astro.props;
           ? `<a href="${e.url}" target="_blank" rel="noopener">${e.headline}</a>`
           : `<span>${e.headline}</span>`;
         const isWomens = e.headline.includes("Women's");
+        const key = showKey(slug, e.date, e.headline);
+        const attr = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
         return `<li class="vc-pitem${e.away ? ' away' : ''}${isWomens ? ' womens' : ''}">
           <div class="vc-pitem-main">
             ${timeStr}${nameEl}${e.away ? ' <span class="vc-away-tag">Away</span>' : ''}
           </div>
           ${e.support ? `<div class="vc-psupport">with ${e.support}</div>` : ''}
+          <div class="vc-pgoing">
+            <button type="button" class="going-btn" data-show-key="${attr(key)}" data-slug="${attr(slug)}" data-date="${attr(e.date)}" data-artist="${attr(e.headline)}" aria-pressed="false">
+              <span class="going-icon" aria-hidden="true">✓</span><span class="going-label">I'm going</span><span class="going-count" hidden></span>
+            </button>
+            <span class="going-friends" data-show-key="${attr(key)}" hidden></span>
+          </div>
           <div class="vc-psource">${e.source}</div>
         </li>`;
       }).join('');
 
       panel.hidden = false;
+      paintGoing(plist);
     }
 
     /* ───────────── NAVIGATION ───────────── */

@@ -62,10 +62,10 @@ const bigRooms = venues.filter((v) => ['theater', 'arena', 'music-venue'].includ
     .ev-cal-day { min-height: 52px; padding: 6px 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); cursor: default; position: relative; }
     .ev-cal-day:nth-child(7n) { border-right: none; }
     .ev-cal-day--empty { background: var(--bg); opacity: .4; }
-    .ev-cal-day--today .ev-cal-day-num { background: var(--green); color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+    .ev-cal-day--today .ev-cal-day-num { background: var(--btn); color: var(--btn-ink); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
     .ev-cal-day--has { cursor: pointer; }
-    .ev-cal-day--has:hover { background: color-mix(in srgb, var(--green) 6%, var(--card)); }
-    .ev-cal-day--active { background: color-mix(in srgb, var(--green) 10%, var(--card)) !important; }
+    .ev-cal-day--has:hover { background: color-mix(in srgb, var(--btn) 6%, var(--card)); }
+    .ev-cal-day--active { background: color-mix(in srgb, var(--btn) 10%, var(--card)) !important; }
     .ev-cal-day-num { font-size: 13px; font-weight: 600; color: var(--ink-2); width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
     .ev-cal-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
     .ev-cal-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }

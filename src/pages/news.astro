@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsFeed from '../components/NewsFeed.astro';
+---
+<Base title="Local news" current="News" description="Latest local headlines from Iowa City and Cedar Rapids outlets.">
+  <p class="kicker">Local news</p>
+  <h1>What's happening in the Corridor</h1>
+  <p class="lede">The latest from KCRG, CBS2 Iowa, The Daily Iowan, Little Village and the Corridor Business Journal.</p>
+  <NewsFeed kind="news" />
+</Base>

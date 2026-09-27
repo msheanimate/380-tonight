@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import NewsFeed from '../components/NewsFeed.astro';
+import StateRankings from '../components/StateRankings.astro';
+import PrepCenter from '../components/PrepCenter.astro';
+---
+<Base title="High school sports" current="High School" description="Corridor high school scores, schedules, district and conference standings, state rankings and headlines: City High, West, Liberty, Kennedy, Xavier, Linn-Mar, Regina, Solon and more.">
+  <p class="kicker">High school sports</p>
+  <h1>Friday nights and beyond</h1>
+  <p class="lede">Scores, schedules and standings for 24 Corridor schools, with this week’s state rankings beside every team.</p>
+  <PrepCenter>
+    <StateRankings slot="rankings" />
+    <Fragment slot="headlines">
+      <NewsFeed kind="preps" />
+    </Fragment>
+  </PrepCenter>
+</Base>

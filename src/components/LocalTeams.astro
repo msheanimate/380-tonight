@@ -1,0 +1,58 @@
+---
+/** LocalTeams -- the Corridor's pro and minor-league teams (Sports page).
+ *  Hand-kept: league, home venue, season months, official site. Update
+ *  `status` when a team changes (e.g. the Heartlanders' 2026-27 hiatus). */
+import { inSeason } from '../lib/rankings';
+type Team = {
+  name: string; sport: string; league: string; venue: string; venueSlug?: string; city: string;
+  season: [number, number]; seasonLabel: string; site: string; status?: string;
+};
+const TEAMS: Team[] = [
+  { name: 'Cedar Rapids Titans', sport: 'Indoor football', league: 'American Indoor Football', venue: 'Alliant Energy PowerHouse', venueSlug: 'alliant-energy-powerhouse', city: 'Cedar Rapids', season: [2, 5], seasonLabel: 'Feb–May', site: 'https://crtitans.com' },
+  { name: 'Cedar Rapids RoughRiders', sport: 'Junior hockey', league: 'USHL', venue: 'ImOn Ice Arena', city: 'Cedar Rapids', season: [9, 4], seasonLabel: 'Sep–Apr', site: 'https://roughridershockey.com/sports/mens-ice-hockey/schedule/2026-27' },
+  { name: 'Cedar Rapids Kernels', sport: 'Baseball', league: 'High-A Midwest League · Twins affiliate', venue: 'Veterans Memorial Stadium', venueSlug: 'cedar-rapids-kernels', city: 'Cedar Rapids', season: [4, 8], seasonLabel: 'Apr–early Sep', site: 'https://www.milb.com/cedar-rapids/schedule' },
+  { name: 'Iowa Heartlanders', sport: 'Pro hockey', league: 'ECHL', venue: 'Xtream Arena', venueSlug: 'xtream-arena', city: 'Coralville', season: [10, 4], seasonLabel: 'Oct–Apr', site: 'https://iowaheartlanders.com', status: 'On hiatus for the 2026–27 season' },
+];
+const month = new Date().getMonth() + 1;
+---
+<section class="lt" aria-labelledby="lt-title">
+  <h2 id="lt-title">Local teams</h2>
+  <div class="lt-grid">
+    {TEAMS.map((t) => {
+      const live = !t.status && inSeason(t, month);
+      return (
+        <div class:list={['card', 'lt-card', { off: !!t.status }]}>
+          <p class="lt-sport">{t.sport}</p>
+          <p class="lt-name">{t.name}</p>
+          <p class="lt-league">{t.league}</p>
+          <p class="lt-where">
+            {t.venueSlug ? <a href={`/venues/${t.venueSlug}/`}>{t.venue}</a> : t.venue}, {t.city}
+          </p>
+          <p class="lt-status">
+            {t.status ? <span class="lt-pill lt-pill-off">{t.status}</span>
+              : live ? <span class="lt-pill lt-pill-on"><span class="lt-dot" aria-hidden="true"></span>In season · {t.seasonLabel}</span>
+              : <span class="lt-pill">Season {t.seasonLabel}</span>}
+          </p>
+          <a class="lt-site" href={t.site} target="_blank" rel="noopener">Schedule &amp; tickets ↗</a>
+        </div>
+      );
+    })}
+  </div>
+</section>
+<style>
+  .lt { margin: 4px 0 26px; }
+  .lt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+  .lt-card { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; margin: 0; }
+  .lt-card.off { opacity: .78; }
+  .lt-sport { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--button-orange); }
+  .lt-name { margin: 0; font-size: 17px; font-weight: 800; color: var(--ink); line-height: 1.2; }
+  .lt-league, .lt-where { margin: 0; font-size: 13px; color: var(--ink-2); }
+  .lt-where a { color: var(--ink); font-weight: 700; }
+  .lt-status { margin: 6px 0 2px; }
+  .lt-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  .lt-pill-on { background: rgba(60,203,110,.16); color: #17803F; }
+  .lt-pill-off { background: rgba(0,0,0,.08); color: var(--ink-2); }
+  .lt-dot { width: 7px; height: 7px; border-radius: 50%; background: #3CCB6E; }
+  .lt-site { margin-top: auto; padding-top: 6px; font-size: 13px; font-weight: 800; color: var(--button-orange); text-decoration: none; }
+  .lt-site:hover { text-decoration: underline; }
+</style>

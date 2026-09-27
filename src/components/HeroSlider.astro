@@ -13,6 +13,11 @@ interface Venue {
   city: string;
   district: string;
   photo?: string;
+  /** Optional overrides so an event can ride the same slider as a venue:
+   *  a custom eyebrow ("Festival · Today"), link and button text. */
+  href?: string;
+  eyebrow?: string;
+  cta?: string;
 }
 
 interface Props {
@@ -63,12 +68,12 @@ function typeLabel(type: string) {
             <div class="slide-content">
               <p class="slide-eyebrow">
                 <span class={`badge ${side}`}>{cityLabel(slide.city)}</span>
-                <span class="pick-label">{typeLabel(slide.type)} · Tonight's Pick</span>
+                <span class="pick-label">{slide.eyebrow ?? `${typeLabel(slide.type)} · Tonight's Pick`}</span>
               </p>
               <h2 class="slide-title">{slide.name}</h2>
               <p class="slide-blurb">{slide.blurb}</p>
-              <a href={`/venues/${slide.slug}/`} class="slide-cta">
-                Visit →
+              <a href={slide.href ?? `/venues/${slide.slug}/`} class="slide-cta">
+                {slide.cta ?? 'Visit →'}
               </a>
             </div>
           </div>
@@ -242,9 +247,9 @@ function typeLabel(type: string) {
   .slider-prev { left: 0.75rem; }
   .slider-next { right: 0.75rem; }
 
-  @media (max-width: 480px) {
-    .slider-btn { display: none; }
-  }
+  /* Arrows hidden everywhere -- the slider auto-advances, and the dots and
+     swipe still let people pick a slide. Delete this rule to bring them back. */
+  .slider-btn { display: none; }
 
   /* ── dots ── */
   .slider-dots {

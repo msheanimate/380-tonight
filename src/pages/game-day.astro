@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import VenueCard from '../components/VenueCard.astro';
+import HawkeyeBar from '../components/HawkeyeBar.astro';
 import { games, gamesMeta, venues, fmtDate, sideOf } from '../lib/data';
 
 const isoToday = new Date().toISOString().slice(0, 10);
@@ -13,16 +14,8 @@ const watchCR = venues.filter((v) => sideOf(v.city) === 'cr' && v.tags.includes(
   <h1>Every Hawkeye Saturday, both cities</h1>
   <p class="lede">Where to watch if you don't have a ticket, where to eat before, and what still has a table after.</p>
 
-  <div class="nowbar">
-    <div>
-      {next ? (
-        <>Next up: {next.home ? `${next.opponent} at Kinnick` : `Iowa ${next.opponent}`}
-        <small>{fmtDate(next.date)} · kickoff {next.time}</small></>
-      ) : (
-        <>Season's over. <small>Wrestling at Carver and Heartlanders hockey take over the winter.</small></>
-      )}
-    </div>
-  </div>
+  <HawkeyeBar prefix="Next up: " awayPrefix="Iowa " showTv={false} gameDayLink={false}
+    endedTitle="Season's over." endedNote="Wrestling at Carver and Heartlanders hockey take over the winter." />
 
   <h2>{gamesMeta.season} schedule</h2>
   <table>

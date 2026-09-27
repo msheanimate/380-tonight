@@ -151,15 +151,35 @@ export function createDropdownPicker(config: DropdownPickerConfig): DropdownPick
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActive((activeIndex - 1 + results.length) % results.length);
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
-      e.preventDefault();
-      choose(results[activeIndex]);
+    } else if (e.key === 'Enter') {
+      // Enter commits the highlighted row, or -- when nothing is highlighted
+      // -- whatever the typed text best matches. Without this, Enter fell
+      // through to the surrounding form and submitted with the field empty,
+      // so a typed "Bar" was saved as "prefer not to say".
+      const pick = activeIndex >= 0 ? results[activeIndex] : bestMatch();
+      if (pick) { e.preventDefault(); choose(pick); }
     }
   });
+  // The option the typed text most plausibly means: an exact label match,
+  // else the only remaining result, else nothing.
+  function bestMatch(): DropdownOption | null {
+    const n = normalize(input.value.trim());
+    if (!n) return null;
+    const exact = results.find((o) => normalize(o.label) === n);
+    if (exact) return exact;
+    return results.length === 1 ? results[0] : null;
+  }
   input.addEventListener('blur', () => {
     // A row's mousedown (preventDefault'd above) wins the race if that's
-    // what's happening; otherwise snap the visible text back to reality.
-    setTimeout(() => { input.value = selectedLabel; close(); }, 0);
+    // what's happening. Otherwise, if what they typed clearly names an
+    // option (tabbing away after typing "Brewery"), commit it; if not, snap
+    // the visible text back to whatever is actually committed.
+    const typed = input.value.trim();
+    const pick = typed && typed !== selectedLabel ? bestMatch() : null;
+    setTimeout(() => {
+      if (pick && input.value.trim() === typed) { choose(pick); return; }
+      input.value = selectedLabel; close();
+    }, 0);
   });
   document.addEventListener('click', (e) => {
     if (!root.contains(e.target as Node)) close();

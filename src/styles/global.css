@@ -1,10 +1,14 @@
 /* The 380 — warm glass design. Amber accent, frosted translucent cards, soft
    shadows, pill buttons. Poiret One for hero headings, Archivo for the rest. */
 :root {
-  --green: #E8A55C;               /* primary accent — warm amber (was spring green) */
-  --green-medium: #D98F52;        /* mid amber accent */
-  --green-dark: #A8621F;          /* deep amber -- accent text/links on light surfaces */
-  --green-soft: #F8ECDD;          /* soft amber tint -- chip/row backgrounds */
+  /* Accent. Everything orange reads from --btn (buttons, badges, bars) or --accent-text
+     (orange text), so Settings -> Button color recolors the whole accent at once. */
+  --btn: #E85D3F;
+  --accent-text: var(--btn);
+  --green: var(--accent-text);         /* primary accent (token name kept from the spring-green era) */
+  --green-medium: var(--accent-text);
+  --green-dark: var(--accent-text);    /* accent text/links */
+  --green-soft: color-mix(in srgb, var(--btn) 12%, #FBF4EC);   /* soft accent tint -- chip/row backgrounds */
   --bubble-mine: #E7E2DE;    /* warm light neutral -- sent message bubbles (same as --ink-4) */
   --bubble-theirs: #F6E4CE;  /* warm amber tint -- received message bubbles */
   --ink: #1C1A22;           /* primary text -- warm near-black */
@@ -27,7 +31,11 @@
   --font-display: 'Poiret One', cursive;   /* hero headings + brand wordmark only */
   --tabbar: 64px;
   --darg-bg: #111e2e;
-  --button-orange: #E85D3F;
+  --button-orange: var(--accent-text);
+  /* Settings -> Button color swaps these (see html[data-btncolor]) */
+  --btn-ink: #fff;
+  --btn-glow: rgba(232,93,63,.35);
+  --btn-on-light: var(--btn);   /* button color used as text on a white button */
   /* Glass system */
   --nav-bg: rgba(20,16,13,.55);         /* the persistent top nav surface -- dark frosted, matching the photo theme */
   --glass-bg: rgba(255,255,255,.5);     /* big hero glass panels (e.g. venue dashboard) -- low opacity so the photo shows through, paired with a strong blur so it stays a soft wash rather than sharp detail */
@@ -46,6 +54,7 @@
   --photo-scrim: linear-gradient(180deg, rgba(18,14,10,.74) 0%, rgba(18,14,10,.82) 45%, rgba(15,11,8,.92) 100%);
   --photo-scrim-heavy: linear-gradient(180deg, rgba(58,56,54,.88) 0%, rgba(50,48,47,.92) 50%, rgba(44,42,41,.95) 100%);
   --photo-url: url('https://hawkeyesports.com/imgproxy/WocaSDZNZsgR9OMGkwJcfbJEItnGRBa0CPQGd2plZjI/rs:fit:1980:0:0:0/g:ce:0:0/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL2hhd2tleWVzcG9ydHMtcHJvZC8yMDI1LzA2LzI2LzNmZEp6N0RyYTlMOVBrRGV5UUJWVXFLb3NVSWFNU2xFcmVFaExMaE0uanBn.jpg');
+  --photo-url-default: url('https://hawkeyesports.com/imgproxy/WocaSDZNZsgR9OMGkwJcfbJEItnGRBa0CPQGd2plZjI/rs:fit:1980:0:0:0/g:ce:0:0/q:90/aHR0cHM6Ly9zdG9yYWdlLmdvb2dsZWFwaXMuY29tL2hhd2tleWVzcG9ydHMtcHJvZC8yMDI1LzA2LzI2LzNmZEp6N0RyYTlMOVBrRGV5UUJWVXFLb3NVSWFNU2xFcmVFaExMaE0uanBn.jpg');  /* Kinnick -- the Display settings thumbnail */
 }
 
 * { box-sizing: border-box; }
@@ -102,24 +111,33 @@ button { font-family: inherit; }
    different backgrounds like before. */
 .site-header {
   position: sticky; top: 0; z-index: 20;
+}
+/* The dark frosted backdrop lives on its own layer so it can run ~32px past
+   the header and fade out (color AND blur) instead of stopping at a hard
+   line. Kept off .site-header itself so the fade can't clip the search
+   dropdown, and so the blur samples the page photo underneath. */
+.site-header::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; bottom: -32px; z-index: -1; pointer-events: none;
   background: var(--nav-bg);
   -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 44px), transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 44px), transparent 100%);
 }
-.site-header-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-height: 60px; padding: 10px 0; }
+.site-header-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-height: 60px; padding: 10px 20px; }
 .brand { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
 .brand .word { font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: .2em; line-height: 1; color: var(--ink); }
 
-.site-header-tools { display: flex; align-items: center; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.site-header-tools { display: flex; align-items: center; gap: 14px; margin-left: auto; flex-wrap: wrap; flex: 1 1 auto; justify-content: flex-end; }
+.site-header-tools .city-toggle, .site-header-tools .auth-widget { flex-shrink: 0; }
 
 .city-toggle { display: flex; gap: 2px; background: var(--chip-bg); padding: 3px; border-radius: 999px; flex-shrink: 0; }
 .city-toggle button {
   border: 0; background: transparent; color: var(--ink-2); font-weight: 700; font-size: 13px;
   padding: 7px 12px; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s;
 }
-.city-toggle button[aria-pressed="true"] { background: var(--button-orange); color: #fff; box-shadow: var(--shadow); }
+.city-toggle button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); box-shadow: var(--shadow); }
 .city-toggle .city-link { border: 0; background: transparent; color: var(--ink-2); font-weight: 700; font-size: 13px; padding: 7px 12px; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s; text-decoration: none; display: inline-flex; align-items: center; }
-.city-toggle .city-link[aria-current="page"] { background: var(--button-orange); color: #fff; box-shadow: var(--shadow); }
+.city-toggle .city-link[aria-current="page"] { background: var(--btn); color: var(--btn-ink); box-shadow: var(--shadow); }
 .city-toggle .long { display: none; }
 @media (min-width: 560px) { .city-toggle .long { display: inline; } .city-toggle .short { display: none; } }
 
@@ -130,26 +148,51 @@ button { font-family: inherit; }
   .site-nav .wrap { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; padding: 0 0 10px; }
   .site-nav a { text-decoration: none; font-weight: 700; font-size: 15px; padding: 8px 14px; border-radius: 999px; color: var(--ink-2); }
   .site-nav a:hover { background: var(--chip-bg); color: var(--ink); }
-  .site-nav a[aria-current="page"] { background: var(--button-orange); color: #fff; }
+  .site-nav a[aria-current="page"] { background: var(--btn); color: var(--btn-ink); }
 }
 
 /* The header/nav bar sits on the dark photo theme now -- override its
    originally-light-bar text/icon colors without touching the rules above
    (still reused by the active/selected pill, which reads fine as a small
    light chip on the dark bar). */
-.site-header .brand .word { color: var(--ink-on-photo); }
+.site-header .brand .word {
+  color: var(--accent-text); -webkit-text-stroke: .7px var(--accent-text);   /* follows Settings -> Button color */
+  /* Bevel (light edge up-left, dark edge down-right) + drop shadow, tinted from the logo color. */
+  text-shadow:
+    -1px -1px 0 color-mix(in srgb, color-mix(in srgb, var(--btn) 40%, #fff) 55%, transparent),
+    1px 1px 0 color-mix(in srgb, color-mix(in srgb, var(--btn) 45%, #000) 75%, transparent),
+    0 3px 4px rgba(0,0,0,.55),
+    0 6px 14px rgba(0,0,0,.45);
+}
+/* Desktop: the header is two rows (tools row + nav row) and the nav links are
+   centered, so there's room to drop the wordmark down and center it across the
+   whole header instead of just the top row. The offset is half the nav row's
+   height (~49px). Below 1024px the nav could run under it, so it stays put. */
+/* Phones: the wordmark gets its own line in the header, centered. */
+@media (max-width: 719px) {
+  .site-header .brand-block { flex: 1 0 100%; align-items: center; }
+  .site-header .brand { justify-content: center; }
+}
+@media (min-width: 1024px) {
+  .site-header .brand-block { position: relative; z-index: 2; transform: translateY(33px); }
+  .site-header .brand .word { font-size: 28px; }
+  /* Keep the nav row clear of the dropped-down wordmark, however many tabs
+     are showing (the optional News/Sports/High School tabs make it wide). */
+  .site-header .site-nav .wrap { padding-left: 200px; padding-right: 20px; }
+  .site-header .site-nav a { padding-left: 12px; padding-right: 12px; }
+}
 .site-header .city-toggle { background: rgba(255,255,255,.14); }
 .site-header .city-toggle button,
 .site-header .city-toggle .city-link { color: var(--ink-on-photo-2); }
 .site-header .site-header-tools .header-search { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.24); color: var(--ink-on-photo); }
 .site-header .site-header-tools .header-search input { color: var(--ink-on-photo); background: transparent; }
 .site-header .site-header-tools .header-search input::placeholder { color: var(--ink-on-photo-2); }
-.site-header .site-header-tools .auth-widget .auth-link { color: var(--ink-on-photo-2); }
+.site-header .site-header-tools .auth-widget .auth-link { color: var(--ink-on-photo-2); flex-shrink: 0; }
 @media (min-width: 720px) {
   .site-header .site-nav a { color: var(--ink-on-photo-2); }
   .site-header .site-nav a:hover { background: rgba(255,255,255,.14); color: var(--ink-on-photo); }
   /* Selected page reads as the bright orange, same as the header side toggle. */
-  .site-header .site-nav a[aria-current="page"] { background: var(--button-orange); color: #fff; }
+  .site-header .site-nav a[aria-current="page"] { background: var(--btn); color: var(--btn-ink); }
 }
 
 /* ---------- Bottom tab bar (mobile) ---------- */
@@ -157,8 +200,14 @@ button { font-family: inherit; }
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: calc(var(--tabbar) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   background: rgba(255,255,255,.96); backdrop-filter: saturate(180%) blur(12px);
-  border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--line);
+  /* Five equal tabs normally; with the optional News/Sports/HS tabs on, each
+     keeps a comfortable width and the bar swipes sideways instead of wrapping. */
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(20%, 1fr);
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; scroll-snap-type: x proximity;
 }
+.tabbar::-webkit-scrollbar { display: none; }
+.tabbar a { scroll-snap-align: start; }
 .tabbar a {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   text-decoration: none; font-size: 11px; font-weight: 700; color: var(--ink-3);
@@ -167,14 +216,20 @@ button { font-family: inherit; }
 .tabbar a[aria-current="page"] { color: var(--green-dark); }
 @media (min-width: 720px) { .tabbar { display: none; } }
 
-main {
-  padding: 0px 0 calc(var(--tabbar) + 32px);
-  min-height: 100vh;
+/* The stadium photo is painted on the whole page (body), not just <main>, so
+   it also runs up behind the header -- the header's frosted layer blurs the
+   photo and fades into it instead of sitting on the plain off-white base. */
+body {
+  background-color: #14100D;
   background-image: var(--photo-scrim), var(--photo-url);
   background-size: cover, cover;
   background-position: center, center 30%;
   background-repeat: no-repeat, no-repeat;
   background-attachment: fixed, fixed;
+}
+main {
+  padding: 0px 0 calc(var(--tabbar) + 32px);
+  min-height: 100vh;
 }
 @media (min-width: 720px) { main { padding: 0px 0 56px; } }
 
@@ -190,12 +245,17 @@ main .wrap { padding-top: 20px; }
 main .wrap > :first-child { margin-top: 0; } /* belt-and-suspenders */
 
 /* ---------- Type ---------- */
-h1 { font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: 1.15; margin: 0 0 8px; letter-spacing: .01em; color: var(--ink-on-photo); }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: 1.15; margin: 0 0 8px; letter-spacing: .01em; color: var(--ink-on-photo);
+  /* Page headlines sit straight on the photo; a soft drop shadow lifts the thin display face off busy spots. */
+  text-shadow: 0 2px 6px rgba(0,0,0,.85), 0 0 22px rgba(0,0,0,.8), 0 0 48px rgba(0,0,0,.65), 0 0 90px rgba(0,0,0,.45); }
 @media (min-width: 720px) { h1 { font-size: 44px; } }
-h2 { font-size: 20px; margin: 30px 0 12px; letter-spacing: -.015em; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--ink-on-photo); }
+h2 { font-size: 20px; margin: 30px 0 12px; letter-spacing: -.015em; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--ink-on-photo); text-shadow: 0 1px 4px rgba(0,0,0,.85), 0 0 16px rgba(0,0,0,.75), 0 0 36px rgba(0,0,0,.55); }
+/* Headings inside cards/panels sit on light glass -- no shadow there. */
+.card h2, .signup h2, .specials-board .specials-day h2 { text-shadow: none; }
+h2 .badge, h2 .more { text-shadow: none; }
 h2 .more { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--green); text-decoration: none; }
 h3 { font-size: 17px; margin: 0 0 2px; letter-spacing: -.01em; font-weight: 800; }
-.lede { color: var(--ink-on-photo-2); margin: 0 0 18px; font-size: 16px; }
+.lede { color: var(--ink-on-photo-2); margin: 0 0 18px; font-size: 16px; text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.75), 0 0 30px rgba(0,0,0,.5); }
 .kicker { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 800; color: var(--green); }
 /* The pale amber is tuned for the dark photo canvas; on the light glass
    panels it washes out, so kickers there use the deep amber instead
@@ -235,6 +295,26 @@ h3 { font-size: 17px; margin: 0 0 2px; letter-spacing: -.01em; font-weight: 800;
   background: linear-gradient(to top, rgba(255,255,255,.3) 0%, rgba(255,255,255,0) 100%);
   pointer-events: none;
 }
+/* Venue logo badge on card photos (same look as the specials strip) */
+.card .media .card-logo {
+  position: absolute; left: 12px; bottom: 10px; z-index: 2; width: 44px; height: 44px; border-radius: 50%;
+  background: #1C1A22; color: #fff; border: 2px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.25);
+  display: grid; place-items: center; overflow: hidden;
+}
+.card .media .card-logo > * { grid-area: 1 / 1; }
+.card .media .card-logo-initials { font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+.card .media .card-logo img { width: 100%; height: 100%; object-fit: cover; background: #fff; }
+/* Photo-less cards (Game Day "Where to watch", Still open late): logo sits beside the name */
+.card-title-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; }
+.card-title-row h3 { margin: 0; }
+.card .card-logo-sm {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%;
+  background: #1C1A22; color: #fff; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  display: grid; place-items: center; overflow: hidden;
+}
+.card .card-logo-sm > * { grid-area: 1 / 1; }
+.card .card-logo-sm .card-logo-initials { font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+.card .card-logo-sm img { width: 100%; height: 100%; object-fit: cover; background: #fff; }
 .card .media .pickflag {
   position: absolute; top: 10px; left: 10px; background: var(--gold); color: #1a1200;
   font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px;
@@ -259,7 +339,7 @@ h3 { font-size: 17px; margin: 0 0 2px; letter-spacing: -.01em; font-weight: 800;
 }
 .card-like-btn:hover { transform: scale(1.08); }
 .card-like-btn .like-icon { font-size: 17px; }
-.card-like-btn.liked { background: var(--button-orange); border-color: var(--button-orange); color: #fff; }
+.card-like-btn.liked { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
 
 /* Shared frosted-glass treatment: every surface using the translucent
    --card background gets a real backdrop blur so it actually reads as
@@ -283,6 +363,7 @@ table, .filters select, .filters input[type="search"], .chip,
   padding: 3px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2);
 }
 .badge.pick { background: var(--gold); color: #1a1200; }
+.badge.today-badge { background: var(--btn); color: var(--btn-ink); } /* "Happening today" heading on the home page */
 .badge.ic { background: #e7efff; color: var(--ic); }
 .badge.cr { background: #fdebe8; color: var(--cr); }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -296,15 +377,15 @@ table, .filters select, .filters input[type="search"], .chip,
 .btn {
   white-space: nowrap;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--green); color: var(--ink); border: 0; border-radius: 999px; padding: 12px 20px;
-  font-weight: 800; font-size: 15px; text-decoration: none; cursor: pointer; box-shadow: 0 6px 16px rgba(232,165,92,.35);
+  background: var(--btn); color: var(--btn-ink); border: 0; border-radius: 999px; padding: 12px 20px;
+  font-weight: 800; font-size: 15px; text-decoration: none; cursor: pointer; box-shadow: 0 6px 16px var(--btn-glow);
 }
 .btn.secondary { background: var(--green-soft); color: var(--green-dark); box-shadow: none; }
 
 /* ---------- Avatar (uploaded photo, or initials if none) ---------- */
 .avatar {
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%; background: var(--green); color: var(--ink);
+  border-radius: 50%; background: var(--btn); color: var(--btn-ink);
   font-weight: 800; overflow: hidden; flex-shrink: 0; text-transform: uppercase;
   letter-spacing: 0;
 }
@@ -324,7 +405,7 @@ table, .filters select, .filters input[type="search"], .chip,
   flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink-2);
   padding: 7px 13px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
 }
-.chip[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
 
 /* ---------- Split (IC | CR) ---------- */
 .split { display: grid; grid-template-columns: 1fr; gap: 8px 24px; }
@@ -332,19 +413,130 @@ table, .filters select, .filters input[type="search"], .chip,
 
 /* ---------- Hero / now bar ---------- */
 .hero {text-align: center;}
-.hero .date { color: var(--ink-on-photo-2); font-weight: 700; font-size: 14px; }
+/* Soft black haze behind page headlines: a blurred, semi-transparent dark
+   cloud that fades out at the edges (no box), so the text pops off the busy
+   stadium photo. The home hero gets it behind the whole date/headline/lede
+   block; other pages get it behind their top h1. */
+.hero, main .wrap > h1 { position: relative; isolation: isolate; }
+.hero::before, main .wrap > h1::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse closest-side, rgba(0,0,0,.62) 0%, rgba(0,0,0,.45) 50%, rgba(0,0,0,0) 100%);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  -webkit-mask-image: radial-gradient(ellipse closest-side, #000 55%, transparent 100%);
+          mask-image: radial-gradient(ellipse closest-side, #000 55%, transparent 100%);
+}
+.hero::before { inset: -26px -4%; }
+main .wrap > h1::before { inset: -22px -40px; }
+/* the haze deliberately overhangs the column; don't let it widen the page */
+main { overflow-x: clip; }
+.hero .date { color: var(--ink-on-photo); font-family: var(--font-display); font-weight: 400; font-size: 20px; letter-spacing: .06em; -webkit-text-stroke: .35px currentColor; margin: 0 0 4px; text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 14px rgba(0,0,0,.75), 0 0 30px rgba(0,0,0,.5); }
 .nowbar {
-  background: linear-gradient(135deg, var(--button-orange) 0%, #C9482E 100%); color: #fff; border-radius: var(--radius);
-  padding: 16px 18px; margin: 16px 0 6px; box-shadow: 0 10px 24px rgba(232,93,63,.35);
+  /* sheen on top of the accent gradient + a bevel: light top edge, dark bottom edge, then the glow */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.20) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,.10) 100%),
+    linear-gradient(135deg, var(--btn) 0%, color-mix(in srgb, var(--btn) 84%, #000) 100%);
+  color: var(--btn-ink); border-radius: var(--radius);
+  padding: 16px 18px; margin: 16px 0 6px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -2px 0 rgba(0,0,0,.18),
+    inset 0 0 0 1px rgba(255,255,255,.14),
+    0 2px 4px rgba(0,0,0,.22),
+    0 10px 24px color-mix(in srgb, var(--btn) 35%, transparent);
   display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 800; font-size: 17px;
 }
 .nowbar small { display: block; font-weight: 600; font-size: 13px; opacity: .92; margin-top: 2px; }
-.nowbar a { color: #fff; }
+.nowbar a { color: var(--btn-ink); }
+/* Kickoff countdown inside the Hawkeye bar */
+.nowbar .kickoff {
+  display: flex; flex-direction: column; align-items: center; text-align: center; flex-shrink: 0;
+  padding: 6px 14px; border-radius: 12px; background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.25);
+  /* recessed into the bar: dark inner shadow on top, light lip along the bottom */
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.28), inset 0 -1px 0 rgba(255,255,255,.22);
+}
+.nowbar .kickoff[hidden] { display: none; }
+.nowbar .kickoff-label { font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.nowbar .kickoff-clock { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; white-space: nowrap; }
+.nowbar .kickoff.live { background: rgba(255,255,255,.92); color: var(--btn-on-light); border-color: transparent; }
+.nowbar .kickoff.live .kickoff-clock { font-size: 13px; font-weight: 700; }
+.nowbar .kickoff.live .kickoff-label::before { content: '●'; margin-right: 5px; animation: hh-pulse 1.2s ease-in-out infinite; }
+@keyframes hh-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+/* Helmet matchup: opponent facing right, Iowa mirrored so they face each other */
+.nowbar-text { flex: 1; min-width: 0; }
+.nowbar .matchup { display: flex; align-items: center; gap: 6px; flex: none; }
+.nowbar .matchup[hidden] { display: none; }
+.nowbar .matchup img { height: 58px; width: auto; display: block; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+.nowbar .matchup-iowa { transform: scaleX(-1); }
+.nowbar .matchup-vs { font-family: var(--font-display); font-size: 20px; font-weight: 400; letter-spacing: .06em; -webkit-text-stroke: .5px currentColor; opacity: .95; }
+@media (max-width: 600px) { .nowbar .matchup { width: 100%; justify-content: center; } .nowbar .matchup img { height: 64px; } }
+/* SeatGeek ticket link beside Game Day: white pill carrying SeatGeek's own icon */
+.nowbar-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+.nowbar .sg-btn { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px 7px 8px; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; font-size: 14px; text-decoration: none; box-shadow: var(--pill-depth, 0 2px 6px rgba(0,0,0,.2)); }
+.nowbar .sg-btn img { width: 22px; height: 22px; border-radius: 6px; display: block; }
+.nowbar .sg-btn:hover { transform: translateY(-1px); }
+@media (max-width: 600px) { .nowbar-actions { order: 4; width: 100%; justify-content: center; } }
+@media (max-width: 600px) { .nowbar { flex-wrap: wrap; } .nowbar .kickoff { order: 3; width: 100%; flex-direction: row; justify-content: center; gap: 8px; } }
+
+/* ── Specials & happy hours strip (AppyHour-style cards, built by script in
+   index.astro): photo header with the bar's logo and a time-remaining pill,
+   then name, address, tag chips and one row per deal with the price big. */
+.hh-now[hidden] { display: none; }
+.hh-now h2 { flex-wrap: wrap; }
+.hh-now-date { font-size: 13px; font-weight: 600; color: var(--ink-on-photo-2); }
+.ah-card {
+  display: flex; flex-direction: column; flex: 0 0 272px; max-width: 272px; scroll-snap-align: start;
+  border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--ink);
+  background: rgba(255,255,255,.92); box-shadow: var(--shadow-lg); border: 1px solid rgba(255,255,255,.6);
+  transition: transform .15s, box-shadow .15s;
+}
+.ah-card:hover { transform: translateY(-2px); }
+.ah-card.hidden { display: none; }
+.ah-photo {
+  position: relative; height: 118px; background: var(--ink-4) center/cover no-repeat;
+}
+.ah-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.35) 100%); }
+.ah-logo {
+  position: absolute; left: 12px; bottom: -22px; z-index: 2; width: 56px; height: 56px; border-radius: 50%;
+  background: #1C1A22; color: #fff; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  display: grid; place-items: center; overflow: hidden;
+}
+.ah-logo > * { grid-area: 1 / 1; }
+.ah-logo-initials { font-size: 17px; font-weight: 800; letter-spacing: .02em; }
+.ah-logo img { width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.ah-timer {
+  position: absolute; right: 10px; top: 10px; z-index: 2; display: flex; flex-direction: column; align-items: center;
+  padding: 5px 10px; border-radius: 12px; background: rgba(255,255,255,.94); color: var(--ink); line-height: 1.1;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+.ah-timer b { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ah-timer small { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.ah-timer.on { background: var(--btn); color: var(--btn-ink); }
+.ah-timer.on small { color: rgba(255,255,255,.85); }
+.ah-body { display: flex; flex-direction: column; gap: 5px; padding: 30px 14px 14px; }
+.ah-name { font-size: 17px; font-weight: 800; line-height: 1.2; }
+.ah-addr { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.ah-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.ah-tags .chip { font-size: 10px; padding: 2px 7px; text-transform: capitalize; }
+.ah-deals { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+.ah-deal { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(30,24,18,.08); }
+.ah-deal.later { opacity: .75; }
+.ah-price {
+  flex: 0 0 auto; min-width: 46px; text-align: center; font-size: 15px; font-weight: 800; color: var(--button-orange);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.ah-price-none { color: var(--green-dark); font-size: 13px; }
+.ah-deal-body { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.ah-item { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ah-group { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; }
+.ah-deal-time { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; font-size: 12px; font-weight: 800; color: var(--button-orange); font-variant-numeric: tabular-nums; }
+.ah-deal.later .ah-deal-time { color: var(--green-dark); }
+.ah-deal-time small { font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.ah-more { padding: 8px 0 0; font-size: 12px; font-weight: 700; color: var(--green-dark); border-top: 1px solid rgba(30,24,18,.08); }
 
 /* ---------- Happy hour finder ---------- */
 .hh { background: var(--green-soft); border-radius: var(--radius); padding: 16px; margin: 0 0 16px; }
 .hh h3 { color: var(--green-dark); }
-.hh-result { display: flex; flex-direction: column; gap: 2px; padding: 10px 0 0; margin-top: 10px; border-top: 1px solid rgba(168,98,31,.18); }
+.hh-result { display: flex; flex-direction: column; gap: 2px; padding: 10px 0 0; margin-top: 10px; border-top: 1px solid color-mix(in srgb, var(--btn) 20%, transparent); }
 .hh-result a { font-weight: 800; text-decoration: none; }
 .hh-result .when { color: var(--green-dark); font-weight: 700; font-size: 14px; }
 
@@ -365,7 +557,23 @@ th { color: var(--ink-3); font-size: 11px; text-transform: uppercase; letter-spa
 tr.home td:first-child { font-weight: 800; color: var(--green-dark); }
 
 /* ---------- Footer ---------- */
-.site-footer { color: var(--ink-on-photo-2); font-size: 13px; padding: 24px 0 40px; }
+.site-footer {
+  position: relative; z-index: 1; color: rgba(247,241,230,.72);
+  font-size: 13px; padding: 28px 0 40px;
+}
+/* Black footer backdrop on its own layer, reaching ~56px up past the footer
+   and fading (color + blur) so the page photo melts into it -- same trick as
+   the header's bottom edge. */
+.site-footer::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; top: -56px; z-index: -1; pointer-events: none;
+  background: #000;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(to top, #000 0, #000 calc(100% - 72px), transparent 100%);
+          mask-image: linear-gradient(to top, #000 0, #000 calc(100% - 72px), transparent 100%);
+}
+.site-footer strong { color: #F7F1E6; }
+.site-footer a { color: #F7F1E6; }
+.site-footer a:hover { color: var(--button-orange); }
 .site-footer p { margin: 6px 0; }
 
 .verify { color: var(--ink-on-photo-2); font-size: 12px; }
@@ -377,12 +585,16 @@ tr.home td:first-child { font-weight: 800; color: var(--green-dark); }
 .hidden { display: none !important; }
 ol, ul { padding-left: 20px; color: var(--ink-2); }
 li { margin: 4px 0; }
+/* Lists sitting straight on the photo canvas (not inside a card) -- e.g. the
+   Game Day playbook -- need the light on-photo ink, same as .lede. */
+main > .wrap > ol, main > .wrap > ul { color: var(--ink-on-photo-2); }
+main > .wrap > ol strong, main > .wrap > ul strong { color: var(--ink-on-photo); }
 
 /* ---------- Signup ---------- */
 .signup { background: var(--card); border-radius: var(--radius); padding: 18px; margin: 28px 0; box-shadow: var(--shadow); }
 .signup form { display: flex; gap: 8px; margin-top: 10px; }
 .signup input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-size: 15px; font-family: inherit; }
-.signup button { background: var(--button-orange); color: #fff; border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 800; font-family: inherit; }
+.signup button { background: var(--btn); color: var(--btn-ink); border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 800; font-family: inherit; }
 
 /* ---------- Venue page ---------- */
 .venue-hero { border-radius: var(--radius); overflow: hidden; aspect-ratio: 16 / 8; margin: 0 0 16px; box-shadow: var(--shadow); }
@@ -530,7 +742,7 @@ a.vc-en-badge {
   content: '';
   width: 3px;
   height: 0;
-  background: var(--green);
+  background: var(--btn);
   border-radius: 2px;
   position: absolute;
   left: 0;
@@ -544,6 +756,19 @@ a.vc-en-badge {
 .hs-result strong { display: block; font-size: 14px; font-weight: 700; color: #111; line-height: 1.3; }
 .hs-result span { display: block; font-size: 11px; color: #aaa; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
 .hs-no-results { padding: 16px; font-size: 13px; color: #bbb; text-align: center; }
+.hs-group {
+  padding: 8px 16px 4px; font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--green-dark); background: #fafbfc;
+  border-bottom: 1px solid #f2f4f7;
+}
+.hs-show strong::before {
+  content: '♪'; display: inline-block; margin-right: 6px; color: var(--button-orange); font-size: 12px;
+}
+/* Show rows and the "search everything" row stack name over detail; the
+   venue rows keep their side-by-side layout. */
+.hs-show, .hs-more { flex-direction: column; align-items: flex-start; gap: 2px; }
+.hs-more { background: #fafbfc; }
+.hs-more strong { color: var(--button-orange); font-size: 13px; }
 .vg-counter{display:none}
 button#vg-next{display:none}
 button#vg-prev{display:none}
@@ -602,7 +827,7 @@ button#vg-prev{display:none}
 .msg-row-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
 .msg-row-time { font-size: 12px; color: var(--ink-3); }
 .msg-badge {
-  background: var(--button-orange); color: #fff; font-size: 11px; font-weight: 700;
+  background: var(--btn); color: var(--btn-ink); font-size: 11px; font-weight: 700;
   border-radius: 999px; min-width: 18px; height: 18px; line-height: 18px; text-align: center; padding: 0 5px;
 }
 
@@ -648,8 +873,60 @@ button#vg-prev{display:none}
 
 /* ── venues/[slug].astro: venue-page comments ───────────────────────────────
    Same document.createElement note as everything else in this file. */
+/* ── "I'm going" (src/lib/going.ts) ─────────────────────────────────────
+   Small pill toggle that sits on any show row. Neutral chip until you tap
+   it, then the bright orange with a check. `.going-friends` is the row of
+   friend faces + "Sam and Jo are going" that appears next to it. */
+.going-btn {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 700; line-height: 1.2;
+  color: var(--ink); background: var(--chip-bg); border: 1px solid var(--chip-border);
+  transition: background .15s, color .15s, transform .1s;
+}
+.going-btn:hover { background: color-mix(in srgb, var(--btn) 14%, transparent); border-color: color-mix(in srgb, var(--btn) 35%, transparent); }
+.going-btn:active { transform: scale(.97); }
+.going-btn:disabled { opacity: .6; cursor: default; }
+.going-btn .going-icon { font-size: 11px; opacity: .55; }
+.going-btn.going { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+.going-btn.going .going-icon { opacity: 1; }
+.going-btn .going-count {
+  font-size: 11px; font-weight: 800; padding: 0 5px; border-radius: 999px;
+  background: rgba(30,24,18,.10); color: var(--ink);
+}
+.going-btn.going .going-count { background: rgba(255,255,255,.28); color: #fff; }
+.going-btn .going-count[hidden] { display: none; }
+.going-friends { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-2); }
+.going-friends[hidden] { display: none; }
+.going-friends .going-face { width: 20px; height: 20px; font-size: 9px; margin-right: -6px; border: 2px solid var(--card); text-decoration: none; }
+.going-friends .going-face:last-of-type { margin-right: 4px; }
+.going-friends-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vc-pgoing { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 0 2px; } /* calendar day panel row (built by script) */
+/* /profile/ "You're going" rows are built by script too, so they live here. */
+/* "You're going" / "Friends are going": one row per show, date block on
+   the left like the venue page, then the act + venue, then the toggle. */
+.going-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 16px; }
+.going-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--card); box-shadow: var(--shadow); color: var(--ink);
+}
+.going-row-date { width: 44px; text-align: center; flex-shrink: 0; line-height: 1.1; }
+.going-row-wd { display: block; font-size: 9px; font-weight: 700; letter-spacing: .5px; color: var(--green-dark); text-transform: uppercase; }
+.going-row-dom { display: block; font-size: 17px; font-weight: 800; }
+.going-row-mon { display: block; font-size: 9px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; }
+.going-row-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.going-row-name { font-weight: 700; font-size: 14px; text-decoration: none; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.going-row-name:hover { text-decoration: underline; }
+.going-row-venue { font-size: 12px; color: var(--ink-2); }
+.going-row-who { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; color: var(--ink-2); }
+.going-row-who .avatar { width: 20px; height: 20px; font-size: 9px; margin-right: -6px; border: 2px solid var(--card); text-decoration: none; }
+.going-row-who .avatar:last-of-type { margin-right: 4px; }
+
+.vc-list { display: flex; flex-direction: column; gap: 8px; } /* small gap between comment bubbles */
 .vc-comment { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--shadow); }
 .vc-comment .avatar { flex-shrink: 0; }
+.vc-comment-avatar { text-decoration: none; }
+.vc-comment-avatar:hover { filter: brightness(1.08); }
 .vc-comment-body { flex: 1; min-width: 0; }
 .vc-comment-name { font-weight: 700; font-size: 14px; }
 .vc-comment-name a { color: var(--ink); text-decoration: none; }
@@ -662,3 +939,285 @@ button#vg-prev{display:none}
 .vc-comment-date { font-size: 12px; color: var(--ink-3); }
 .vc-comment-delete { all: unset; cursor: pointer; font-size: 12px; color: var(--ink-3); text-decoration: underline; }
 .vc-comment-delete:hover { color: var(--ink-2); }
+
+/* ── Pill depth: subtle bevel + drop shadow on every tag, badge, chip and
+   rounded button sitewide. The bevel is a faint top highlight and bottom
+   edge (inset shadows) plus a soft sheen gradient layered over whatever
+   background color the pill already has; the drop shadow lifts it off the
+   surface. Kept light on purpose -- "a little depth", not skeuomorphic. */
+:root {
+  --pill-depth:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(0,0,0,.14),
+    0 1px 2px rgba(0,0,0,.22),
+    0 3px 8px rgba(0,0,0,.16);
+  --pill-sheen: linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 55%, rgba(0,0,0,.05) 100%);
+}
+.tag, .badge, .chip,
+.btn, .signup button, .slide-cta,
+.going-btn, .card-like-btn, .like-btn,
+.vp-shows-more, .rc-tix,
+.city-toggle button[aria-pressed="true"], .city-toggle .city-link[aria-current="page"],
+.site-nav a[aria-current="page"],
+.card .media .pickflag, .ah-timer, .ah-tags .chip {
+  box-shadow: var(--pill-depth) !important;
+  background-image: var(--pill-sheen);
+}
+/* Pressed = pushed in: flip the bevel. */
+.btn:active, .chip:active, .going-btn:active, .card-like-btn:active, .slide-cta:active, .signup button:active {
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.28), inset 0 -1px 0 rgba(255,255,255,.25) !important;
+}
+
+/* ── Recessed wells: the header search field and the city-toggle track read
+   as pressed INTO the bar -- dark inner shadow along the top, a faint light
+   edge along the bottom (the bevel), so the raised orange pill inside the
+   toggle sits on something. */
+.site-header .city-toggle,
+.site-header .site-header-tools .header-search {
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,.38),
+    inset 0 1px 1px rgba(0,0,0,.25),
+    inset 0 -1px 0 rgba(255,255,255,.16),
+    0 1px 0 rgba(255,255,255,.12);
+  border-color: rgba(0,0,0,.18);
+}
+.site-header .site-header-tools .header-search:focus-within {
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,.38),
+    inset 0 1px 1px rgba(0,0,0,.25),
+    inset 0 -1px 0 rgba(255,255,255,.16),
+    0 0 0 2px color-mix(in srgb, var(--btn) 55%, transparent);
+}
+
+/* ── Card depth: every content card/panel gets a soft bevel (a light rim
+   along the top edge, a faint dark rim along the bottom, a thin inner
+   highlight ring) and a two-layer drop shadow so it lifts off the photo.
+   Same idea as --pill-depth, scaled up for big surfaces. */
+:root {
+  --card-depth:
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -1px 0 rgba(0,0,0,.10),
+    inset 0 0 0 1px rgba(255,255,255,.22),
+    0 2px 4px rgba(0,0,0,.18),
+    0 10px 28px rgba(0,0,0,.30);
+}
+.card, .ah-card, .result-card, .specials-day, .going-row, .friend-card,
+.vc-comment, .signup, .hh, .facts .fact, .gallery-card, .liked-card,
+.u-post, .vc, .ev-cal, .table-wrap, table {
+  box-shadow: var(--card-depth) !important;
+}
+/* Hover lift on clickable cards: a touch more shadow. */
+a.ah-card:hover, .result-card:hover, .card:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -1px 0 rgba(0,0,0,.10),
+    inset 0 0 0 1px rgba(255,255,255,.22),
+    0 4px 8px rgba(0,0,0,.20),
+    0 16px 36px rgba(0,0,0,.34) !important;
+}
+
+/* The venue page's info panel is light glass with dark text -- the photo
+   drop shadows meant for headlines on the stadium background look smudgy
+   there, so none inside it. */
+.venue-dashboard h1, .venue-dashboard h2, .venue-dashboard h3,
+.venue-dashboard .lede, .venue-dashboard p { text-shadow: none; }
+/* ...except the orange kicker above the venue name ("BAR · NEWBO & CZECH
+   VILLAGE"), which gets a small crisp drop shadow so it pops off the glass. */
+.venue-dashboard p.kicker { font-size: 14px; letter-spacing: .14em; text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.25); }
+
+
+/* ════════════════════════════════════════════════════════════════════════
+   Display settings (gear next to the username -- see Base.astro).
+   Everything is driven by attributes on <html>: data-theme, data-bg (the
+   photo itself is swapped via the --photo-url custom property), data-
+   textcolor and data-textsize. No attribute = the default look.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Theme: Light ── bright frosted photo, dark text */
+html[data-theme="light"] {
+  --ink-on-photo: #1C1A22;
+  --ink-on-photo-2: rgba(28,26,34,.74);
+  --nav-bg: rgba(250,248,244,.74);
+  --photo-scrim: linear-gradient(180deg, rgba(248,246,242,.78) 0%, rgba(248,246,242,.84) 45%, rgba(246,243,238,.9) 100%);
+}
+html[data-theme="light"] body { background-color: #F4F2ED; }
+html[data-theme="light"] h1, html[data-theme="light"] h2,
+html[data-theme="light"] .lede, html[data-theme="light"] .hero .date { text-shadow: 0 1px 2px rgba(255,255,255,.7); }
+html[data-theme="light"] .hero::before,
+html[data-theme="light"] main .wrap > h1::before {
+  background: radial-gradient(ellipse closest-side, rgba(255,255,255,.7) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%);
+}
+html[data-theme="light"] .site-header .city-toggle { background: rgba(0,0,0,.07); }
+html[data-theme="light"] .site-header .site-header-tools .header-search { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.12); }
+html[data-theme="light"] .site-header .site-header-tools .header-search input { color: var(--ink); }
+html[data-theme="light"] .site-header .site-header-tools .header-search input::placeholder { color: var(--ink-3); }
+html[data-theme="light"] .site-header .city-toggle,
+html[data-theme="light"] .site-header .site-header-tools .header-search {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.14), inset 0 -1px 0 rgba(255,255,255,.7);
+}
+
+/* ── Theme: Dark ── photo dimmed way down, near-black canvas */
+html[data-theme="dark"] {
+  --nav-bg: rgba(10,9,12,.86);
+  --photo-scrim: linear-gradient(180deg, rgba(10,9,12,.92) 0%, rgba(10,9,12,.95) 50%, rgba(8,7,10,.97) 100%);
+}
+html[data-theme="dark"] body { background-color: #0C0B0E; }
+
+/* ── Background: the alternate photos are darker/shadier than the bright
+      Kinnick crowd, so on the default theme they get a lighter overlay. ── */
+html[data-bg="pedmall"]:not([data-theme]), html[data-bg="newbo"]:not([data-theme]), html[data-bg="hancher"]:not([data-theme]) {
+  --photo-scrim: linear-gradient(180deg, rgba(18,14,10,.48) 0%, rgba(18,14,10,.58) 45%, rgba(15,11,8,.74) 100%);
+}
+/* ── Background: none ── */
+html[data-bg="none"] body { background-image: var(--photo-scrim); }
+
+/* ── Text color (headlines, section titles and other on-photo text).
+      Light theme keeps its dark text. ── */
+/* Button color (Settings): only buttons, pills and toggles read these tokens */
+html[data-btncolor="gold"]   { --btn: #FFCD00; --btn-ink: #1C1A22; --btn-glow: rgba(255,205,0,.35); --btn-on-light: #8A6A00; --accent-text: #E3B200; }
+html[data-btncolor="red"]    { --btn: #D62828; --btn-glow: rgba(214,40,40,.35); }
+html[data-btncolor="blue"]   { --btn: #2F6FED; --btn-glow: rgba(47,111,237,.35); }
+html[data-btncolor="green"]  { --btn: #1F9D55; --btn-glow: rgba(31,157,85,.35); }
+html[data-btncolor="purple"] { --btn: #7C3AED; --btn-glow: rgba(124,58,237,.35); }
+html[data-btncolor="black"]  { --btn: #1C1A22; --btn-glow: rgba(0,0,0,.4); --accent-text: #8E8893; }   /* black text would vanish on the dark photo; use a graphite */
+html[data-textcolor="white"]:not([data-theme="light"])  { --ink-on-photo: #FFFFFF; --ink-on-photo-2: rgba(255,255,255,.82); }
+html[data-textcolor="gold"]:not([data-theme="light"])   { --ink-on-photo: #FFCD00; --ink-on-photo-2: rgba(255,214,64,.85); }
+html[data-textcolor="orange"]:not([data-theme="light"]) { --ink-on-photo: #F06A4B; --ink-on-photo-2: rgba(244,140,112,.9); }
+
+/* ── Text size: scales page content (not the header) ── */
+html[data-textsize="large"] main, html[data-textsize="large"] .site-footer { zoom: 1.12; }
+html[data-textsize="xl"] main, html[data-textsize="xl"] .site-footer { zoom: 1.25; }
+html[data-textsize="xxl"] main, html[data-textsize="xxl"] .site-footer { zoom: 1.4; }
+/* the menus grow too (a little less, so the header still fits) */
+html[data-textsize="large"] :is(.site-nav, .mobile-extra, .tabbar a) { zoom: 1.06; }
+html[data-textsize="xl"] :is(.site-nav, .mobile-extra, .tabbar a) { zoom: 1.12; }
+html[data-textsize="xxl"] :is(.site-nav, .mobile-extra, .tabbar a) { zoom: 1.18; }
+
+/* ── The gear button + panel ── */
+.settings { position: relative; flex-shrink: 0; margin-left: 4px; }
+.settings-btn {
+  width: 34px; height: 34px; padding: 0; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.14); color: var(--ink-on-photo); border: 1px solid rgba(255,255,255,.2);
+  box-shadow: var(--pill-depth); background-image: var(--pill-sheen);
+  transition: transform .2s;
+}
+.settings-btn svg { width: 18px; height: 18px; }
+.settings-btn:hover { transform: rotate(30deg); }
+.settings-btn[aria-expanded="true"] { background-color: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+html[data-theme="light"] .settings-btn { background-color: rgba(0,0,0,.06); border-color: rgba(0,0,0,.1); }
+.settings-panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 300;
+  width: 320px; max-width: calc(100vw - 32px);
+  padding: 14px 14px 12px; border-radius: 18px;
+  background: rgba(252,250,247,.98); color: var(--ink);
+  box-shadow: var(--card-depth), 0 20px 50px rgba(0,0,0,.35);
+  text-align: left;
+}
+.settings-panel[hidden] { display: none; }
+.settings-title { margin: 0 0 2px; font-size: 15px; font-weight: 800; }
+.settings-label { margin: 12px 0 6px; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.settings-note { margin: 6px 0 0; font-size: 11px; color: var(--ink-3); display: none; }
+.settings-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.settings-seg-size { grid-template-columns: repeat(4, 1fr); }
+.settings-seg-color { grid-template-columns: repeat(4, 1fr); }
+.settings-seg-bg { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.settings-seg-bg button { font-size: 10.5px; padding: 6px 3px; }
+.settings-seg button {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 8px 4px 7px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(0,0,0,.08); background: #F3F0EB; color: var(--ink);
+  font: inherit; font-size: 11.5px; font-weight: 700; line-height: 1.1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 1px 2px rgba(0,0,0,.08);
+}
+.settings-seg button:hover { background: #fff; }
+.settings-seg button[aria-checked="true"] {
+  background: color-mix(in srgb, var(--btn) 10%, #fff); color: var(--btn-on-light); border-color: var(--btn);
+  box-shadow: inset 0 0 0 1px var(--btn);
+}
+.settings-seg button:focus-visible { outline: 2px solid var(--button-orange); outline-offset: 2px; }
+.swatch { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); }
+.swatch-stadium { background: var(--photo-url-default) center/cover, #3a2a14; box-shadow: inset 0 0 0 20px rgba(18,14,10,.45); }
+.swatch-light { background: #F4F2ED; }
+.swatch-dark { background: #0F0E12; }
+.bg-thumb { width: 100%; height: 34px; border-radius: 8px; background: #222 center/cover no-repeat; border: 1px solid rgba(0,0,0,.12); }
+.bg-thumb-none { background: repeating-linear-gradient(135deg, #E9E5DF 0 6px, #F7F5F1 6px 12px); }
+.color-dot { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); box-shadow: inset 0 1px 2px rgba(0,0,0,.15); }
+.size-a { font-weight: 800; line-height: 20px; height: 20px; display: flex; align-items: flex-end; }
+html[data-theme="light"] .settings-seg-color:not(.settings-seg-btn) { opacity: .45; pointer-events: none; }
+html[data-theme="light"] .settings-color-note { display: block; }
+.settings-reset { margin: 12px 0 0; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; color: var(--button-orange); text-decoration: underline; }
+
+/* ── Optional menu tabs (News / Sports / High School) ─────────────────────
+   Hidden until switched on in Display settings; always shown on their own
+   page. When shown they're orange so they read as the reader's add-ons. */
+.nav-optional { display: none !important; }
+html[data-shownews] .nav-news, html[data-showsports] .nav-sports, html[data-showpreps] .nav-preps,
+.nav-optional[aria-current="page"] { display: revert !important; }
+html[data-shownews] .tabbar .nav-news, html[data-showsports] .tabbar .nav-sports, html[data-showpreps] .tabbar .nav-preps,
+.tabbar .nav-optional[aria-current="page"] { display: flex !important; }
+.site-header .site-nav a.nav-optional:not([aria-current="page"]),
+.tabbar a.nav-optional:not([aria-current="page"]) { color: var(--button-orange); }
+/* Phone-only row of News / Sports / High School buttons under the header */
+.mobile-extra { display: none; }
+@media (max-width: 719px) {
+  .mobile-extra { display: block; position: relative; z-index: 1; }
+  .mobile-extra .wrap { display: flex; justify-content: center; gap: 8px; }
+  html[data-shownews] .mobile-extra .nav-news, html[data-showsports] .mobile-extra .nav-sports,
+  html[data-showpreps] .mobile-extra .nav-preps, .mobile-extra .nav-optional[aria-current="page"] {
+    display: inline-flex !important; align-items: center; margin: 10px 0 2px; padding: 8px 16px; border-radius: 999px;
+    background: var(--btn); color: var(--btn-ink); font-weight: 800; font-size: 14px; text-decoration: none;
+    box-shadow: var(--pill-depth); background-image: var(--pill-sheen);
+  }
+  .mobile-extra .nav-optional[aria-current="page"] { background-color: #fff; color: var(--btn-on-light); }
+  /* they live up top now, so the bottom bar goes back to five tabs */
+  html body .tabbar a.nav-optional.nav-optional { display: none !important; }
+}
+.site-header .site-nav a.nav-optional:not([aria-current="page"]):hover { background: color-mix(in srgb, var(--btn) 16%, transparent); color: var(--button-orange); }
+
+/* Settings: "Add to menu" checkboxes */
+.settings-checks { display: flex; flex-direction: column; gap: 6px; }
+.settings-check {
+  display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 8px 10px; border-radius: 12px; border: 1px solid rgba(0,0,0,.08); background: #F3F0EB;
+  font-size: 13px; font-weight: 700; color: var(--ink);
+}
+.settings-check:hover { background: #fff; }
+.settings-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.settings-check-box {
+  flex: 0 0 auto; width: 20px; height: 20px; border-radius: 6px; border: 2px solid rgba(0,0,0,.22); background: #fff;
+  display: grid; place-items: center; transition: background .15s, border-color .15s;
+}
+.settings-check input:checked + .settings-check-box { background: var(--btn); border-color: var(--btn); }
+.settings-check input:checked + .settings-check-box::after { content: ''; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
+.settings-check input:focus-visible + .settings-check-box { outline: 2px solid var(--button-orange); outline-offset: 2px; }
+.settings-check:has(input:checked) { border-color: var(--btn); background: color-mix(in srgb, var(--btn) 10%, #fff); color: var(--btn-on-light); }
+/* The panel is getting tall -- let it scroll on short screens. */
+.settings-panel {
+  max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.25) transparent;
+}
+.settings-panel::-webkit-scrollbar { width: 6px; }
+.settings-panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,.22); border-radius: 3px; }
+/* Mid-size screens with the optional tabs on: tighten tab spacing so the
+   menu stays on one row. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .site-header .site-nav a { padding-left: 8px; padding-right: 8px; font-size: 14px; }
+  .site-header .site-nav .wrap { gap: 0; }
+}
+
+
+/* ── Local weather under the logo ── */
+.brand-block { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; flex-shrink: 0; }
+.wx {
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap;
+  font-size: 12px; font-weight: 700; color: var(--ink-on-photo-2); line-height: 1;
+}
+.wx[hidden] { display: none; }
+.wx:hover { color: var(--ink-on-photo); }
+.wx-city { display: inline-flex; align-items: center; gap: 4px; }
+.wx-city svg { width: 16px; height: 16px; color: #FFC24B; }
+.wx-city b { font-weight: 800; color: var(--ink-on-photo); font-variant-numeric: tabular-nums; }
+.wx-name { font-weight: 700; letter-spacing: .04em; }
+.wx-sep { opacity: .5; }
+html[data-theme="light"] .wx-city svg { color: #E08A00; }

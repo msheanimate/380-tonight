@@ -1,0 +1,157 @@
+---
+/** VenueLive -- what a venue's owner keeps current from /manage/, drawn into the
+ *  venue page on load (the page itself is static): their updates feed, happy
+ *  hours & specials, events, menu, gallery and party photos, plus fresher
+ *  hours/description. Nothing shows until the owner has added something. */
+interface Props { slug: string; name: string }
+const { slug, name } = Astro.props;
+---
+<section class="vl" id="vl" data-slug={slug} data-name={name} hidden>
+  <div id="vl-posts"></div>
+  <div id="vl-happy"></div>
+  <div id="vl-events"></div>
+  <div id="vl-menu"></div>
+  <div id="vl-gallery"></div>
+  <div id="vl-party"></div>
+</section>
+<p class="vl-claim"><a href={`/manage/?v=${slug}`}>Own or manage {name}? Keep this page up to date →</a></p>
+
+<script>
+  import { loadVenueLive, esc, fmtDate, fmtClock, timeAgo, daysLabel, DAY_LONG, todayCT, type HappyWindow, type DaySpecial } from '../lib/venue-portal';
+  import { showKey } from '../lib/show-key';
+  import { goingButtonHtml } from '../lib/game-going';
+  import { paintGoing } from '../lib/going';
+
+  const root = document.getElementById('vl');
+  if (root) (async () => {
+    const slug = root.dataset.slug!, name = root.dataset.name!;
+    const live = await loadVenueLive(slug);
+    const c = live.content;
+    let any = false;
+    const set = (id: string, html: string) => { if (html) { document.getElementById(id)!.innerHTML = html; any = true; } };
+
+    // fresher details from the owner
+    if (c?.hours_note) document.querySelectorAll<HTMLElement>('[data-live="hours"]').forEach((el) => { el.textContent = c.hours_note!; });
+    if (c?.blurb) document.querySelectorAll<HTMLElement>('[data-live="blurb"]').forEach((el) => { el.textContent = c.blurb!; });
+
+    // updates feed
+    if (live.posts.length) {
+      const card = (p: typeof live.posts[number], hidden = false) => `<article class="card vl-post"${hidden ? ' hidden' : ''}>
+        ${p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy" />` : ''}
+        <div><p class="vl-post-body">${esc(p.body)}</p><p class="vl-post-meta">${esc(name)} · ${timeAgo(p.created_at)}</p></div></article>`;
+      set('vl-posts', `<h2>Updates from ${esc(name)} <span class="vl-badge">From the venue</span></h2>
+        <div class="vl-posts">${live.posts.map((p, i) => card(p, i >= 3)).join('')}</div>
+        ${live.posts.length > 3 ? '<button type="button" class="vl-more" data-more="vl-posts">Show more updates</button>' : ''}`);
+    }
+
+    // happy hours & specials (owner's replace the site's own board)
+    const hh = (c?.happy_hours ?? []) as HappyWindow[];
+    const sp = (c?.specials ?? []) as DaySpecial[];
+    if (hh.length || sp.length) {
+      const today = new Date(todayCT() + 'T12:00:00').getDay();
+      const hhHtml = hh.map((w) => `<div class="vl-hh"><strong>${daysLabel(w.days)}</strong><span>${fmtClock(w.start)} – ${w.end === 'close' ? 'close' : fmtClock(w.end)}</span>${w.deal ? `<em>${esc(w.deal)}</em>` : ''}</div>`).join('');
+      const spHtml = [1, 2, 3, 4, 5, 6, 0].map((d) => sp.find((x) => x.day === d)).filter(Boolean).map((s) => `
+        <div class="vl-sp${s!.day === today ? ' today' : ''}"><p class="vl-sp-day">${DAY_LONG[s!.day]}${s!.day === today ? ' <span>Today</span>' : ''}</p>
+          ${s!.food?.length ? `<ul>${s!.food.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+          ${s!.drinks?.length ? `<ul class="drinks">${s!.drinks.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+          ${s!.event ? `<p class="vl-sp-event">${esc(s!.event)}</p>` : ''}</div>`).join('');
+      set('vl-happy', `<h2>Happy hours &amp; specials <span class="vl-badge">Updated by the venue</span></h2>
+        ${hhHtml ? `<div class="card vl-hh-list">${hhHtml}</div>` : ''}${spHtml ? `<div class="vl-sp-grid">${spHtml}</div>` : ''}`);
+      if (sp.length) document.querySelector<HTMLElement>('.specials-board')?.setAttribute('hidden', '');
+    }
+
+    // events the venue posted
+    if (live.events.length) {
+      set('vl-events', `<h2>Coming up at ${esc(name)}</h2><div class="vl-events">${live.events.map((ev) => `
+        <div class="card vl-ev">
+          <div class="vl-ev-date"><span>${fmtDate(ev.event_date, { weekday: 'short' })}</span><strong>${fmtDate(ev.event_date, { day: 'numeric' })}</strong><span>${fmtDate(ev.event_date, { month: 'short' })}</span></div>
+          <div class="vl-ev-main"><p class="vl-ev-title">${esc(ev.title)}</p>
+            <p class="vl-ev-meta">${[ev.start_time ? fmtClock(ev.start_time) : '', ev.price ?? ''].filter(Boolean).map(esc).join(' · ')}</p>
+            ${ev.blurb ? `<p class="vl-ev-blurb">${esc(ev.blurb)}</p>` : ''}</div>
+          <div class="vl-ev-actions">${goingButtonHtml({ key: showKey(slug, ev.event_date, ev.title), slug, date: ev.event_date, artist: ev.title })}
+            ${ev.ticket_url ? `<a class="vl-tix" href="${esc(ev.ticket_url)}" target="_blank" rel="noopener">Tickets</a>` : ''}</div>
+        </div>`).join('')}</div>`);
+    }
+
+    // menu
+    const menuPhotos = live.photos.filter((p) => p.kind === 'menu');
+    if (c?.menu_url || c?.menu_text || menuPhotos.length) {
+      set('vl-menu', `<h2>Menu</h2><div class="card vl-menu">
+        ${c?.menu_url ? `<a class="btn" href="${esc(c.menu_url)}" target="_blank" rel="noopener">View the menu ↗</a>` : ''}
+        ${menuPhotos.length ? `<div class="vl-grid small">${menuPhotos.map((p) => `<a href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="Menu" loading="lazy" /></a>`).join('')}</div>` : ''}
+        ${c?.menu_text ? `<details class="vl-menu-text"${!c.menu_url && !menuPhotos.length ? ' open' : ''}><summary>Read the menu</summary><pre>${esc(c.menu_text)}</pre></details>` : ''}
+      </div>`);
+    }
+
+    // photos
+    const tile = (p: typeof live.photos[number]) => `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="vl-ph"><img src="${esc(p.url)}" alt="${esc(p.caption ?? '')}" loading="lazy" />${p.caption ? `<span>${esc(p.caption)}</span>` : ''}</a>`;
+    const gallery = live.photos.filter((p) => p.kind === 'gallery');
+    if (gallery.length) set('vl-gallery', `<h2>Photos from ${esc(name)}</h2><div class="vl-grid">${gallery.map(tile).join('')}</div>`);
+    const party = live.photos.filter((p) => p.kind === 'party');
+    if (party.length) {
+      const nights = new Map<string, typeof party>();
+      party.forEach((p) => { const k = p.taken_on ?? p.created_at.slice(0, 10); if (!nights.has(k)) nights.set(k, []); nights.get(k)!.push(p); });
+      set('vl-party', `<h2>Party pics</h2>${[...nights].sort((a, b) => b[0].localeCompare(a[0])).map(([d, ps]) =>
+        `<p class="vl-night">${fmtDate(d, { weekday: 'long', month: 'long', day: 'numeric' })}</p><div class="vl-grid">${ps.map(tile).join('')}</div>`).join('')}`);
+    }
+
+    if (any) { root.hidden = false; paintGoing(root); }
+    root.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-more]');
+      if (!b) return;
+      document.getElementById(b.dataset.more!)?.querySelectorAll('[hidden]').forEach((el) => el.removeAttribute('hidden'));
+      b.remove();
+    });
+  })();
+</script>
+
+<style is:global>
+  .vl { margin: 22px 0 8px; display: flex; flex-direction: column; gap: 6px; }
+  .vl h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .vl-badge { font-family: var(--font); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); text-shadow: none; }
+  .vl-posts { display: flex; flex-direction: column; gap: 10px; }
+  .vl-post { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; margin: 0; color: var(--ink); }
+  .vl-post[hidden] { display: none; }
+  .vl-post img { width: 120px; height: 120px; object-fit: cover; border-radius: 12px; flex: none; }
+  .vl-post-body { margin: 0; font-size: 15px; white-space: pre-wrap; }
+  .vl-post-meta { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); }
+  @media (max-width: 520px) { .vl-post { flex-direction: column; } .vl-post img { width: 100%; height: auto; max-height: 280px; } }
+  .vl-more { align-self: flex-start; margin-top: 8px; background: none; border: 0; font: 800 14px var(--font); color: var(--button-orange); cursor: pointer; }
+  .vl-hh-list { padding: 8px 16px; margin: 0 0 10px; color: var(--ink); }
+  .vl-hh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .vl-hh:last-child { border-bottom: 0; }
+  .vl-hh strong { min-width: 90px; }
+  .vl-hh span { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .vl-hh em { font-style: normal; font-weight: 700; color: var(--button-orange); }
+  .vl-sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+  .vl-sp { padding: 12px 14px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--card-depth, var(--shadow)); color: var(--ink); }
+  .vl-sp.today { outline: 2px solid var(--btn); outline-offset: -2px; }
+  .vl-sp-day { margin: 0 0 6px; font-weight: 800; }
+  .vl-sp-day span { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; padding: 2px 7px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); margin-left: 4px; }
+  .vl-sp ul { margin: 0 0 4px; padding-left: 18px; font-size: 14px; }
+  .vl-sp-event { margin: 4px 0 0; font-size: 13px; font-weight: 700; color: var(--button-orange); }
+  .vl-events { display: flex; flex-direction: column; gap: 10px; }
+  .vl-ev { display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin: 0; color: var(--ink); }
+  .vl-ev-date { width: 46px; text-align: center; line-height: 1.1; flex: none; font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--ink-3); }
+  .vl-ev-date strong { display: block; font-size: 22px; color: var(--button-orange); }
+  .vl-ev-main { flex: 1; min-width: 0; }
+  .vl-ev-title { margin: 0; font-size: 16px; font-weight: 800; }
+  .vl-ev-meta { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+  .vl-ev-blurb { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+  .vl-ev-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; flex: none; }
+  .vl-tix { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; background: var(--btn); color: var(--btn-ink); font-size: 12px; font-weight: 800; text-decoration: none; box-shadow: var(--pill-depth); }
+  @media (max-width: 560px) { .vl-ev { flex-wrap: wrap; } .vl-ev-actions { width: 100%; justify-content: flex-start; padding-left: 60px; } }
+  .vl-menu { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; margin: 0; color: var(--ink); }
+  .vl-menu-text { width: 100%; }
+  .vl-menu-text summary { cursor: pointer; font-weight: 800; color: var(--button-orange); }
+  .vl-menu-text pre { white-space: pre-wrap; font: 15px/1.6 var(--font); margin: 10px 0 0; }
+  .vl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 8px; }
+  .vl-grid.small { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); width: 100%; }
+  .vl-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; display: block; }
+  .vl-ph { position: relative; display: block; }
+  .vl-ph span { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 8px; font-size: 11px; color: #fff; border-radius: 0 0 12px 12px; background: linear-gradient(transparent, rgba(0,0,0,.7)); }
+  .vl-night { margin: 6px 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-on-photo); }
+  .vl-claim { margin: 18px 0 6px; font-size: 13px; }
+  .vl-claim a { color: var(--ink-on-photo-2); font-weight: 700; text-decoration: none; }
+  .vl-claim a:hover { color: var(--button-orange); text-decoration: underline; }
+</style>

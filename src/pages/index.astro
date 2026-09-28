@@ -6,7 +6,7 @@ import HeroSlider from '../components/HeroSlider.astro';
 import HawkeyeBar from '../components/HawkeyeBar.astro';
 import { venues, upcomingEvents, fmtDate, sideOf } from '../lib/data';
 import venuePhotosRaw from '../data/venue-photos.json';
-import { logoFor } from '../lib/art';
+import { logoFor, gradientFor } from '../lib/art';
 
 const today = new Date();
 const { dated, weekly } = upcomingEvents(today);
@@ -80,6 +80,12 @@ const hhVenues = venues
     specials: v.specials ?? [],
     specialsWindow: v.specials_window ?? null,
   }));
+// Everyone else, in brief: if an owner adds happy hours or specials from
+// /manage/, the browser can build their card without a rebuild.
+const hhSlugs = new Set(hhVenues.map((v) => v.slug));
+const hhOthers = venues
+  .filter((v: any) => !hhSlugs.has(v.slug))
+  .map((v: any) => [v.slug, v.name, v.city, sideOf(v.city), (v.address || '').split(',')[0], (v.tags || []).filter((t: string) => t !== 'happy-hour').slice(0, 3), logoFor(v.website) ?? null]);
 ---
 <Base title="Tonight" current="Tonight">
   <section class="hero">
@@ -99,7 +105,7 @@ const hhVenues = venues
 
   <HawkeyeBar />
 
-  <section class="hh-now" id="hh-now" data-venues={JSON.stringify(hhVenues)} hidden>
+  <section class="hh-now" id="hh-now" data-live-deals data-venues={JSON.stringify(hhVenues)} data-others={JSON.stringify(hhOthers)} hidden>
     <h2><span class="badge today-badge">Now</span> <span id="hh-now-title">Specials &amp; happy hours</span> <span class="hh-now-date" id="hh-now-date"></span> <a class="more" href="/drink/">All bars →</a></h2>
     <div class="row hh-now-row" id="hh-now-row"></div>
   </section>
@@ -146,6 +152,8 @@ const hhVenues = venues
 
 <script>
   import { nowInZone } from '../lib/time';
+  import { onLiveDeals } from '../lib/venue-portal';
+  import { gradientFor } from '../lib/art';
 
   // Preview any moment with ?at=2026-09-28T15:00 (Central) -- handy for
   // checking what the countdown and the happy-hour strip will show later.
@@ -271,7 +279,7 @@ const hhVenues = venues
         </li>`).join('');
       const more = deals.length > MAX_DEALS ? `<li class="ah-more">+${deals.length - MAX_DEALS} more</li>` : '';
       return `<a class="ah-card" href="/venues/${esc(v.slug)}/" data-side="${esc(v.side)}">
-        <div class="ah-photo"${v.photo ? ` style="background-image:url('${esc(v.photo)}')"` : ''}>
+        <div class="ah-photo" style="${v.photo ? `background-image:url('${esc(v.photo)}')` : `background:${gradientFor(v.slug)}`}">
           ${logoHtml(v)}
           ${timer}
         </div>
@@ -290,4 +298,22 @@ const hhVenues = venues
   renderHappyHours();
   setInterval(renderHappyHours, 60 * 1000);
   document.addEventListener('sidechange', renderHappyHours);
+
+  // Owners' saves from /manage/ win over what was built into the page.
+  onLiveDeals((deals) => {
+    if (!hhSection) return;
+    const others: [string, string, string, string, string, string[], string | null][] = JSON.parse(hhSection.dataset.others || '[]');
+    for (const [slug, d] of Object.entries(deals)) {
+      let v = hhVenues.find((x) => x.slug === slug);
+      if (!v) {
+        const o = others.find((x) => x[0] === slug);
+        if (!o) continue;
+        v = { slug, name: o[1], city: o[2], side: o[3], address: o[4], tags: o[5], photo: null, logo: o[6], windows: [], specials: [], specialsWindow: null };
+        hhVenues.push(v);
+      }
+      if (d.happy_hours !== null) v.windows = d.happy_hours;
+      if (d.specials !== null) v.specials = d.specials;
+    }
+    renderHappyHours();
+  });
 </script>

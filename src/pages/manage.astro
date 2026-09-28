@@ -1,0 +1,539 @@
+---
+/** /manage/ -- the venue portal for bar owners and managers. Request access to
+ *  your venue; once an admin approves you, keep your page current: feed posts,
+ *  happy hours & daily specials, menu & details, events, gallery and party
+ *  photos. All of it saves to Supabase (supabase/venue-portal.sql) and shows on
+ *  the venue page immediately -- no rebuild. */
+import Base from '../layouts/Base.astro';
+import { venues } from '../lib/data';
+
+const venueIndex = venues.map((v: any) => ({
+  slug: v.slug, name: v.name, city: v.city,
+  // the site's current listing, used to pre-fill the forms the first time
+  blurb: v.blurb ?? '', hours_note: v.hours_note ?? '', website: v.website ?? '', phone: v.phone ?? '',
+  happy_hours: v.happy_hours ?? [], specials: v.specials ?? [],
+})).sort((a, b) => a.name.localeCompare(b.name));
+---
+<Base title="Manage your venue" description="Venue owners: keep your page on The 380 current.">
+  <div class="mg" id="mg" data-venues={JSON.stringify(venueIndex)}>
+    <p class="kicker">For bars &amp; venues</p>
+    <h1>Manage your venue</h1>
+    <p class="lede">Post updates, keep happy hours, specials and your menu current, add events, and share photos. Changes show on your page right away.</p>
+
+    <div id="mg-state" class="card mg-note">Loading…</div>
+
+    <!-- Not approved for any venue yet: ask for access -->
+    <section id="mg-request" class="card mg-card" hidden>
+      <h2>Request access to your venue</h2>
+      <p class="mg-help">Pick your bar and tell us who you are. We'll confirm with the venue and approve you, usually within a day.</p>
+      <form id="mg-request-form" class="mg-form">
+        <label>Venue
+          <select id="mg-request-venue" required>
+            <option value="">Choose your venue…</option>
+            {venueIndex.map((v) => <option value={v.slug}>{v.name} · {v.city}</option>)}
+          </select>
+        </label>
+        <label>Your role and how to reach you
+          <textarea id="mg-request-note" rows="3" maxlength="500" placeholder="Owner / GM / manager, and a phone number we can call to confirm"></textarea>
+        </label>
+        <button type="submit" class="btn">Send request</button>
+        <p class="mg-msg" id="mg-request-msg" role="status"></p>
+      </form>
+      <div id="mg-my-requests"></div>
+    </section>
+
+    <!-- Approved: the dashboard -->
+    <section id="mg-app" hidden>
+      <div class="mg-top">
+        <label class="mg-venue-pick">Venue
+          <select id="mg-venue"></select>
+        </label>
+        <a id="mg-view" class="btn secondary" href="#" target="_blank" rel="noopener">View your page ↗</a>
+        <button type="button" class="mg-link" id="mg-add-venue">Manage another venue</button>
+      </div>
+
+      <div class="mg-tabs" role="tablist" aria-label="Manage">
+        <button type="button" role="tab" class="mg-tab" data-tab="feed" aria-selected="true">Feed</button>
+        <button type="button" role="tab" class="mg-tab" data-tab="happy" aria-selected="false">Happy hours &amp; specials</button>
+        <button type="button" role="tab" class="mg-tab" data-tab="menu" aria-selected="false">Menu &amp; details</button>
+        <button type="button" role="tab" class="mg-tab" data-tab="events" aria-selected="false">Events</button>
+        <button type="button" role="tab" class="mg-tab" data-tab="photos" aria-selected="false">Photos</button>
+      </div>
+
+      <!-- Feed -->
+      <div class="mg-panel" data-panel="feed">
+        <form id="mg-post-form" class="card mg-card mg-form">
+          <label>Post an update
+            <textarea id="mg-post-body" rows="3" maxlength="1000" placeholder="Trivia moves to 8 tonight · New fall taps are on · Patio's open"></textarea>
+          </label>
+          <div class="mg-row">
+            <label class="mg-file">Add a photo <input type="file" id="mg-post-photo" accept="image/*" /></label>
+            <button type="submit" class="btn">Post</button>
+          </div>
+          <p class="mg-msg" id="mg-post-msg" role="status"></p>
+        </form>
+        <div id="mg-posts" class="mg-list"></div>
+      </div>
+
+      <!-- Happy hours & specials -->
+      <div class="mg-panel" data-panel="happy" hidden>
+        <div class="card mg-card">
+          <h2>Happy hours</h2>
+          <p class="mg-help">One row per happy hour. These power the "Happy hour right now" strip on the home page.</p>
+          <div id="mg-hh"></div>
+          <button type="button" class="mg-link" id="mg-hh-add">+ Add a happy hour</button>
+        </div>
+        <div class="card mg-card">
+          <h2>Daily specials</h2>
+          <p class="mg-help">One item per line, like "$3 wells" or "$10 wing baskets". Leave a day blank if there's nothing that day.</p>
+          <div id="mg-specials" class="mg-specials"></div>
+        </div>
+        <div class="mg-save"><button type="button" class="btn" id="mg-happy-save">Save happy hours &amp; specials</button><span class="mg-msg" id="mg-happy-msg" role="status"></span></div>
+      </div>
+
+      <!-- Menu & details -->
+      <div class="mg-panel" data-panel="menu" hidden>
+        <form id="mg-details-form" class="card mg-card mg-form">
+          <h2>About</h2>
+          <label>Short description <textarea id="mg-blurb" rows="3" maxlength="600"></textarea></label>
+          <div class="mg-grid2">
+            <label>Hours <input id="mg-hours" maxlength="200" placeholder="Daily 11am–2am" /></label>
+            <label>Phone <input id="mg-phone" maxlength="40" inputmode="tel" /></label>
+            <label>Website <input id="mg-website" type="url" placeholder="https://" /></label>
+            <label>Menu link <input id="mg-menu-url" type="url" placeholder="https:// (or upload below)" /></label>
+          </div>
+          <h2>Menu</h2>
+          <div class="mg-row">
+            <label class="mg-file">Upload a menu (PDF or photos) <input type="file" id="mg-menu-file" accept="application/pdf,image/*" multiple /></label>
+          </div>
+          <div id="mg-menu-photos" class="mg-photo-grid small"></div>
+          <label>Or type it in <textarea id="mg-menu-text" rows="8" maxlength="8000" placeholder={'Burgers\nClassic burger — $12\n…'}></textarea></label>
+          <div class="mg-save"><button type="submit" class="btn">Save menu &amp; details</button><span class="mg-msg" id="mg-details-msg" role="status"></span></div>
+        </form>
+      </div>
+
+      <!-- Events -->
+      <div class="mg-panel" data-panel="events" hidden>
+        <form id="mg-event-form" class="card mg-card mg-form">
+          <h2>Add an event</h2>
+          <label>What's happening <input id="mg-ev-title" required maxlength="140" placeholder="Bayway with special guests" /></label>
+          <div class="mg-grid3">
+            <label>Date <input id="mg-ev-date" type="date" required /></label>
+            <label>Starts <input id="mg-ev-time" type="time" /></label>
+            <label>Cover / price <input id="mg-ev-price" maxlength="60" placeholder="$10 · Free" /></label>
+          </div>
+          <div class="mg-grid2">
+            <label>Type
+              <select id="mg-ev-cat">
+                <option value="music">Live music</option><option value="nightlife">Nightlife / DJ / trivia</option>
+                <option value="game-day">Game day / watch party</option><option value="food">Food &amp; drink</option>
+                <option value="arts">Arts &amp; comedy</option><option value="festival">Festival</option><option value="other">Other</option>
+              </select>
+            </label>
+            <label>Tickets link <input id="mg-ev-tix" type="url" placeholder="https://" /></label>
+          </div>
+          <label>Details <textarea id="mg-ev-blurb" rows="2" maxlength="600"></textarea></label>
+          <div class="mg-save"><button type="submit" class="btn">Add event</button><span class="mg-msg" id="mg-ev-msg" role="status"></span></div>
+        </form>
+        <h2 class="mg-h2-photo">Upcoming</h2>
+        <div id="mg-events" class="mg-list"></div>
+      </div>
+
+      <!-- Photos -->
+      <div class="mg-panel" data-panel="photos" hidden>
+        <form id="mg-photo-form" class="card mg-card mg-form">
+          <div class="mg-seg" role="radiogroup" aria-label="Album">
+            <button type="button" data-kind="gallery" aria-checked="true" role="radio">Gallery</button>
+            <button type="button" data-kind="party" aria-checked="false" role="radio">Party pics</button>
+          </div>
+          <p class="mg-help" id="mg-photo-help">Photos of your place: the room, the patio, the food. They show in your page's gallery.</p>
+          <div class="mg-grid2">
+            <label>Caption (optional) <input id="mg-photo-caption" maxlength="200" /></label>
+            <label id="mg-photo-date-wrap" hidden>Night of <input id="mg-photo-date" type="date" /></label>
+          </div>
+          <div class="mg-row">
+            <label class="mg-file">Choose photos <input type="file" id="mg-photo-files" accept="image/*" multiple /></label>
+            <button type="submit" class="btn">Upload</button>
+          </div>
+          <p class="mg-msg" id="mg-photo-msg" role="status"></p>
+        </form>
+        <h2 class="mg-h2-photo" id="mg-photo-title">Gallery</h2>
+        <div id="mg-photos" class="mg-photo-grid"></div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { supabase, supabaseConfigured } from '../lib/supabase';
+  import {
+    loadVenueLive, uploadVenueFile, removeVenueFile, esc, fmtDate, fmtClock, timeAgo, DAY_SHORT, DAY_LONG,
+    type VenueContent, type VenueEvent, type VenuePost, type VenuePhoto, type HappyWindow, type DaySpecial, type ManagerRow,
+  } from '../lib/venue-portal';
+
+  type VenueRef = { slug: string; name: string; city: string; blurb: string; hours_note: string; website: string; phone: string; happy_hours: HappyWindow[]; specials: DaySpecial[] };
+  const root = document.getElementById('mg')!;
+  const VENUES: VenueRef[] = JSON.parse(root.dataset.venues || '[]');
+  const venueBy = new Map(VENUES.map((v) => [v.slug, v]));
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const stateEl = $('mg-state');
+  const say = (el: HTMLElement, text: string, ok = true) => {
+    el.textContent = text; el.classList.toggle('bad', !ok);
+    if (ok && text) setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, 3500);
+  };
+
+  let userId = '';
+  let isAdmin = false;
+  let slug = '';
+  let live = { content: null as VenueContent | null, events: [] as VenueEvent[], posts: [] as VenuePost[], photos: [] as VenuePhoto[] };
+  let photoKind: 'gallery' | 'party' = 'gallery';
+
+  function showState(html: string) { stateEl.innerHTML = html; stateEl.hidden = false; }
+
+  async function init() {
+    if (!supabaseConfigured || !supabase) { showState('Accounts aren’t connected yet.'); return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) { showState('<a href="/login/">Log in</a> or create an account first, then come back here to manage your venue.'); return; }
+    userId = session.user.id;
+    const [adm, mine] = await Promise.all([
+      supabase.rpc('is_admin'),
+      supabase.from('venue_managers').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+    ]);
+    if (mine.error) {
+      showState(/venue_managers|schema cache|does not exist/i.test(mine.error.message)
+        ? 'The venue portal isn’t switched on yet. Run <code>supabase/venue-portal.sql</code> in Supabase’s SQL Editor, then refresh.'
+        : esc(mine.error.message));
+      return;
+    }
+    isAdmin = adm.data === true;
+    const rows = (mine.data ?? []) as ManagerRow[];
+    const approved = isAdmin ? VENUES.map((v) => v.slug) : rows.filter((r) => r.status === 'approved').map((r) => r.venue_slug);
+    stateEl.hidden = true;
+    renderRequests(rows);
+    const want = new URLSearchParams(location.search).get('v');
+    if (!approved.length) {
+      $('mg-request').hidden = false;
+      if (want) $<HTMLSelectElement>('mg-request-venue').value = want;
+      return;
+    }
+    $('mg-app').hidden = false;
+    const sel = $<HTMLSelectElement>('mg-venue');
+    sel.innerHTML = approved.map((s) => `<option value="${esc(s)}">${esc(venueBy.get(s)?.name ?? s)}</option>`).join('');
+    sel.value = want && approved.includes(want) ? want : approved[0];
+    sel.addEventListener('change', () => openVenue(sel.value));
+    $('mg-add-venue').hidden = isAdmin;
+    $('mg-add-venue').addEventListener('click', () => { $('mg-request').hidden = false; $('mg-request').scrollIntoView({ behavior: 'smooth' }); });
+    await openVenue(sel.value);
+  }
+
+  function renderRequests(rows: ManagerRow[]) {
+    const pend = rows.filter((r) => r.status !== 'approved');
+    $('mg-my-requests').innerHTML = pend.length
+      ? '<h3>Your requests</h3>' + pend.map((r) => `<p class="mg-req"><strong>${esc(venueBy.get(r.venue_slug)?.name ?? r.venue_slug)}</strong> <span class="mg-status ${r.status}">${r.status === 'pending' ? 'Waiting for approval' : 'Not approved'}</span></p>`).join('')
+      : '';
+  }
+
+  $('mg-request-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('mg-request-msg');
+    const venue = $<HTMLSelectElement>('mg-request-venue').value;
+    if (!venue) return say(msg, 'Pick your venue first.', false);
+    const { error } = await supabase!.from('venue_managers').insert({ user_id: userId, venue_slug: venue, note: $<HTMLTextAreaElement>('mg-request-note').value.trim() || null });
+    if (error) return say(msg, /duplicate/i.test(error.message) ? 'You’ve already asked for that venue.' : error.message, false);
+    say(msg, 'Request sent. We’ll be in touch to confirm.');
+    const { data } = await supabase!.from('venue_managers').select('*').eq('user_id', userId);
+    renderRequests((data ?? []) as ManagerRow[]);
+  });
+
+  // ── tabs ──
+  document.querySelectorAll<HTMLButtonElement>('.mg-tab').forEach((t) => t.addEventListener('click', () => {
+    document.querySelectorAll<HTMLButtonElement>('.mg-tab').forEach((x) => x.setAttribute('aria-selected', String(x === t)));
+    document.querySelectorAll<HTMLElement>('.mg-panel').forEach((p) => { p.hidden = p.dataset.panel !== t.dataset.tab; });
+  }));
+
+  async function openVenue(s: string) {
+    slug = s;
+    $<HTMLAnchorElement>('mg-view').href = `/venues/${s}/`;
+    history.replaceState(null, '', `?v=${encodeURIComponent(s)}`);
+    live = await loadVenueLive(s);
+    renderPosts(); fillHappy(); fillDetails(); renderEvents(); renderPhotos(); renderMenuPhotos();
+  }
+
+  // ── Feed ──
+  function renderPosts() {
+    $('mg-posts').innerHTML = live.posts.length ? live.posts.map((p) => `
+      <div class="card mg-item">
+        ${p.image_url ? `<img src="${esc(p.image_url)}" alt="" class="mg-item-img" />` : ''}
+        <div class="mg-item-main"><p class="mg-item-body">${esc(p.body)}</p><p class="mg-item-meta">${timeAgo(p.created_at)}</p></div>
+        <button type="button" class="mg-del" data-del-post="${p.id}">Delete</button>
+      </div>`).join('') : '<p class="mg-empty">No posts yet. Your updates show at the top of your page.</p>';
+  }
+  $('mg-posts').addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-del-post]');
+    if (!b) return;
+    const p = live.posts.find((x) => x.id === +b.dataset.delPost!);
+    b.disabled = true;
+    await supabase!.from('venue_posts').delete().eq('id', +b.dataset.delPost!);
+    await removeVenueFile(p?.image_path);
+    live.posts = live.posts.filter((x) => x !== p); renderPosts();
+  });
+  $('mg-post-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('mg-post-msg'), body = $<HTMLTextAreaElement>('mg-post-body'), file = $<HTMLInputElement>('mg-post-photo');
+    if (!body.value.trim()) return say(msg, 'Write something first.', false);
+    const btn = (e.target as HTMLFormElement).querySelector('button[type=submit]') as HTMLButtonElement; btn.disabled = true;
+    try {
+      let image_url: string | null = null, image_path: string | null = null;
+      if (file.files?.[0]) { const up = await uploadVenueFile(slug, file.files[0], 'post'); image_url = up.url; image_path = up.path; }
+      const { data, error } = await supabase!.from('venue_posts').insert({ venue_slug: slug, author_id: userId, body: body.value.trim(), image_url, image_path }).select().single();
+      if (error) throw error;
+      live.posts.unshift(data as VenuePost); renderPosts();
+      body.value = ''; file.value = ''; say(msg, 'Posted.');
+    } catch (err: any) { say(msg, err.message || 'Couldn’t post that.', false); }
+    btn.disabled = false;
+  });
+
+  // ── Happy hours & specials ──
+  function hhRow(w: HappyWindow) {
+    const close = w.end === 'close';
+    return `<div class="mg-hh-row">
+      <div class="mg-days">${DAY_SHORT.map((d, i) => `<label class="mg-day"><input type="checkbox" value="${i}" ${w.days.includes(i) ? 'checked' : ''} /><span>${d}</span></label>`).join('')}</div>
+      <div class="mg-hh-times">
+        <label>From <input type="time" class="mg-hh-start" value="${esc(w.start || '15:00')}" /></label>
+        <label>To <input type="time" class="mg-hh-end" value="${close ? '' : esc(w.end || '18:00')}" ${close ? 'disabled' : ''} /></label>
+        <label class="mg-close"><input type="checkbox" class="mg-hh-close" ${close ? 'checked' : ''} /> till close</label>
+      </div>
+      <input class="mg-hh-deal" maxlength="160" placeholder="The deal: $1 off drafts, $3 wells" value="${esc(w.deal ?? '')}" />
+      <button type="button" class="mg-del mg-hh-del">Remove</button>
+    </div>`;
+  }
+  function fillHappy() {
+    const v = venueBy.get(slug);
+    const windows = live.content?.happy_hours ?? v?.happy_hours ?? [];
+    $('mg-hh').innerHTML = windows.map(hhRow).join('') || '<p class="mg-empty">No happy hour listed.</p>';
+    const specials = live.content?.specials ?? v?.specials ?? [];
+    $('mg-specials').innerHTML = [1, 2, 3, 4, 5, 6, 0].map((d) => {
+      const sp: DaySpecial = specials.find((x) => x.day === d) ?? { day: d };
+      return `<div class="mg-sp-day" data-day="${d}"><p class="mg-sp-name">${DAY_LONG[d]}</p>
+        <label>Food <textarea rows="2" class="mg-sp-food">${esc((sp.food ?? []).join('\n'))}</textarea></label>
+        <label>Drinks <textarea rows="2" class="mg-sp-drinks">${esc((sp.drinks ?? []).join('\n'))}</textarea></label>
+        <label>Event <input class="mg-sp-event" maxlength="120" value="${esc(sp.event ?? '')}" placeholder="Trivia at 8" /></label></div>`;
+    }).join('');
+  }
+  $('mg-hh-add').addEventListener('click', () => {
+    const box = $('mg-hh');
+    if (!box.querySelector('.mg-hh-row')) box.innerHTML = '';
+    box.insertAdjacentHTML('beforeend', hhRow({ days: [1, 2, 3, 4, 5], start: '15:00', end: '18:00', deal: '' }));
+  });
+  $('mg-hh').addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('.mg-hh-del'); if (b) b.closest('.mg-hh-row')?.remove(); });
+  $('mg-hh').addEventListener('change', (e) => {
+    const c = e.target as HTMLInputElement;
+    if (c.classList.contains('mg-hh-close')) c.closest('.mg-hh-row')!.querySelector<HTMLInputElement>('.mg-hh-end')!.disabled = c.checked;
+  });
+  $('mg-happy-save').addEventListener('click', async () => {
+    const happy_hours: HappyWindow[] = [...document.querySelectorAll<HTMLElement>('#mg-hh .mg-hh-row')].map((r) => ({
+      days: [...r.querySelectorAll<HTMLInputElement>('.mg-day input:checked')].map((i) => +i.value),
+      start: r.querySelector<HTMLInputElement>('.mg-hh-start')!.value || '15:00',
+      end: r.querySelector<HTMLInputElement>('.mg-hh-close')!.checked ? 'close' : (r.querySelector<HTMLInputElement>('.mg-hh-end')!.value || '18:00'),
+      deal: r.querySelector<HTMLInputElement>('.mg-hh-deal')!.value.trim() || undefined,
+    })).filter((w) => w.days.length);
+    const lines = (el: HTMLTextAreaElement | null) => (el?.value ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
+    const specials: DaySpecial[] = [...document.querySelectorAll<HTMLElement>('#mg-specials .mg-sp-day')].map((d) => ({
+      day: +d.dataset.day!, food: lines(d.querySelector('.mg-sp-food')), drinks: lines(d.querySelector('.mg-sp-drinks')),
+      event: d.querySelector<HTMLInputElement>('.mg-sp-event')!.value.trim() || undefined,
+    })).filter((s) => s.food!.length || s.drinks!.length || s.event);
+    await saveContent({ happy_hours, specials }, $('mg-happy-msg'));
+  });
+
+  async function saveContent(fields: Partial<VenueContent>, msg: HTMLElement) {
+    const { data, error } = await supabase!.from('venue_content')
+      .upsert({ venue_slug: slug, ...fields, updated_at: new Date().toISOString(), updated_by: userId }, { onConflict: 'venue_slug' })
+      .select().single();
+    if (error) return say(msg, error.message, false);
+    live.content = data as VenueContent;
+    say(msg, 'Saved. It’s live on your page.');
+  }
+
+  // ── Menu & details ──
+  function fillDetails() {
+    const v = venueBy.get(slug); const c = live.content;
+    $<HTMLTextAreaElement>('mg-blurb').value = c?.blurb ?? v?.blurb ?? '';
+    $<HTMLInputElement>('mg-hours').value = c?.hours_note ?? v?.hours_note ?? '';
+    $<HTMLInputElement>('mg-phone').value = c?.phone ?? v?.phone ?? '';
+    $<HTMLInputElement>('mg-website').value = c?.website ?? v?.website ?? '';
+    $<HTMLInputElement>('mg-menu-url').value = c?.menu_url ?? '';
+    $<HTMLTextAreaElement>('mg-menu-text').value = c?.menu_text ?? '';
+  }
+  function renderMenuPhotos() {
+    $('mg-menu-photos').innerHTML = live.photos.filter((p) => p.kind === 'menu').map(photoTile).join('');
+  }
+  $('mg-menu-file').addEventListener('change', async (e) => {
+    const input = e.target as HTMLInputElement; const msg = $('mg-details-msg');
+    for (const f of [...(input.files ?? [])]) {
+      try {
+        const up = await uploadVenueFile(slug, f, 'menu');
+        if (f.type === 'application/pdf') { $<HTMLInputElement>('mg-menu-url').value = up.url; say(msg, 'Menu PDF uploaded. Click Save to publish it.'); }
+        else {
+          const { data, error } = await supabase!.from('venue_photos').insert({ venue_slug: slug, kind: 'menu', storage_path: up.path, url: up.url, created_by: userId }).select().single();
+          if (error) throw error;
+          live.photos.unshift(data as VenuePhoto); renderMenuPhotos(); say(msg, 'Menu photo added. It’s live on your page.');
+        }
+      } catch (err: any) { say(msg, err.message || 'Upload failed.', false); }
+    }
+    input.value = '';
+  });
+  $('mg-details-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const val = (id: string) => ($<HTMLInputElement>(id).value.trim() || null);
+    await saveContent({ blurb: val('mg-blurb'), hours_note: val('mg-hours'), phone: val('mg-phone'), website: val('mg-website'), menu_url: val('mg-menu-url'), menu_text: val('mg-menu-text') }, $('mg-details-msg'));
+  });
+
+  // ── Events ──
+  function renderEvents() {
+    $('mg-events').innerHTML = live.events.length ? live.events.map((ev) => `
+      <div class="card mg-item">
+        <div class="mg-item-date"><span>${fmtDate(ev.event_date, { weekday: 'short' })}</span><strong>${fmtDate(ev.event_date, { day: 'numeric' })}</strong><span>${fmtDate(ev.event_date, { month: 'short' })}</span></div>
+        <div class="mg-item-main"><p class="mg-item-title">${esc(ev.title)}</p>
+          <p class="mg-item-meta">${[ev.start_time ? fmtClock(ev.start_time) : '', ev.price ?? '', ev.category].filter(Boolean).map(esc).join(' · ')}</p></div>
+        <button type="button" class="mg-del" data-del-event="${ev.id}">Delete</button>
+      </div>`).join('') : '<p class="mg-empty">No upcoming events yet.</p>';
+  }
+  $('mg-events').addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-del-event]');
+    if (!b) return;
+    b.disabled = true;
+    await supabase!.from('venue_events').delete().eq('id', +b.dataset.delEvent!);
+    live.events = live.events.filter((x) => x.id !== +b.dataset.delEvent!); renderEvents();
+  });
+  $('mg-event-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('mg-ev-msg'); const v = (id: string) => $<HTMLInputElement>(id).value.trim();
+    const row = {
+      venue_slug: slug, title: v('mg-ev-title'), event_date: v('mg-ev-date'), start_time: v('mg-ev-time') || null, price: v('mg-ev-price') || null,
+      category: $<HTMLSelectElement>('mg-ev-cat').value, ticket_url: v('mg-ev-tix') || null,
+      blurb: $<HTMLTextAreaElement>('mg-ev-blurb').value.trim() || null, created_by: userId,
+    };
+    const { data, error } = await supabase!.from('venue_events').insert(row).select().single();
+    if (error) return say(msg, error.message, false);
+    live.events = [...live.events, data as VenueEvent].sort((a, b) => a.event_date.localeCompare(b.event_date)); renderEvents();
+    (e.target as HTMLFormElement).reset(); say(msg, 'Event added. It’s on your page now.');
+  });
+
+  // ── Photos ──
+  const photoTile = (p: VenuePhoto) => `<figure class="mg-photo"><img src="${esc(p.url)}" alt="" loading="lazy" />${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}<button type="button" class="mg-photo-del" data-del-photo="${p.id}" aria-label="Delete photo">×</button></figure>`;
+  function renderPhotos() {
+    const list = live.photos.filter((p) => p.kind === photoKind);
+    $('mg-photo-title').textContent = photoKind === 'party' ? 'Party pics' : 'Gallery';
+    $('mg-photos').innerHTML = list.length ? list.map(photoTile).join('') : '<p class="mg-empty">No photos yet.</p>';
+  }
+  document.querySelectorAll<HTMLButtonElement>('.mg-seg [data-kind]').forEach((b) => b.addEventListener('click', () => {
+    photoKind = b.dataset.kind as 'gallery' | 'party';
+    document.querySelectorAll('.mg-seg [data-kind]').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    $('mg-photo-date-wrap').hidden = photoKind !== 'party';
+    $('mg-photo-help').textContent = photoKind === 'party'
+      ? 'Photos from a night out at your place. Only post people who are OK being photographed.'
+      : 'Photos of your place: the room, the patio, the food. They show in your page’s gallery.';
+    renderPhotos();
+  }));
+  document.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-del-photo]');
+    if (!b) return;
+    const p = live.photos.find((x) => x.id === +b.dataset.delPhoto!);
+    if (!p) return;
+    b.disabled = true;
+    await supabase!.from('venue_photos').delete().eq('id', p.id);
+    await removeVenueFile(p.storage_path);
+    live.photos = live.photos.filter((x) => x !== p); renderPhotos(); renderMenuPhotos();
+  });
+  $('mg-photo-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('mg-photo-msg'), files = [...($<HTMLInputElement>('mg-photo-files').files ?? [])];
+    if (!files.length) return say(msg, 'Choose some photos first.', false);
+    const caption = $<HTMLInputElement>('mg-photo-caption').value.trim() || null;
+    const taken_on = photoKind === 'party' ? ($<HTMLInputElement>('mg-photo-date').value || null) : null;
+    let n = 0;
+    for (const f of files) {
+      try {
+        say(msg, `Uploading ${++n} of ${files.length}…`);
+        const up = await uploadVenueFile(slug, f, photoKind);
+        const { data, error } = await supabase!.from('venue_photos').insert({ venue_slug: slug, kind: photoKind, storage_path: up.path, url: up.url, caption, taken_on, created_by: userId }).select().single();
+        if (error) throw error;
+        live.photos.unshift(data as VenuePhoto);
+      } catch (err: any) { say(msg, err.message || 'Upload failed.', false); renderPhotos(); return; }
+    }
+    renderPhotos(); (e.target as HTMLFormElement).reset(); say(msg, `${files.length} photo${files.length > 1 ? 's' : ''} added.`);
+  });
+
+  init();
+</script>
+
+<style is:global>
+  .mg { max-width: 980px; }
+  .mg-note { padding: 18px 20px; margin: 10px 0 20px; color: var(--ink); }
+  .mg-note a { color: var(--button-orange); font-weight: 700; }
+  .mg-card { padding: 18px 20px; margin: 0 0 16px; color: var(--ink); }
+  .mg-card h2, .mg-card h3 { margin: 0 0 6px; font-size: 18px; color: var(--ink); text-shadow: none; }
+  .mg-help { margin: 0 0 12px; font-size: 13px; color: var(--ink-2); }
+  .mg-form { display: flex; flex-direction: column; gap: 12px; }
+  .mg-form label, .mg-card label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 800; color: var(--ink-2); }
+  .mg input:not([type=checkbox]):not([type=file]), .mg textarea, .mg select {
+    font: 500 15px var(--font); color: var(--ink); background: rgba(255,255,255,.9); border: 1px solid var(--field-border); border-radius: 10px; padding: 9px 11px; width: 100%; box-sizing: border-box;
+  }
+  .mg textarea { resize: vertical; }
+  .mg-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+  .mg-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .mg-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .mg-file { flex-direction: row !important; align-items: center; flex-wrap: wrap; gap: 8px !important; }
+  .mg-file input { font-size: 13px; max-width: 100%; }
+  .mg-save { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 18px; }
+  .mg-msg { font-size: 13px; font-weight: 700; color: #1F9D55; margin: 0; }
+  .mg-msg.bad { color: #C2410C; }
+  .mg-link { background: none; border: 0; padding: 4px 0; font: 800 14px var(--font); color: var(--button-orange); cursor: pointer; }
+  .mg-top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin: 6px 0 14px; }
+  .mg-venue-pick { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 800; color: var(--ink-on-photo-2); min-width: 240px; }
+  .mg-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; margin: 0 0 16px; border-bottom: 1px solid rgba(247,241,230,.18); }
+  .mg-tab { flex: none; background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 12px 9px; font: 800 15px var(--font); color: var(--ink-on-photo-2); cursor: pointer; }
+  .mg-tab[aria-selected="true"] { color: var(--ink-on-photo); border-bottom-color: var(--btn); }
+  .mg-panel[hidden] { display: none; }
+  .mg-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .mg-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; margin: 0; color: var(--ink); }
+  .mg-item-img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; flex: none; }
+  .mg-item-main { flex: 1; min-width: 0; }
+  .mg-item-body { margin: 0; white-space: pre-wrap; }
+  .mg-item-title { margin: 0; font-weight: 800; }
+  .mg-item-meta { margin: 2px 0 0; font-size: 12px; color: var(--ink-3); }
+  .mg-item-date { width: 44px; text-align: center; line-height: 1.1; flex: none; font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--ink-3); }
+  .mg-item-date strong { display: block; font-size: 20px; color: var(--button-orange); }
+  .mg-del { background: none; border: 1px solid var(--chip-border); border-radius: 999px; padding: 4px 11px; font: 700 12px var(--font); color: var(--ink-2); cursor: pointer; flex: none; }
+  .mg-del:hover { border-color: #C2410C; color: #C2410C; }
+  .mg-empty { color: var(--ink-on-photo-2); font-size: 14px; margin: 0 0 12px; }
+  .mg-card .mg-empty { color: var(--ink-3); }
+  .mg-hh-row { display: grid; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .mg-days { display: flex; flex-wrap: wrap; gap: 5px; }
+  .mg-day { flex-direction: row !important; position: relative; }
+  .mg-day input { position: absolute; opacity: 0; pointer-events: none; }
+  .mg-day span { display: inline-block; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--chip-border); background: var(--chip-bg); font-size: 12px; font-weight: 800; color: var(--ink-2); cursor: pointer; }
+  .mg-day input:checked + span { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+  .mg-day input:focus-visible + span { outline: 2px solid var(--btn); outline-offset: 2px; }
+  .mg-hh-times { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .mg-hh-times label { width: 130px; }
+  .mg-close { flex-direction: row !important; align-items: center; width: auto !important; font-size: 13px !important; }
+  .mg-hh-del { justify-self: start; }
+  .mg-specials { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .mg-sp-day { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--chip-bg); }
+  .mg-sp-name { margin: 0; font-weight: 800; color: var(--button-orange); }
+  .mg-seg { display: inline-flex; gap: 4px; padding: 3px; border-radius: 999px; background: var(--chip-bg); align-self: flex-start; }
+  .mg-seg button { border: 0; background: none; padding: 7px 14px; border-radius: 999px; font: 800 13px var(--font); color: var(--ink-2); cursor: pointer; }
+  .mg-seg button[aria-checked="true"] { background: var(--btn); color: var(--btn-ink); }
+  .mg-h2-photo { margin: 6px 0 10px; }
+  .mg-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 24px; }
+  .mg-photo-grid.small { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); margin: 0; }
+  .mg-photo { position: relative; margin: 0; border-radius: 12px; overflow: hidden; background: var(--card); aspect-ratio: 1; }
+  .mg-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mg-photo figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 8px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.7)); }
+  .mg-photo-del { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 16px; line-height: 1; cursor: pointer; }
+  .mg-req { margin: 6px 0; font-size: 14px; }
+  .mg-status { font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); margin-left: 6px; }
+  .mg-status.pending { color: #B7791F; }
+  .mg-status.denied { color: #C2410C; }
+</style>

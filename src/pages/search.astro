@@ -20,7 +20,7 @@ const searchable = allVenues.map((v) => ({
 }));
 ---
 <Base title="Search" current="Search">
-  <div class="search-page">
+  <div class="search-page" data-live-deals>
     <p class="kicker">Search</p>
     <h1>Find a bar, restaurant or show</h1>
 
@@ -128,7 +128,7 @@ const searchable = allVenues.map((v) => ({
     const tags = v.tags.slice(0, 3).map(t =>
       `<span class="tag">${t.replace(/-/g,' ')}</span>`).join('');
     const hh = v.happy_hour
-      ? `<span class="hh-badge">🍺 ${v.happy_hour}</span>` : '';
+      ? `<span class="hh-badge">🍺 ${esc(v.happy_hour)}</span>` : '';
     const matchedArtist = q && v.artists && v.artists.find(a => a.toLowerCase().includes(q));
     const artistHint = matchedArtist
       ? `<p class="rc-artist-hint">🎵 ${matchedArtist}</p>` : '';
@@ -282,6 +282,17 @@ const searchable = allVenues.map((v) => ({
   }));
 
   document.addEventListener('sidechange', run);
+
+  // Owners' latest happy hours (loaded by Base.astro) replace the built-in ones.
+  function useLiveDeals(deals) {
+    for (const v of searchable) {
+      const d = deals[v.slug];
+      if (d && d.happy_hours !== null) v.happy_hour = d.summary || null;
+    }
+    if (input.value.trim() || activeCat) run();
+  }
+  if (window.__liveDeals) useLiveDeals(window.__liveDeals);
+  else document.addEventListener('live-deals', (e) => useLiveDeals(e.detail), { once: true });
 
   // Pre-fill from ?q= URL param
   const urlQ = new URLSearchParams(location.search).get('q') || '';

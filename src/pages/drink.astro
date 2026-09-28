@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import VenueCard from '../components/VenueCard.astro';
-import { venues, districts } from '../lib/data';
+import { venues, districts, sideOf } from '../lib/data';
 import venuePhotosRaw from '../data/venue-photos.json';
 
 const PLACES_KEY = 'AIzaSyAfgZvvM4cJxLg9vhi0xPkZSTn6OIWLi8M';
@@ -22,13 +22,15 @@ const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cockta
   <h1>Every bar, taproom and brewery worth knowing</h1>
   <p class="lede">{list.length} spots across both cities. Filter by what you're after; toggle IC / CR up top.</p>
 
-  <section class="hh" id="happy-hour">
+  <section class="hh" id="happy-hour" data-live-deals data-venues={JSON.stringify(list.map((v) => ({ slug: v.slug, name: v.name, side: sideOf(v.city), windows: v.happy_hours ?? [] })))}>
     <p class="kicker">Happy Hour Finder</p>
     <h3>Where's happy hour right now?</h3>
-    <p>Published happy hours logged so far: <strong>{withHH.length}</strong> of {list.length}. Collecting these venue by venue is the first data job; until the count is real, the "cocktails" and "dive" chips below are the cheapest routes.</p>
-    {withHH.map((v) => (
-      <div class="hh-result"><a href={`/venues/${v.slug}/`}>{v.name}</a><span class="when">{v.happy_hour}</span></div>
-    ))}
+    <p>Published happy hours logged so far: <strong id="hh-count">{withHH.length}</strong> of {list.length}. Collecting these venue by venue is the first data job; until the count is real, the "cocktails" and "dive" chips below are the cheapest routes.</p>
+    <div id="hh-list">
+      {withHH.map((v) => (
+        <div class="hh-result" data-slug={v.slug} data-side={sideOf(v.city)}><a href={`/venues/${v.slug}/`}>{v.name}</a><span class="when">{v.happy_hour}</span></div>
+      ))}
+    </div>
   </section>
 
   <div class="filters" data-districts={JSON.stringify(districts.map((d) => ({ slug: d.slug, name: d.name, city: d.city })))}>
@@ -110,6 +112,88 @@ const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cockta
     run();
   </script>
 
+  <script>
+    // Owners edit their happy hours at /manage/. Those saves are live in
+    // Supabase, so lay them over the happy hours baked into this page: the
+    // finder list, the count and each bar's card all switch to the owner's
+    // version without waiting for a rebuild.
+    import { onLiveDeals, happyOnNow, esc, type HappyWindow, type LiveDeal } from '../lib/venue-portal';
+    import { nowInZone } from '../lib/time';
+
+    type Ref = { slug: string; name: string; side: string; windows: HappyWindow[] };
+    const section = document.getElementById('happy-hour')!;
+    const listEl = document.getElementById('hh-list')!;
+    const refs: Ref[] = JSON.parse(section.dataset.venues || '[]');
+    const bySlug = new Map(refs.map((r) => [r.slug, r]));
+
+    function row(slug: string) {
+      let el = listEl.querySelector<HTMLElement>(`.hh-result[data-slug="${slug}"]`);
+      if (!el) {
+        const r = bySlug.get(slug)!;
+        el = document.createElement('div');
+        el.className = 'hh-result';
+        el.dataset.slug = slug;
+        el.dataset.side = r.side;
+        el.innerHTML = `<a href="/venues/${esc(slug)}/">${esc(r.name)}</a><span class="when"></span>`;
+        listEl.appendChild(el);
+      }
+      return el;
+    }
+
+    function markOnNow() {
+      const { dow, minutes } = nowInZone();
+      listEl.querySelectorAll<HTMLElement>('.hh-result').forEach((el) => {
+        const r = bySlug.get(el.dataset.slug || '');
+        const on = !!r && happyOnNow(r.windows, dow, minutes);
+        el.classList.toggle('on-now', on);
+        const a = el.querySelector('a')!;
+        a.querySelector('.hh-on')?.remove();
+        if (on) a.insertAdjacentHTML('beforeend', ' <span class="hh-on">On now</span>');
+      });
+      // bars that are pouring right now go to the top
+      [...listEl.querySelectorAll<HTMLElement>('.hh-result.on-now')].reverse().forEach((el) => listEl.prepend(el));
+    }
+
+    function sideFilter() {
+      const side = document.documentElement.dataset.side || 'all';
+      listEl.querySelectorAll<HTMLElement>('.hh-result').forEach((el) => {
+        el.hidden = side !== 'all' && el.dataset.side !== side;
+      });
+    }
+
+    // (Each bar's card below is updated by Base.astro from the same data.)
+    function applyOwnerHours(deals: Record<string, LiveDeal>) {
+      for (const [slug, d] of Object.entries(deals)) {
+        const r = bySlug.get(slug);
+        if (!r || d.happy_hours === null) continue; // not a drinking spot, or never saved happy hours
+        r.windows = d.happy_hours;
+        if (!d.summary) { listEl.querySelector(`.hh-result[data-slug="${slug}"]`)?.remove(); continue; }
+        const el = row(slug);
+        el.querySelector('.when')!.textContent = d.summary;
+        el.classList.add('from-venue');
+        if (!el.querySelector('.hh-src')) el.insertAdjacentHTML('beforeend', '<span class="hh-src">Updated by the venue</span>');
+      }
+      document.getElementById('hh-count')!.textContent = String(listEl.querySelectorAll('.hh-result').length);
+      markOnNow();
+      sideFilter();
+    }
+
+    markOnNow();
+    sideFilter();
+    document.addEventListener('sidechange', sideFilter);
+    onLiveDeals(applyOwnerHours);
+    setInterval(markOnNow, 60_000);
+  </script>
+
+  <style is:global>
+    /* built by the happy-hour script, so these can't be scoped */
+    #hh-list .hh-result[hidden] { display: none; }
+    #hh-list .hh-on {
+      display: inline-block; vertical-align: 2px; margin-left: 6px; padding: 2px 8px; border-radius: 999px;
+      background: var(--btn); color: var(--btn-ink); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    }
+    #hh-list .hh-src { font-size: 12px; color: var(--ink-3); font-weight: 600; }
+  </style>
   <style>
     .filters .dd-picker { position: relative; flex: 1 1 180px; min-width: 0; }
     .filters .dd-picker input {

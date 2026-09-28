@@ -1183,14 +1183,20 @@ html[data-shownews] .tabbar .nav-news, html[data-showsports] .tabbar .nav-sports
 .mobile-extra { display: none; }
 @media (max-width: 719px) {
   .mobile-extra { display: block; position: relative; z-index: 1; }
-  .mobile-extra .wrap { display: flex; justify-content: center; gap: 8px; }
+  /* row 1: News / Sports / High School (only when any is on); row 2: Neighborhoods / Party Pics */
+  .mobile-extra .wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 10px; padding-bottom: 2px; }
+  .mobile-extra .mx-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .mobile-extra .mx-opt-row { display: none; }
+  html[data-shownews] .mobile-extra .mx-opt-row, html[data-showsports] .mobile-extra .mx-opt-row,
+  html[data-showpreps] .mobile-extra .mx-opt-row, .mobile-extra .mx-opt-row:has([aria-current="page"]) { display: flex; }
+  .mobile-extra .mx-pill,
   html[data-shownews] .mobile-extra .nav-news, html[data-showsports] .mobile-extra .nav-sports,
   html[data-showpreps] .mobile-extra .nav-preps, .mobile-extra .nav-optional[aria-current="page"] {
-    display: inline-flex !important; align-items: center; margin: 10px 0 2px; padding: 8px 16px; border-radius: 999px;
+    display: inline-flex !important; align-items: center; padding: 8px 16px; border-radius: 999px;
     background: var(--btn); color: var(--btn-ink); font-weight: 800; font-size: 14px; text-decoration: none;
     box-shadow: var(--pill-depth); background-image: var(--pill-sheen);
   }
-  .mobile-extra .nav-optional[aria-current="page"] { background-color: #fff; color: var(--btn-on-light); }
+  .mobile-extra [aria-current="page"] { background-color: #fff !important; color: var(--btn-on-light) !important; }
   /* they live up top now, so the bottom bar goes back to five tabs */
   html body .tabbar a.nav-optional.nav-optional { display: none !important; }
 }
@@ -1242,3 +1248,13 @@ html[data-shownews] .tabbar .nav-news, html[data-showsports] .tabbar .nav-sports
 .wx-name { font-weight: 700; letter-spacing: .04em; }
 .wx-sep { opacity: .5; }
 html[data-theme="light"] .wx-city svg { color: #E08A00; }
+
+/* Search text follows what's actually behind the box (set by Base.astro):
+   white on dark backgrounds, dark on light ones. */
+input[type="search"][data-contrast="dark"] { color: #fff !important; caret-color: #fff; }
+input[type="search"][data-contrast="dark"]::placeholder { color: rgba(255,255,255,.62) !important; }
+input[type="search"][data-contrast="light"] { color: var(--ink) !important; caret-color: var(--ink); }
+input[type="search"][data-contrast="light"]::placeholder { color: var(--ink-3) !important; }
+
+/* happy-hour / specials lines that owners can switch on or off from /manage/ */
+[data-hh-slug][hidden], [data-specials-slug][hidden] { display: none !important; }

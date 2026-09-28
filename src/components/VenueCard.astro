@@ -7,7 +7,7 @@ const side = sideOf(v.city);
 const district = districtBySlug(v.district);
 const logo = logoFor(v.website);
 ---
-<article class:list={['card', { pick }]} data-side={side} data-tags={v.tags.join(' ')} data-type={v.type} data-district={v.district} data-name={v.name.toLowerCase()}>
+<article class:list={['card', { pick }]} data-slug={v.slug} data-side={side} data-tags={v.tags.join(' ')} data-type={v.type} data-district={v.district} data-name={v.name.toLowerCase()}>
   <button type="button" class="card-like-btn" data-slug={v.slug} aria-pressed="false" aria-label={`Like ${v.name}`}>
     <span class="like-icon" aria-hidden="true">♡</span>
   </button>
@@ -42,6 +42,6 @@ const logo = logoFor(v.website);
     </div>
   )}
   <p>{note ?? v.blurb}</p>
-  {v.happy_hour && <p><strong>Happy hour:</strong> {v.happy_hour}</p>}
+  <p class="card-hh" data-hh-slug={v.slug} hidden={!v.happy_hour}><strong>Happy hour:</strong> <span class="hh-text">{v.happy_hour}</span></p>
   <div class="tags">{v.tags.slice(0, 4).map((t) => <span class="tag">{t.replace('-', ' ')}</span>)}</div>
 </article>

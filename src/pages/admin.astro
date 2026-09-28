@@ -1,343 +1,255 @@
 ---
-/**
- * Admin — preview-only venue editor.
- * NOTHING HERE SAVES YET. Reads real venue data + real photo folders so the
- * form feels real, but Save/remove/upload are all local-only (reset on refresh).
- * Wire-up (writing back to JSON + real file uploads) comes later.
- */
+/** /admin/ -- The 380's admin dashboard. Approve bar owners who ask to manage
+ *  a venue, add or remove managers yourself, jump into any venue's portal, and
+ *  keep an eye on (and remove) what venues post. Only accounts listed in
+ *  public.site_admins get in -- see supabase/venue-portal.sql. */
 import Base from '../layouts/Base.astro';
 import { venues } from '../lib/data';
-import fs from 'node:fs';
-import path from 'node:path';
 
-const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif']);
-
-function folderImages(kind: string, slug: string): string[] {
-  try {
-    const dir = path.join(process.cwd(), 'public', kind, slug);
-    return fs.readdirSync(dir)
-      .filter((f) => IMAGE_EXT.has(path.extname(f).toLowerCase()))
-      .sort((a, b) => a.localeCompare(b))
-      .map((f) => `/${kind}/${slug}/${f}`);
-  } catch {
-    return [];
-  }
-}
-
-const venueData = venues.map((v) => ({
-  slug: v.slug,
-  name: v.name,
-  city: v.city,
-  blurb: v.blurb ?? '',
-  address: v.address ?? '',
-  menu_url: v.menu_url ?? '',
-  tags: v.tags ?? [],
-  specials: [] as string[],
-  heroPhotos: folderImages('venue-photos', v.slug),
-  galleryPhotos: folderImages('photo-gallery', v.slug),
-})).sort((a, b) => a.name.localeCompare(b.name));
+const venueIndex = venues.map((v: any) => ({ slug: v.slug, name: v.name, city: v.city }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 ---
-<Base title="Admin" description="Venue editor">
-<div class="admin">
-  <p class="kicker">Admin</p>
-  <h1>Edit a venue</h1>
+<Base title="Admin" description="The 380 admin dashboard">
+  <div class="ad" id="ad" data-venues={JSON.stringify(venueIndex)}>
+    <p class="kicker">Admin</p>
+    <h1>The 380 dashboard</h1>
 
-  <div class="notice">
-    Preview only — nothing on this page saves yet. Try editing fields, adding tags or specials,
-    or dropping in photos to see how it'll feel. Refreshing resets everything back to the real data.
+    <div id="ad-state" class="card ad-note">Loading…</div>
+
+    <div id="ad-app" hidden>
+      <div class="ad-stats" id="ad-stats"></div>
+
+      <section class="card ad-card">
+        <div class="ad-head"><h2>Owner requests</h2><span class="ad-sub" id="ad-req-count"></span></div>
+        <div id="ad-requests" class="ad-list"></div>
+      </section>
+
+      <section class="card ad-card">
+        <div class="ad-head"><h2>Venue managers</h2></div>
+        <div id="ad-managers" class="ad-list"></div>
+        <form id="ad-add" class="ad-add">
+          <p class="ad-label">Add a manager yourself</p>
+          <div class="ad-add-row">
+            <input id="ad-add-user" placeholder="Their username" autocomplete="off" required />
+            <select id="ad-add-venue" required>
+              <option value="">Venue…</option>
+              {venueIndex.map((v) => <option value={v.slug}>{v.name} · {v.city}</option>)}
+            </select>
+            <button type="submit" class="btn">Add</button>
+          </div>
+          <p class="ad-msg" id="ad-add-msg" role="status"></p>
+        </form>
+      </section>
+
+      <section class="card ad-card">
+        <div class="ad-head"><h2>Edit any venue</h2></div>
+        <p class="ad-help">As an admin you can open any venue's portal: feed, happy hours, menu, events and photos.</p>
+        <div class="ad-add-row">
+          <select id="ad-jump">
+            <option value="">Choose a venue…</option>
+            {venueIndex.map((v) => <option value={v.slug}>{v.name} · {v.city}</option>)}
+          </select>
+          <a class="btn" id="ad-jump-go" href="/manage/">Open portal</a>
+        </div>
+      </section>
+
+      <section class="card ad-card">
+        <div class="ad-head"><h2>Latest from venues</h2><span class="ad-sub">Posts and photos owners have added. Remove anything that shouldn't be up.</span></div>
+        <div id="ad-activity" class="ad-activity"></div>
+      </section>
+    </div>
   </div>
+</Base>
 
-  <label class="field">
-    <span>Venue</span>
-    <select id="venue-picker"></select>
-  </label>
+<script>
+  import { supabase, supabaseConfigured } from '../lib/supabase';
+  import { esc, timeAgo, fmtDate, removeVenueFile, todayCT } from '../lib/venue-portal';
 
-  <form id="venue-form" hidden>
-    <p class="venue-meta"><span id="vf-name"></span> · <span id="vf-city"></span></p>
+  type Req = { id: number; user_id: string; venue_slug: string; status: string; note: string | null; created_at: string; decided_at: string | null; username: string | null; display_name: string | null; avatar_url: string | null; email: string | null };
+  const root = document.getElementById('ad')!;
+  const VENUES: { slug: string; name: string; city: string }[] = JSON.parse(root.dataset.venues || '[]');
+  const vname = (s: string) => VENUES.find((v) => v.slug === s)?.name ?? s;
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const state = $('ad-state');
+  let rows: Req[] = [];
 
-    <label class="field">
-      <span>Description</span>
-      <textarea id="vf-blurb" rows="3"></textarea>
-    </label>
-
-    <label class="field">
-      <span>Address</span>
-      <input id="vf-address" type="text" />
-    </label>
-
-    <label class="field">
-      <span>Menu link</span>
-      <input id="vf-menu" type="url" placeholder="https://..." />
-    </label>
-
-    <div class="field">
-      <span>Tags</span>
-      <div class="chips" id="vf-tags"></div>
-      <div class="add-row">
-        <input id="vf-tag-input" type="text" placeholder="Add a tag" />
-        <button type="button" id="vf-tag-add" class="btn secondary">Add</button>
-      </div>
-    </div>
-
-    <div class="field">
-      <span>Specials</span>
-      <div class="list-rows" id="vf-specials"></div>
-      <button type="button" id="vf-special-add" class="btn secondary">Add special</button>
-    </div>
-
-    <div class="field">
-      <span>Hero photos <em>(top slider)</em></span>
-      <div class="photo-grid" id="vf-hero-photos"></div>
-      <input id="vf-hero-upload" type="file" accept="image/*" multiple />
-    </div>
-
-    <div class="field">
-      <span>Photo gallery <em>(bottom of page)</em></span>
-      <div class="photo-grid" id="vf-gallery-photos"></div>
-      <input id="vf-gallery-upload" type="file" accept="image/*" multiple />
-    </div>
-
-    <button type="button" id="vf-save" class="btn">Save changes</button>
-    <p class="save-note" id="vf-save-note" hidden>Not wired up yet — nothing was actually saved.</p>
-  </form>
-</div>
-
-<script define:vars={{ venueData }}>
-  const venues = venueData;
-  const picker = document.getElementById('venue-picker');
-  const form = document.getElementById('venue-form');
-
-  const els = {
-    name: document.getElementById('vf-name'),
-    city: document.getElementById('vf-city'),
-    blurb: document.getElementById('vf-blurb'),
-    address: document.getElementById('vf-address'),
-    menu: document.getElementById('vf-menu'),
-    tags: document.getElementById('vf-tags'),
-    tagInput: document.getElementById('vf-tag-input'),
-    tagAdd: document.getElementById('vf-tag-add'),
-    specials: document.getElementById('vf-specials'),
-    specialAdd: document.getElementById('vf-special-add'),
-    heroPhotos: document.getElementById('vf-hero-photos'),
-    heroUpload: document.getElementById('vf-hero-upload'),
-    galleryPhotos: document.getElementById('vf-gallery-photos'),
-    galleryUpload: document.getElementById('vf-gallery-upload'),
-    save: document.getElementById('vf-save'),
-    saveNote: document.getElementById('vf-save-note'),
-  };
-
-  let current = null; // working copy of the selected venue's editable state
-
-  const CITY_LABEL = { 'Iowa City': 'Iowa City', 'Cedar Rapids': 'Cedar Rapids' };
-
-  const groups = {};
-  venues.forEach((v) => {
-    const g = groups[v.city] || (groups[v.city] = []);
-    g.push(v);
-  });
-  Object.keys(groups).sort().forEach((city) => {
-    const og = document.createElement('optgroup');
-    og.label = city;
-    groups[city].forEach((v) => {
-      const opt = document.createElement('option');
-      opt.value = v.slug;
-      opt.textContent = v.name;
-      og.appendChild(opt);
-    });
-    picker.appendChild(og);
-  });
-  const blank = document.createElement('option');
-  blank.value = '';
-  blank.textContent = 'Choose a venue…';
-  blank.selected = true;
-  picker.insertBefore(blank, picker.firstChild);
-
-  function renderChips() {
-    els.tags.innerHTML = '';
-    current.tags.forEach((tag, i) => {
-      const chip = document.createElement('span');
-      chip.className = 'chip';
-      chip.textContent = tag + ' ';
-      const x = document.createElement('button');
-      x.type = 'button';
-      x.textContent = '✕';
-      x.setAttribute('aria-label', `Remove ${tag}`);
-      x.addEventListener('click', () => { current.tags.splice(i, 1); renderChips(); });
-      chip.appendChild(x);
-      els.tags.appendChild(chip);
-    });
+  async function init() {
+    if (!supabaseConfigured || !supabase) { state.textContent = 'Accounts aren’t connected yet.'; return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) { state.innerHTML = '<a href="/login/">Log in</a> with your admin account.'; return; }
+    const adm = await supabase.rpc('is_admin');
+    if (adm.error) {
+      state.innerHTML = 'The admin tools aren’t switched on yet. Run <code>supabase/venue-portal.sql</code> in Supabase’s SQL Editor, then add yourself as an admin (the steps are at the top of that file).';
+      return;
+    }
+    if (adm.data !== true) { state.textContent = 'This page is for The 380’s admins.'; return; }
+    state.hidden = true;
+    $('ad-app').hidden = false;
+    await loadRequests();          // stats use the request list
+    await Promise.all([loadStats(), loadActivity()]);
   }
 
-  function renderSpecials() {
-    els.specials.innerHTML = '';
-    current.specials.forEach((text, i) => {
-      const row = document.createElement('div');
-      row.className = 'list-row';
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = text;
-      input.placeholder = 'e.g. Taco Tuesday — $2 tacos all night';
-      input.addEventListener('input', () => { current.specials[i] = input.value; });
-      const rm = document.createElement('button');
-      rm.type = 'button';
-      rm.className = 'btn secondary';
-      rm.textContent = 'Remove';
-      rm.addEventListener('click', () => { current.specials.splice(i, 1); renderSpecials(); });
-      row.appendChild(input);
-      row.appendChild(rm);
-      els.specials.appendChild(row);
-    });
+  async function loadRequests() {
+    const { data, error } = await supabase!.rpc('admin_venue_managers');
+    if (error) { $('ad-requests').innerHTML = `<p class="ad-empty">${esc(error.message)}</p>`; return; }
+    rows = (data ?? []) as Req[];
+    const who = (r: Req) => `<strong>${esc(r.display_name || r.username || 'Member')}</strong>${r.username ? ` <a href="/u/?u=${esc(r.username)}" target="_blank" rel="noopener">@${esc(r.username)}</a>` : ''}${r.email ? ` · <a href="mailto:${esc(r.email)}">${esc(r.email)}</a>` : ''}`;
+    const pending = rows.filter((r) => r.status === 'pending');
+    $('ad-req-count').textContent = pending.length ? `${pending.length} waiting` : '';
+    $('ad-requests').innerHTML = pending.length ? pending.map((r) => `
+      <div class="ad-row">
+        <div class="ad-row-main">
+          <p class="ad-row-title">${esc(vname(r.venue_slug))}</p>
+          <p class="ad-row-meta">${who(r)} · asked ${timeAgo(r.created_at)}</p>
+          ${r.note ? `<p class="ad-note-text">“${esc(r.note)}”</p>` : ''}
+        </div>
+        <div class="ad-actions">
+          <button type="button" class="btn ad-approve" data-approve="${r.id}">Approve</button>
+          <button type="button" class="ad-btn-ghost" data-deny="${r.id}">Deny</button>
+        </div>
+      </div>`).join('') : '<p class="ad-empty">No requests waiting.</p>';
+    const approved = rows.filter((r) => r.status === 'approved');
+    $('ad-managers').innerHTML = approved.length ? approved.map((r) => `
+      <div class="ad-row">
+        <div class="ad-row-main">
+          <p class="ad-row-title"><a href="/venues/${esc(r.venue_slug)}/" target="_blank" rel="noopener">${esc(vname(r.venue_slug))}</a></p>
+          <p class="ad-row-meta">${who(r)}${r.decided_at ? ` · since ${new Date(r.decided_at).toLocaleDateString()}` : ''}</p>
+        </div>
+        <div class="ad-actions"><button type="button" class="ad-btn-ghost" data-remove="${r.id}">Remove</button></div>
+      </div>`).join('') : '<p class="ad-empty">No venue managers yet.</p>';
   }
 
-  function renderPhotoGrid(container, list) {
-    container.innerHTML = '';
-    list.forEach((src, i) => {
-      const card = document.createElement('div');
-      card.className = 'photo-card';
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = '';
-      const rm = document.createElement('button');
-      rm.type = 'button';
-      rm.className = 'photo-remove';
-      rm.textContent = '✕';
-      rm.setAttribute('aria-label', 'Remove photo');
-      rm.addEventListener('click', () => { list.splice(i, 1); renderPhotoGrid(container, list); });
-      card.appendChild(img);
-      card.appendChild(rm);
-      container.appendChild(card);
-    });
+  document.addEventListener('click', async (e) => {
+    const t = e.target as HTMLElement;
+    const ap = t.closest<HTMLButtonElement>('[data-approve]'), dn = t.closest<HTMLButtonElement>('[data-deny]'), rm = t.closest<HTMLButtonElement>('[data-remove]');
+    if (ap || dn) {
+      (ap || dn)!.disabled = true;
+      await supabase!.from('venue_managers').update({ status: ap ? 'approved' : 'denied', decided_at: new Date().toISOString() }).eq('id', +(ap?.dataset.approve || dn!.dataset.deny!));
+      await loadRequests(); await loadStats();
+    } else if (rm) {
+      if (!confirmRemove(rm)) return;
+      await supabase!.from('venue_managers').delete().eq('id', +rm.dataset.remove!);
+      await loadRequests(); await loadStats();
+    }
+  });
+  // two-tap remove instead of a browser confirm() dialog
+  function confirmRemove(btn: HTMLButtonElement) {
+    if (btn.dataset.armed) return true;
+    btn.dataset.armed = '1'; btn.textContent = 'Tap again to remove';
+    setTimeout(() => { delete btn.dataset.armed; btn.textContent = 'Remove'; }, 3000);
+    return false;
   }
 
-  function selectVenue(slug) {
-    const v = venues.find((x) => x.slug === slug);
-    if (!v) { form.hidden = true; return; }
-    current = {
-      slug: v.slug,
-      name: v.name,
-      city: v.city,
-      blurb: v.blurb,
-      address: v.address,
-      menu_url: v.menu_url,
-      tags: [...v.tags],
-      specials: [...v.specials],
-      heroPhotos: [...v.heroPhotos],
-      galleryPhotos: [...v.galleryPhotos],
-    };
-    els.name.textContent = current.name;
-    els.city.textContent = current.city;
-    els.blurb.value = current.blurb;
-    els.address.value = current.address;
-    els.menu.value = current.menu_url;
-    renderChips();
-    renderSpecials();
-    renderPhotoGrid(els.heroPhotos, current.heroPhotos);
-    renderPhotoGrid(els.galleryPhotos, current.galleryPhotos);
-    els.saveNote.hidden = true;
-    form.hidden = false;
+  $('ad-add').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('ad-add-msg');
+    const uname = $<HTMLInputElement>('ad-add-user').value.trim().replace(/^@/, '').toLowerCase();
+    const venue = $<HTMLSelectElement>('ad-add-venue').value;
+    const { data } = await supabase!.rpc('search_profiles', { p_query: uname });
+    const match = ((data ?? []) as any[]).find((p) => (p.username || '').toLowerCase() === uname);
+    if (!match) { msg.textContent = `No member with the username @${uname}.`; msg.classList.add('bad'); return; }
+    const { error } = await supabase!.from('venue_managers').upsert(
+      { user_id: match.id, venue_slug: venue, status: 'approved', decided_at: new Date().toISOString() }, { onConflict: 'user_id,venue_slug' });
+    msg.classList.toggle('bad', !!error);
+    msg.textContent = error ? error.message : `@${uname} now manages ${vname(venue)}.`;
+    if (!error) { (e.target as HTMLFormElement).reset(); await loadRequests(); await loadStats(); }
+  });
+
+  $<HTMLSelectElement>('ad-jump').addEventListener('change', (e) => {
+    const s = (e.target as HTMLSelectElement).value;
+    $<HTMLAnchorElement>('ad-jump-go').href = s ? `/manage/?v=${encodeURIComponent(s)}` : '/manage/';
+  });
+
+  async function count(table: string, filter?: (q: any) => any) {
+    let q = supabase!.from(table).select('*', { count: 'exact', head: true });
+    if (filter) q = filter(q);
+    const { count: n } = await q;
+    return n ?? 0;
+  }
+  async function loadStats() {
+    const pending = rows.filter((r) => r.status === 'pending').length;
+    const managers = new Set(rows.filter((r) => r.status === 'approved').map((r) => r.venue_slug)).size;
+    const [site, events, posts, photos] = await Promise.all([
+      supabase!.rpc('admin_stats'),
+      count('venue_events', (q) => q.gte('event_date', todayCT())), count('venue_posts'), count('venue_photos'),
+    ]);
+    const s = ((site.data ?? []) as any[])[0] ?? {};
+    const members = s.members ?? '—', going = s.rsvps ?? '—';
+    const tile = (n: number | string, label: string, hot = false) => `<div class="ad-stat${hot ? ' hot' : ''}"><strong>${n}</strong><span>${label}</span></div>`;
+    $('ad-stats').innerHTML = [
+      tile(pending, 'Requests waiting', pending > 0), tile(managers, 'Venues with an owner'), tile(members, 'Members'),
+      tile(events, 'Upcoming venue events'), tile(posts, 'Venue posts'), tile(photos, 'Venue photos'), tile(going, '“I’m going”s'),
+    ].join('');
   }
 
-  picker.addEventListener('change', () => selectVenue(picker.value));
-
-  els.tagAdd.addEventListener('click', () => {
-    const val = els.tagInput.value.trim();
-    if (!val || !current) return;
-    current.tags.push(val);
-    els.tagInput.value = '';
-    renderChips();
-  });
-  els.tagInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); els.tagAdd.click(); }
-  });
-
-  els.specialAdd.addEventListener('click', () => {
-    if (!current) return;
-    current.specials.push('');
-    renderSpecials();
-  });
-
-  function wireUpload(input, container, list) {
-    input.addEventListener('change', () => {
-      Array.from(input.files || []).forEach((file) => {
-        list.push(URL.createObjectURL(file));
-      });
-      renderPhotoGrid(container, list);
-      input.value = '';
-    });
+  async function loadActivity() {
+    const [p, ph] = await Promise.all([
+      supabase!.from('venue_posts').select('*').order('created_at', { ascending: false }).limit(15),
+      supabase!.from('venue_photos').select('*').order('created_at', { ascending: false }).limit(24),
+    ]);
+    const items = [
+      ...((p.data ?? []) as any[]).map((x) => ({ ...x, _t: 'post' })),
+      ...((ph.data ?? []) as any[]).map((x) => ({ ...x, _t: 'photo' })),
+    ].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 30);
+    $('ad-activity').innerHTML = items.length ? items.map((x) => `
+      <div class="ad-act" data-kind="${x._t}" data-id="${x.id}" data-path="${esc(x._t === 'post' ? x.image_path ?? '' : x.storage_path)}">
+        ${x._t === 'photo' || x.image_url ? `<img src="${esc(x._t === 'photo' ? x.url : x.image_url)}" alt="" loading="lazy" />` : ''}
+        <div class="ad-act-main">
+          <p class="ad-row-meta"><a href="/venues/${esc(x.venue_slug)}/" target="_blank" rel="noopener">${esc(vname(x.venue_slug))}</a> · ${x._t === 'post' ? 'post' : x.kind === 'party' ? 'party pic' : x.kind === 'menu' ? 'menu photo' : 'gallery photo'} · ${timeAgo(x.created_at)}${x.taken_on ? ` · night of ${fmtDate(x.taken_on)}` : ''}</p>
+          ${x._t === 'post' ? `<p class="ad-act-body">${esc(x.body)}</p>` : x.caption ? `<p class="ad-act-body">${esc(x.caption)}</p>` : ''}
+        </div>
+        <button type="button" class="ad-btn-ghost" data-takedown>Remove</button>
+      </div>`).join('') : '<p class="ad-empty">Nothing yet. Once owners start posting, it shows here.</p>';
   }
-  wireUpload(els.heroUpload, els.heroPhotos, () => current.heroPhotos);
-
-  // re-bind upload handlers against the live `current` object each time a venue loads
-  els.heroUpload.addEventListener('change', () => {
-    if (!current) return;
-    Array.from(els.heroUpload.files || []).forEach((file) => current.heroPhotos.push(URL.createObjectURL(file)));
-    renderPhotoGrid(els.heroPhotos, current.heroPhotos);
-    els.heroUpload.value = '';
-  });
-  els.galleryUpload.addEventListener('change', () => {
-    if (!current) return;
-    Array.from(els.galleryUpload.files || []).forEach((file) => current.galleryPhotos.push(URL.createObjectURL(file)));
-    renderPhotoGrid(els.galleryPhotos, current.galleryPhotos);
-    els.galleryUpload.value = '';
+  $('ad-activity').addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-takedown]');
+    if (!b || !confirmRemove(b)) return;
+    const row = b.closest<HTMLElement>('.ad-act')!;
+    await supabase!.from(row.dataset.kind === 'post' ? 'venue_posts' : 'venue_photos').delete().eq('id', +row.dataset.id!);
+    await removeVenueFile(row.dataset.path);
+    row.remove(); loadStats();
   });
 
-  els.save.addEventListener('click', () => {
-    els.saveNote.hidden = false;
-  });
+  init();
 </script>
 
-<style>
-  .admin { max-width: 640px; }
-  .notice {
-    background: var(--green-soft); border: 1px solid var(--line); border-radius: var(--radius-sm);
-    padding: 12px 14px; font-size: 14px; color: var(--ink-2); margin: 0 0 24px;
-  }
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; font-size: 14px; }
-  .field > span { font-weight: 700; color: var(--ink); }
-  .field > span em { font-weight: 400; font-style: normal; color: var(--ink-3); font-size: 13px; }
-  input[type="text"], input[type="url"], select, textarea {
-    font-family: inherit; font-size: 15px; padding: 10px 12px; border-radius: var(--radius-sm);
-    border: 1px solid var(--line); background: var(--card); color: var(--ink);
-  }
-  textarea { resize: vertical; }
-  .venue-meta { color: var(--ink-2); font-size: 14px; margin: -6px 0 20px; }
-
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 6px; background: var(--ink-4); color: var(--ink);
-    border-radius: 999px; padding: 5px 6px 5px 12px; font-size: 13px; font-weight: 600;
-  }
-  .chip button { all: unset; cursor: pointer; width: 18px; height: 18px; display: grid; place-items: center; color: var(--ink-2); }
-  .chip button:hover { color: var(--cr); }
-
-  .add-row { display: flex; gap: 8px; margin-top: 8px; }
-  .add-row input { flex: 1; }
-
-  .list-rows { display: flex; flex-direction: column; gap: 8px; }
-  .list-row { display: flex; gap: 8px; }
-  .list-row input { flex: 1; }
-
-  .btn {
-    background: var(--button-orange); color: #fff; border: none; border-radius: 999px;
-    padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit;
-  }
-  .btn.secondary { background: var(--ink-4); color: var(--ink); padding: 8px 14px; }
-
-  .photo-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; margin-bottom: 10px;
-  }
-  .photo-card {
-    position: relative; aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden;
-    box-shadow: var(--shadow); background: var(--ink-4);
-  }
-  .photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .photo-remove {
-    all: unset; position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; cursor: pointer;
-    display: grid; place-items: center; background: rgba(0,0,0,.55); color: #fff; border-radius: 50%; font-size: 12px;
-  }
-
-  .save-note { color: var(--ink-2); font-size: 13px; margin-top: 8px; }
-
-  #venue-form { margin-top: 8px; }
+<style is:global>
+  .ad { max-width: 1000px; }
+  .ad-note { padding: 18px 20px; margin: 10px 0 20px; color: var(--ink); }
+  .ad-note a { color: var(--button-orange); font-weight: 700; }
+  .ad-card { padding: 18px 20px; margin: 0 0 16px; color: var(--ink); }
+  .ad-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 0 0 10px; }
+  .ad-head h2 { margin: 0; font-size: 18px; color: var(--ink); text-shadow: none; }
+  .ad-sub, .ad-help { font-size: 13px; color: var(--ink-2); margin: 0 0 10px; }
+  .ad-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 6px 0 18px; }
+  .ad-stat { padding: 14px 14px 12px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--card-depth, var(--shadow)); color: var(--ink); }
+  .ad-stat strong { display: block; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ad-stat span { font-size: 12px; font-weight: 700; color: var(--ink-2); }
+  .ad-stat.hot { background: var(--btn); color: var(--btn-ink); }
+  .ad-stat.hot span { color: var(--btn-ink); opacity: .9; }
+  .ad-list { display: flex; flex-direction: column; }
+  .ad-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .ad-row:last-child { border-bottom: 0; }
+  .ad-row-main { flex: 1; min-width: 220px; }
+  .ad-row-title { margin: 0; font-size: 16px; font-weight: 800; }
+  .ad-row-title a { color: var(--ink); text-decoration: none; }
+  .ad-row-meta { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+  .ad-row-meta a, .ad-act a { color: var(--button-orange); font-weight: 700; text-decoration: none; }
+  .ad-note-text { margin: 6px 0 0; font-size: 14px; color: var(--ink); font-style: italic; }
+  .ad-actions { display: flex; gap: 8px; }
+  .ad-btn-ghost { background: none; border: 1px solid var(--chip-border); border-radius: 999px; padding: 8px 14px; font: 700 13px var(--font); color: var(--ink-2); cursor: pointer; }
+  .ad-btn-ghost:hover { border-color: #C2410C; color: #C2410C; }
+  .ad-empty { margin: 4px 0; font-size: 14px; color: var(--ink-3); }
+  .ad-add { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .ad-label { margin: 0 0 6px; font-size: 12px; font-weight: 800; color: var(--ink-2); }
+  .ad-add-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ad-add-row input, .ad-add-row select { flex: 1; min-width: 180px; font: 500 15px var(--font); color: var(--ink); background: rgba(255,255,255,.9); border: 1px solid var(--field-border); border-radius: 10px; padding: 9px 11px; }
+  .ad-msg { margin: 6px 0 0; font-size: 13px; font-weight: 700; color: #1F9D55; }
+  .ad-msg.bad { color: #C2410C; }
+  .ad-activity { display: flex; flex-direction: column; }
+  .ad-act { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .ad-act:last-child { border-bottom: 0; }
+  .ad-act img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; flex: none; }
+  .ad-act-main { flex: 1; min-width: 0; }
+  .ad-act-body { margin: 3px 0 0; font-size: 14px; white-space: pre-wrap; }
 </style>
-</Base>

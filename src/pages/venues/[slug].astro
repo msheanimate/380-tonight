@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import VenueGallery from '../../components/VenueGallery.astro';
 import VenuePhotoGrid from '../../components/VenuePhotoGrid.astro';
 import VenueCalendar from '../../components/VenueCalendar.astro';
+import VenueLive from '../../components/VenueLive.astro';
 import { venues, districtBySlug, TYPE_LABEL, events } from '../../lib/data';
 import { iconSvg } from '../../lib/art';
 import { showKey } from '../../lib/show-key';
@@ -116,12 +117,15 @@ const todaySpecialLine = todaySpecial
   ? [...(todaySpecial.food ?? []), ...(todaySpecial.drinks ?? [])].join(' · ')
   : null;
 
+// Specials and happy hour always get a row (hidden when empty) so an owner's
+// update from /manage/ can fill them in on load; see Base.astro.
+type Fact = { label: string; value: string; live?: 'hh' | 'specials' };
 const compactFacts = [
   { label: 'Address', value: v.address },
-  todaySpecialLine ? { label: `Today's specials`, value: todaySpecialLine } : null,
-  v.happy_hour ? { label: 'Happy hour', value: v.happy_hour } : null,
+  { label: `Today's specials`, value: todaySpecialLine ?? '', live: 'specials' },
+  { label: 'Happy hour', value: v.happy_hour ?? '', live: 'hh' },
   site ? { label: 'Web', value: site } : null,
-].filter((f): f is { label: string; value: string } => f !== null);
+].filter((f): f is Fact => f !== null);
 ---
 <Base title={v.name} description={v.blurb}>
   <div class="venue-dashboard">
@@ -144,12 +148,12 @@ const compactFacts = [
           <Fragment set:html={iconSvg('clock', 'width="15" height="15" style="margin-top:2px;flex-shrink:0"')} />
           <div class="vp-meta-text">
             <span class="vp-meta-label">Hours</span>
-            <span class="vp-meta-value">{v.hours_note ?? 'Varies'}</span>
+            <span class="vp-meta-value" data-live="hours">{v.hours_note ?? 'Varies'}</span>
           </div>
         </div>
       </div>
       <div class="tags">{v.tags.map((t) => <span class="tag">{t.replace('-', ' ')}</span>)}</div>
-      <p class="lede">{v.blurb}</p>
+      <p class="lede" data-live="blurb">{v.blurb}</p>
       <div class="actions">
         <a class="btn" href={maps} rel="noopener">Directions</a>
         {v.website && <a class="btn secondary" href={v.website} rel="noopener">Website</a>}
@@ -209,9 +213,11 @@ const compactFacts = [
           </div>
           <div class="vp-facts-list">
             {compactFacts.map((f) => (
-              <div class="vp-fact-row">
+              <div class="vp-fact-row" hidden={!f.value}
+                data-hh-slug={f.live === 'hh' ? v.slug : undefined}
+                data-specials-slug={f.live === 'specials' ? v.slug : undefined}>
                 <span class="vp-fact-label">{f.label}</span>
-                <span class="vp-fact-value">{f.value}</span>
+                <span class="vp-fact-value hh-text">{f.value}</span>
               </div>
             ))}
           </div>
@@ -244,6 +250,8 @@ const compactFacts = [
     </div>
   </div>
 
+  <VenueLive slug={v.slug} name={v.name} />
+
   {v.verify && <p class="verify">Seeded from <a href={v.source} rel="noopener">a public listing</a> and not yet walked by us. Hours and specials change; check before you go.</p>}
 
   {specials.length > 0 && (
@@ -270,7 +278,7 @@ const compactFacts = [
     <div class="facts">
       <div class="fact"><b>Address</b>{v.address}</div>
       {v.hours_note && <div class="fact"><b>Hours</b>{v.hours_note}</div>}
-      {v.happy_hour && <div class="fact"><b>Happy hour</b>{v.happy_hour}</div>}
+      <div class="fact" data-hh-slug={v.slug} hidden={!v.happy_hour}><b>Happy hour</b><span class="hh-text">{v.happy_hour}</span></div>
       <div class="fact"><b>Web</b>{site}</div>
     </div>
   )}

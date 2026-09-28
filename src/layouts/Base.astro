@@ -177,13 +177,19 @@ const bgChoices: Record<string, string | null> = {
           <a href="/high-school/" class="nav-optional nav-preps" aria-current={current === 'High School' ? 'page' : undefined}>High School</a>
         </div>
       </nav>
-      {/* Phones: the optional News / Sports / High School tabs sit up here as
-          buttons instead of crowding the bottom tab bar. */}
-      <nav class="mobile-extra" aria-label="News and sports">
+      {/* Phones: Neighborhoods and Party Pics (not in the five-tab bottom bar),
+          plus the optional News / Sports / High School tabs, as buttons up here. */}
+      <nav class="mobile-extra" aria-label="More sections">
         <div class="wrap">
-          <a href="/news/" class="nav-optional nav-news" aria-current={current === 'News' ? 'page' : undefined}>News</a>
-          <a href="/sports/" class="nav-optional nav-sports" aria-current={current === 'Sports' ? 'page' : undefined}>Sports</a>
-          <a href="/high-school/" class="nav-optional nav-preps" aria-current={current === 'High School' ? 'page' : undefined}>High School</a>
+          <div class="mx-row mx-opt-row">
+            <a href="/news/" class="nav-optional nav-news" aria-current={current === 'News' ? 'page' : undefined}>News</a>
+            <a href="/sports/" class="nav-optional nav-sports" aria-current={current === 'Sports' ? 'page' : undefined}>Sports</a>
+            <a href="/high-school/" class="nav-optional nav-preps" aria-current={current === 'High School' ? 'page' : undefined}>High School</a>
+          </div>
+          <div class="mx-row">
+            <a href="/neighborhoods/" class="mx-pill" aria-current={current === 'Neighborhoods' ? 'page' : undefined}>Neighborhoods</a>
+            <a href="/party-pics/" class="mx-pill" aria-current={current === 'Party Pics' ? 'page' : undefined}>Party Pics</a>
+          </div>
         </div>
       </nav>
     </header>
@@ -254,11 +260,84 @@ const bgChoices: Record<string, string | null> = {
         <slot />
       </div>
     </main>
+    <script>
+      // Search boxes sit on backgrounds that change with the theme, the photo and
+      // the button color, so work out how dark it really is behind each one
+      // (compositing the semi-transparent layers) and pick white or dark text.
+      function parseRGBA(c: string): [number, number, number, number] | null {
+        const m = /rgba?\(([^)]+)\)/.exec(c);
+        if (!m) return null;
+        const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number);
+        return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+      }
+      function behind(el: HTMLElement): [number, number, number] {
+        const layers: [number, number, number, number][] = [];
+        for (let e: HTMLElement | null = el; e; e = e.parentElement) {
+          const c = parseRGBA(getComputedStyle(e).backgroundColor);
+          if (c && c[3] > 0) { layers.push(c); if (c[3] >= 0.99) break; }
+        }
+        // Nothing solid found: the page itself is the stadium photo under a dark
+        // scrim, unless the light theme is on.
+        let base: [number, number, number] = document.documentElement.dataset.theme === 'light' ? [246, 243, 238] : [24, 20, 16];
+        if (layers.length && layers[layers.length - 1][3] >= 0.99) base = layers.pop()!.slice(0, 3) as [number, number, number];
+        for (let i = layers.length - 1; i >= 0; i--) {
+          const [r, g, b, a] = layers[i];
+          base = [r * a + base[0] * (1 - a), g * a + base[1] * (1 - a), b * a + base[2] * (1 - a)];
+        }
+        return base;
+      }
+      const lum = ([r, g, b]: [number, number, number]) => {
+        const f = (v: number) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+      function paintSearchContrast() {
+        document.querySelectorAll<HTMLInputElement>('input[type="search"]').forEach((i) => {
+          i.dataset.contrast = lum(behind(i)) < 0.22 ? 'dark' : 'light';
+        });
+      }
+      paintSearchContrast();
+      // Backgrounds fade between colors, so check again once the fade is done.
+      new MutationObserver(() => { requestAnimationFrame(paintSearchContrast); setTimeout(paintSearchContrast, 450); })
+        .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-bg', 'data-btncolor'] });
+      window.addEventListener('load', paintSearchContrast);
+    </script>
+    <script>
+      // Owners keep their happy hours and daily specials current at /manage/.
+      // The site is built ahead of time, so any page that shows happy hours
+      // asks Supabase for the owners' latest once, swaps it into the marked
+      // spots, and hands it to page scripts through the `live-deals` event.
+      //   [data-hh-slug]        -> happy-hour line (text goes in .hh-text)
+      //   [data-specials-slug]  -> today's specials line
+      //   [data-live-deals]     -> page just wants the event
+      import { loadLiveDeals, todayCT } from '../lib/venue-portal';
+      if (document.querySelector('[data-hh-slug], [data-specials-slug], [data-live-deals]')) {
+        loadLiveDeals().catch(() => ({})).then((deals) => {
+          document.querySelectorAll<HTMLElement>('[data-hh-slug]').forEach((el) => {
+            const d = deals[el.dataset.hhSlug!];
+            if (!d || d.happy_hours === null) return;
+            const t = el.querySelector('.hh-text') ?? el;
+            t.textContent = d.summary;
+            el.hidden = !d.summary;
+          });
+          const dow = new Date(todayCT() + 'T12:00:00').getDay();
+          document.querySelectorAll<HTMLElement>('[data-specials-slug]').forEach((el) => {
+            const d = deals[el.dataset.specialsSlug!];
+            if (!d || d.specials === null) return;
+            const sp = d.specials.find((x) => x.day === dow);
+            const line = sp ? [...(sp.food ?? []), ...(sp.drinks ?? [])].join(' · ') || sp.event || '' : '';
+            (el.querySelector('.hh-text') ?? el).textContent = line;
+            el.hidden = !line;
+          });
+          (window as unknown as { __liveDeals: typeof deals }).__liveDeals = deals;
+          document.dispatchEvent(new CustomEvent('live-deals', { detail: deals }));
+        });
+      }
+    </script>
     <footer class="site-footer">
       <div class="wrap">
         <p><strong>The 380</strong> is an independent going-out guide for Iowa City, Coralville, North Liberty, Cedar Rapids and Marion.</p>
         <p>Listings are seeded from public sources and marked for verification; hours and happy hours change, so check before you go. Drink responsibly and get a ride home.</p>
-        <p><a href="/about/">About</a> · <a href="/neighborhoods/">Neighborhoods</a> · <a href="/party-pics/">Party Pics</a> · <a href="/about/#advertise">Advertise</a></p>
+        <p><a href="/about/">About</a> · <a href="/neighborhoods/">Neighborhoods</a> · <a href="/party-pics/">Party Pics</a> · <a href="/about/#advertise">Advertise</a> · <a href="/manage/">For venues: manage your page</a></p>
       </div>
     </footer>
     <nav class="tabbar" aria-label="Sections">

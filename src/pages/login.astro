@@ -23,6 +23,7 @@ import Base from '../layouts/Base.astro';
         <button type="button" class="forgot-password" id="forgot-password">Forgot password?</button>
         <p class="auth-message" id="auth-message" role="status" hidden></p>
       </form>
+      <a href="/" class="skip-login" id="skip-login">Skip for now and go to the home page</a>
 
       <p class="auth-unconfigured" id="auth-unconfigured" hidden>
         Accounts aren't connected yet -- check back soon.
@@ -96,6 +97,7 @@ import Base from '../layouts/Base.astro';
     .auth-form .btn { margin-top: 16px; }
     .forgot-password { align-self: flex-start; border: 0; padding: 4px 0; background: none; color: var(--green-dark); font: inherit; font-size: 14px; cursor: pointer; }
     .forgot-password:hover { text-decoration: underline; }
+    .skip-login { display: block; width: fit-content; margin: 16px auto 0; color: var(--ink-2); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
     .auth-message { margin: 12px 0 0; font-size: 14px; padding: 10px 12px; border-radius: var(--radius-sm); }
     .auth-message.ok { background: var(--green-soft); color: var(--green-dark); }
     .auth-message.error { background: #fdecea; color: #b3261e; }
@@ -112,6 +114,12 @@ import Base from '../layouts/Base.astro';
     const messageEl = document.getElementById('auth-message') as HTMLElement | null;
     const unconfiguredEl = document.getElementById('auth-unconfigured');
     const forgotPasswordBtn = document.getElementById('forgot-password') as HTMLButtonElement | null;
+    const skipLoginLink = document.getElementById('skip-login') as HTMLAnchorElement | null;
+
+    skipLoginLink?.addEventListener('click', () => {
+      try { localStorage.setItem('the380.firstVisitDone', '1'); } catch {}
+      try { sessionStorage.setItem('the380.skipLoginSession', '1'); } catch {}
+    });
 
     if (!supabaseConfigured || !supabase) {
       form?.setAttribute('hidden', '');
@@ -172,7 +180,9 @@ import Base from '../layouts/Base.astro';
           if (mode === 'login') {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) { showMessage(error.message, 'error'); return; }
-            location.href = '/create-profile/';
+            try { localStorage.setItem('the380.firstVisitDone', '1'); } catch {}
+            const next = new URLSearchParams(location.search).get('next') || '';
+            location.href = next.startsWith('/') && !next.startsWith('//') ? next : '/create-profile/';
           } else {
             const { data, error } = await supabase.auth.signUp({
               email,
@@ -180,6 +190,7 @@ import Base from '../layouts/Base.astro';
               options: { emailRedirectTo: `${window.location.origin}/create-profile/` },
             });
             if (error) { showMessage(error.message, 'error'); return; }
+            try { localStorage.setItem('the380.firstVisitDone', '1'); } catch {}
             if (data.session) {
               location.href = '/create-profile/';
             } else {

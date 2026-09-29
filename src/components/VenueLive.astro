@@ -49,7 +49,7 @@ const { slug, name } = Astro.props;
     const sp = (c?.specials ?? []) as DaySpecial[];
     if (hh.length || sp.length) {
       const today = new Date(todayCT() + 'T12:00:00').getDay();
-      const hhHtml = hh.map((w) => `<div class="vl-hh"><strong>${daysLabel(w.days)}</strong><span>${fmtClock(w.start)} – ${w.end === 'close' ? 'close' : fmtClock(w.end)}</span>${w.deal ? `<em>${esc(w.deal)}</em>` : ''}</div>`).join('');
+      const hhHtml = hh.map((w) => `<div class="vl-hh"><strong>${daysLabel(w.days)}</strong><span>${fmtClock(w.start)} – ${w.end === 'close' ? 'close' : fmtClock(w.end)}</span>${w.deal ? `<em>${esc(w.deal).replace(/\n/g, '<br>')}</em>` : ''}</div>`).join('');
       const spHtml = [1, 2, 3, 4, 5, 6, 0].map((d) => sp.find((x) => x.day === d)).filter(Boolean).map((s) => `
         <div class="vl-sp${s!.day === today ? ' today' : ''}"><p class="vl-sp-day">${DAY_LONG[s!.day]}${s!.day === today ? ' <span>Today</span>' : ''}</p>
           ${s!.food?.length ? `<ul>${s!.food.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}

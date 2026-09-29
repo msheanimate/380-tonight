@@ -103,7 +103,8 @@ export function happySummary(ws: HappyWindow[]) {
   return ws.map((w) => {
     const days = daysLabel(w.days).replace('Every day', 'Daily');
     const end = w.end === 'close' ? 'close' : fmtClock(w.end);
-    return `${days} ${fmtClock(w.start)}–${end}${w.deal ? ` · ${w.deal}` : ''}`;
+    const deal = (w.deal ?? '').split('\n').map((s) => s.trim()).filter(Boolean).join(', ');
+    return `${days} ${fmtClock(w.start)}–${end}${deal ? ` · ${deal}` : ''}`;
   }).join('; ');
 }
 
@@ -125,7 +126,7 @@ export function happyOnNow(ws: { days: number[]; start: string; end: string }[],
 /** What owners have saved on the Happy hours & specials tab, keyed by slug.
  *  `null` means that venue never saved it, so the site's own listing stands;
  *  an empty array means the owner cleared it. */
-export type LiveDeal = { happy_hours: HappyWindow[] | null; specials: DaySpecial[] | null; summary: string };
+export type LiveDeal = { happy_hours: HappyWindow[] | null; specials: DaySpecial[] | null; summary: string; lines: string[] };
 export async function loadLiveDeals(): Promise<Record<string, LiveDeal>> {
   const out: Record<string, LiveDeal> = {};
   if (!supabase) return out;
@@ -134,7 +135,10 @@ export async function loadLiveDeals(): Promise<Record<string, LiveDeal>> {
   if (error) return out;
   for (const r of (data ?? []) as { venue_slug: string; happy_hours: HappyWindow[] | null; specials: DaySpecial[] | null }[]) {
     const hh = Array.isArray(r.happy_hours) ? r.happy_hours : null;
-    out[r.venue_slug] = { happy_hours: hh, specials: Array.isArray(r.specials) ? r.specials : null, summary: hh ? happySummary(hh) : '' };
+    out[r.venue_slug] = {
+      happy_hours: hh, specials: Array.isArray(r.specials) ? r.specials : null,
+      summary: hh ? happySummary(hh) : '', lines: hh ? hh.map((w) => happySummary([w])) : [],
+    };
   }
   return out;
 }

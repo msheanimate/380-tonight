@@ -81,7 +81,7 @@ export function enableCardLikes() {
         await supabase!.from('likes').insert({ user_id: session.user.id, venue_slug: slug });
         likes.add(slug);
       }
-      paint(btn, !liked);
+      document.querySelectorAll<HTMLElement>('.card-like-btn[data-slug]').forEach((b) => { if (b.dataset.slug === slug) paint(b, !liked); });
     } finally {
       btn.disabled = false;
     }

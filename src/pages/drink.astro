@@ -28,7 +28,8 @@ const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cockta
     <p>Published happy hours logged so far: <strong id="hh-count">{withHH.length}</strong> of {list.length}. Collecting these venue by venue is the first data job; until the count is real, the "cocktails" and "dive" chips below are the cheapest routes.</p>
     <div id="hh-list">
       {withHH.map((v) => (
-        <div class="hh-result" data-slug={v.slug} data-side={sideOf(v.city)}><a href={`/venues/${v.slug}/`}>{v.name}</a><span class="when">{v.happy_hour}</span></div>
+        <div class="hh-result" data-slug={v.slug} data-side={sideOf(v.city)}><a href={`/venues/${v.slug}/`}>{v.name}</a><span class="when">{v.happy_hour}</span>
+          <button type="button" class="card-like-btn" data-slug={v.slug} aria-pressed="false" aria-label={`Like ${v.name}`}><span class="like-icon" aria-hidden="true">♡</span></button></div>
       ))}
     </div>
   </section>
@@ -119,6 +120,7 @@ const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cockta
     // version without waiting for a rebuild.
     import { onLiveDeals, happyOnNow, esc, type HappyWindow, type LiveDeal } from '../lib/venue-portal';
     import { nowInZone } from '../lib/time';
+    import { paintLikeButtons } from '../lib/likes';
 
     type Ref = { slug: string; name: string; side: string; windows: HappyWindow[] };
     const section = document.getElementById('happy-hour')!;
@@ -134,8 +136,10 @@ const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cockta
         el.className = 'hh-result';
         el.dataset.slug = slug;
         el.dataset.side = r.side;
-        el.innerHTML = `<a href="/venues/${esc(slug)}/">${esc(r.name)}</a><span class="when"></span>`;
+        el.innerHTML = `<a href="/venues/${esc(slug)}/">${esc(r.name)}</a><span class="when"></span>
+          <button type="button" class="card-like-btn" data-slug="${esc(slug)}" aria-pressed="false" aria-label="Like ${esc(r.name)}"><span class="like-icon" aria-hidden="true">♡</span></button>`;
         listEl.appendChild(el);
+        paintLikeButtons(el);
       }
       return el;
     }
@@ -193,6 +197,14 @@ const chips = ['patio', 'live-music', 'trivia', 'karaoke', 'late-night', 'cockta
       background: var(--btn); color: var(--btn-ink); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
     }
     #hh-list .hh-src { font-size: 12px; color: var(--ink-3); font-weight: 600; }
+    #hh-list .hh-result { position: relative; padding-right: 44px; }
+    #hh-list .card-like-btn {
+      top: 50%; right: 0; transform: translateY(-40%); width: 32px; height: 32px;
+      background: var(--chip-bg); border-color: var(--chip-border); color: var(--ink);
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+    }
+    #hh-list .card-like-btn:hover { transform: translateY(-40%) scale(1.08); }
+    #hh-list .card-like-btn.liked { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
   </style>
   <style>
     .filters .dd-picker { position: relative; flex: 1 1 180px; min-width: 0; }

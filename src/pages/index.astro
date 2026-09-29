@@ -153,6 +153,7 @@ const hhOthers = venues
 <script>
   import { nowInZone } from '../lib/time';
   import { onLiveDeals } from '../lib/venue-portal';
+  import { paintLikeButtons } from '../lib/likes';
   import { gradientFor } from '../lib/art';
 
   // Preview any moment with ?at=2026-09-28T15:00 (Central) -- handy for
@@ -169,7 +170,7 @@ const hhOthers = venues
     photo: string | null; logo: string | null; windows: Win[]; specials: Special[];
     specialsWindow: { start: string; end: string } | null;
   };
-  type Deal = { price: string | null; item: string; group: string; state: 'on' | 'later'; minutes: number; startMin: number; verify?: boolean };
+  type Deal = { price: string | null; item: string; group: string; kind: 'hh' | 'special'; state: 'on' | 'later'; minutes: number; startMin: number; endMin: number; toClose: boolean; verify?: boolean };
 
   const hhSection = document.getElementById('hh-now');
   const hhRow = document.getElementById('hh-now-row');
@@ -198,7 +199,7 @@ const hhOthers = venues
   // Where a [start,end] window on a given weekday stands relative to now
   // (minutes since midnight today). A window ending at "close" (2 AM) runs
   // past midnight, so yesterday's window can still be on at 1 AM.
-  type Status = { state: 'on' | 'later'; minutes: number; startMin: number };
+  type Status = { state: 'on' | 'later'; minutes: number; startMin: number; endMin: number; toClose: boolean };
   function status(days: number[], startT: string, endT: string, dow: number, nowMin: number): Status | null {
     const start = toMin(startT);
     let end = toMin(endT);
@@ -208,8 +209,9 @@ const hhOthers = venues
     if (days.includes(dow)) candidates.push([start, end]);
     if (days.includes(yesterday) && end > 24 * 60) candidates.push([start - 24 * 60, end - 24 * 60]);
     for (const [s, e] of candidates) {
-      if (nowMin >= s && nowMin < e) return { state: 'on', minutes: e - nowMin, startMin: s };
-      if (nowMin < s) return { state: 'later', minutes: s - nowMin, startMin: s };
+      const toClose = endT === 'close';
+      if (nowMin >= s && nowMin < e) return { state: 'on', minutes: e - nowMin, startMin: s, endMin: e, toClose };
+      if (nowMin < s) return { state: 'later', minutes: s - nowMin, startMin: s, endMin: e, toClose };
     }
     return null;
   }
@@ -220,8 +222,8 @@ const hhOthers = venues
       const st = status(w.days, w.start, w.end, dow, nowMin);
       if (!st) continue;
       const group = `Happy hour ${fmtClock(toMin(w.start))}–${w.end === 'close' ? 'close' : fmtClock(toMin(w.end))}`;
-      const items = w.deal ? w.deal.split(/,\s*/) : ['Happy hour'];
-      for (const it of items) { const [price, item] = splitPrice(it); deals.push({ price, item, group, ...st, verify: w.verify }); }
+      const items = w.deal ? w.deal.split(/\s*[,|\n]\s*/).filter(Boolean) : ['Happy hour'];
+      for (const it of items) { const [price, item] = splitPrice(it); deals.push({ price, item, group, kind: 'hh', ...st, verify: w.verify }); }
     }
     const sp = v.specials.find((x) => x.day === dow);
     if (sp) {
@@ -230,12 +232,27 @@ const hhOthers = venues
       const st = status([dow], startT, endT, dow, nowMin);
       if (st) {
         const group = `${DAYS[dow]} specials`;
-        for (const it of [...(sp.food ?? []), ...(sp.drinks ?? [])]) { const [price, item] = splitPrice(it); deals.push({ price, item, group, ...st }); }
-        if (sp.event) deals.push({ price: null, item: sp.event, group: `${DAYS[dow]} event`, ...st });
+        for (const it of [...(sp.food ?? []), ...(sp.drinks ?? [])].flatMap((x) => x.split(/\s*\|\s*/)).filter(Boolean)) { const [price, item] = splitPrice(it); deals.push({ price, item, group, kind: 'special', ...st }); }
+        if (sp.event) deals.push({ price: null, item: sp.event, group: `${DAYS[dow]} event`, kind: 'special', ...st });
       }
     }
-    // On-now first, then by start time; within a group keep the bar's order.
-    return deals.sort((a, b) => (a.state === b.state ? a.startMin - b.startMin : a.state === 'on' ? -1 : 1));
+    // On-now first (a running happy hour ahead of all-day specials), then by
+    // start time; within a group keep the bar's order.
+    return deals.sort((a, b) => {
+      if (a.state !== b.state) return a.state === 'on' ? -1 : 1;
+      if (a.state === 'on' && a.kind !== b.kind) return a.kind === 'hh' ? -1 : 1;
+      return a.startMin - b.startMin;
+    });
+  }
+
+  // A happy hour that ran earlier today and is already over.
+  function happyHourEnded(v: HV, dow: number, nowMin: number) {
+    return v.windows.some((w) => {
+      if (!w.days.includes(dow)) return false;
+      let end = toMin(w.end), start = toMin(w.start);
+      if (end <= start) end += 24 * 60;
+      return nowMin >= end;
+    });
   }
 
   function logoHtml(v: HV) {
@@ -250,12 +267,19 @@ const hhOthers = venues
     const cards = hhVenues
       .map((v) => ({ v, deals: dealsFor(v, dow, minutes) }))
       .filter((c) => c.deals.length);
-    // Venues with something on now first (most time left leads), then by next start.
+    // Happy hours running now lead (most time left first), then bars whose
+    // daily specials are on, then what starts later today.
+    // Order follows the happy-hour badge: on now, starting later (soonest
+    // first), bars with only specials today, then ones whose happy hour ended.
     const key = (c: { deals: Deal[] }) => c.deals[0];
+    const order = (c: { v: HV; deals: Deal[] }): [number, number] => {
+      const hh = c.deals.find((d) => d.kind === 'hh');
+      if (hh) return hh.state === 'on' ? [0, -hh.minutes] : [1, hh.startMin];
+      return happyHourEnded(c.v, dow, minutes) ? [3, 0] : [2, 0];
+    };
     cards.sort((a, b) => {
-      const da = key(a), db = key(b);
-      if (da.state !== db.state) return da.state === 'on' ? -1 : 1;
-      return da.state === 'on' ? db.minutes - da.minutes : da.startMin - db.startMin;
+      const [ra, sa] = order(a), [rb, sb] = order(b);
+      return ra - rb || sa - sb;
     });
     if (!cards.length) { hhSection.hidden = true; return; }
     const onCount = cards.filter((c) => key(c).state === 'on').length;
@@ -265,23 +289,36 @@ const hhOthers = venues
 
     hhRow.innerHTML = cards.map(({ v, deals }) => {
       const lead = deals[0];
-      const timer = lead.state === 'on'
-        ? `<span class="ah-timer on"><b>${fmtLeft(lead.minutes)}</b><small>remaining</small></span>`
-        : `<span class="ah-timer"><b>${lead.minutes <= SOON_MIN ? 'in ' + lead.minutes + 'm' : fmtClock(lead.startMin)}</b><small>starts</small></span>`;
+      // Happy hours count down. Daily specials just say how long they run,
+      // so a card doesn't look like happy hour is still on after it ended.
+      const till = (d: Deal) => (d.toClose ? 'Till close' : `Till ${fmtClock(d.endMin)}`);
+      // The badge is always about happy hour: time left, when it starts, or
+      // that it's over for today (the specials rows then carry their own times).
+      const nextHH = deals.find((d) => d.kind === 'hh');
+      const ended = !nextHH && happyHourEnded(v, dow, minutes);
+      const timer = nextHH && nextHH.state === 'on'
+        ? `<span class="ah-timer on"><b>${fmtLeft(nextHH.minutes)}</b><small>happy hour left</small></span>`
+        : nextHH
+          ? `<span class="ah-timer"><b>${nextHH.minutes <= SOON_MIN ? 'in ' + nextHH.minutes + 'm' : fmtClock(nextHH.startMin)}</b><small>happy hour starts</small></span>`
+          : ended
+            ? `<span class="ah-timer ah-timer-over"><b>Ended</b><small>happy hour</small></span>`
+            : `<span class="ah-timer"><b>${lead.state === 'on' ? till(lead) : fmtClock(lead.startMin)}</b><small>today's specials</small></span>`;
       // A row only gets its own timer when it's on a different clock than the
       // card's header pill (e.g. a happy hour ending at 6 next to all-day specials).
-      const sameClock = (d: Deal) => d.state === lead.state && d.minutes === lead.minutes;
+      const badgeDeal = nextHH ?? (ended ? null : lead);
+      const sameClock = (d: Deal) => !!badgeDeal && d.state === badgeDeal.state && d.kind === badgeDeal.kind && d.minutes === badgeDeal.minutes;
       const rows = deals.slice(0, MAX_DEALS).map((d) => `
         <li class="ah-deal${d.state === 'on' ? '' : ' later'}">
           ${d.price ? `<b class="ah-price">${esc(d.price)}</b>` : `<b class="ah-price ah-price-none">★</b>`}
           <span class="ah-deal-body"><span class="ah-item">${esc(d.item)}</span><small class="ah-group">${esc(d.group)}${d.verify ? ' · unconfirmed' : ''}</small></span>
-          ${sameClock(d) ? '' : `<span class="ah-deal-time">${d.state === 'on' ? fmtLeft(d.minutes) + '<small>remaining</small>' : (d.minutes <= SOON_MIN ? 'in ' + d.minutes + 'm' : fmtClock(d.startMin)) + '<small>starts</small>'}</span>`}
+          ${sameClock(d) ? '' : `<span class="ah-deal-time">${d.state === 'on' ? (d.kind === 'hh' ? fmtLeft(d.minutes) + '<small>remaining</small>' : till(d)) : (d.minutes <= SOON_MIN ? 'in ' + d.minutes + 'm' : fmtClock(d.startMin)) + '<small>starts</small>'}</span>`}
         </li>`).join('');
       const more = deals.length > MAX_DEALS ? `<li class="ah-more">+${deals.length - MAX_DEALS} more</li>` : '';
       return `<a class="ah-card" href="/venues/${esc(v.slug)}/" data-side="${esc(v.side)}">
         <div class="ah-photo" style="${v.photo ? `background-image:url('${esc(v.photo)}')` : `background:${gradientFor(v.slug)}`}">
           ${logoHtml(v)}
           ${timer}
+          <button type="button" class="card-like-btn" data-slug="${esc(v.slug)}" aria-pressed="false" aria-label="Like ${esc(v.name)}"><span class="like-icon" aria-hidden="true">♡</span></button>
         </div>
         <div class="ah-body">
           <strong class="ah-name">${esc(v.name)}</strong>
@@ -294,6 +331,7 @@ const hhOthers = venues
     const side = document.documentElement.dataset.side || 'all';
     hhRow.querySelectorAll<HTMLElement>('[data-side]').forEach((el) => el.classList.toggle('hidden', side !== 'all' && el.dataset.side !== side));
     hhSection.hidden = false;
+    paintLikeButtons(hhRow);
   }
   renderHappyHours();
   setInterval(renderHappyHours, 60 * 1000);
@@ -315,5 +353,13 @@ const hhOthers = venues
       if (d.specials !== null) v.specials = d.specials;
     }
     renderHappyHours();
+    // Bars added this way weren't built with a photo; look theirs up.
+    if (hhVenues.some((v) => !v.photo)) {
+      fetch('/venue-covers.json').then((r) => r.json()).then((covers: Record<string, string>) => {
+        let changed = false;
+        for (const v of hhVenues) if (!v.photo && covers[v.slug]) { v.photo = covers[v.slug]; changed = true; }
+        if (changed) renderHappyHours();
+      }).catch(() => {});
+    }
   });
 </script>

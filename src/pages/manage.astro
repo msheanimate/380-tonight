@@ -303,7 +303,8 @@ const venueIndex = venues.map((v: any) => ({
         <label>To <input type="time" class="mg-hh-end" value="${close ? '' : esc(w.end || '18:00')}" ${close ? 'disabled' : ''} /></label>
         <label class="mg-close"><input type="checkbox" class="mg-hh-close" ${close ? 'checked' : ''} /> till close</label>
       </div>
-      <input class="mg-hh-deal" maxlength="160" placeholder="The deal: $1 off drafts, $3 wells" value="${esc(w.deal ?? '')}" />
+      <label class="mg-hh-deal-label">The deal <small>one per line</small>
+        <textarea class="mg-hh-deal" rows="3" maxlength="400" placeholder="$1 off drafts&#10;$3 wells&#10;Half-price apps">${esc(w.deal ?? '')}</textarea></label>
       <button type="button" class="mg-del mg-hh-del">Remove</button>
     </div>`;
   }
@@ -335,7 +336,7 @@ const venueIndex = venues.map((v: any) => ({
       days: [...r.querySelectorAll<HTMLInputElement>('.mg-day input:checked')].map((i) => +i.value),
       start: r.querySelector<HTMLInputElement>('.mg-hh-start')!.value || '15:00',
       end: r.querySelector<HTMLInputElement>('.mg-hh-close')!.checked ? 'close' : (r.querySelector<HTMLInputElement>('.mg-hh-end')!.value || '18:00'),
-      deal: r.querySelector<HTMLInputElement>('.mg-hh-deal')!.value.trim() || undefined,
+      deal: r.querySelector<HTMLTextAreaElement>('.mg-hh-deal')!.value.split('\n').map((s) => s.trim()).filter(Boolean).join('\n') || undefined,
     })).filter((w) => w.days.length);
     const lines = (el: HTMLTextAreaElement | null) => (el?.value ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
     const specials: DaySpecial[] = [...document.querySelectorAll<HTMLElement>('#mg-specials .mg-sp-day')].map((d) => ({
@@ -519,6 +520,7 @@ const venueIndex = venues.map((v: any) => ({
   .mg-hh-times label { width: 130px; }
   .mg-close { flex-direction: row !important; align-items: center; width: auto !important; font-size: 13px !important; }
   .mg-hh-del { justify-self: start; }
+  .mg-hh-deal-label small { font-weight: 500; color: var(--ink-3); margin-left: 4px; }
   .mg-specials { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
   .mg-sp-day { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 12px; background: var(--chip-bg); }
   .mg-sp-name { margin: 0; font-weight: 800; color: var(--button-orange); }

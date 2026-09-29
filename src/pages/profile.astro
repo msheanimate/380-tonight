@@ -2,13 +2,14 @@
 import Base from '../layouts/Base.astro';
 import venuesIC from '../data/venues-iowa-city.json';
 import venuesCR from '../data/venues-cedar-rapids.json';
+import { gotoIndex } from '../lib/goto-index';
 
 const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
   slug: v.slug, name: v.name, city: v.city, type: v.type,
 }));
 ---
 <Base title="Your profile" description="Your saved venues on The 380.">
-  <div id="profile-page" data-venues={JSON.stringify(venueIndex)}>
+  <div id="profile-page" data-venues={JSON.stringify(venueIndex)} data-goto={JSON.stringify(gotoIndex())}>
     <div id="profile-signed-out">
       <h1>You're not logged in</h1>
       <p><a href="/login/">Log in or sign up</a> to see your profile and the venues you've liked.</p>
@@ -55,6 +56,19 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         <a href="/u/" id="username-view-link" class="username-view-link" hidden>View your public page &rarr;</a>
         <p class="avatar-error" id="profile-save-error" hidden></p>
       </form>
+
+      <section class="password-section" aria-labelledby="password-heading">
+        <h2 id="password-heading">Change password</h2>
+        <p class="password-hint">Choose a new password for your account. Use at least 6 characters.</p>
+        <form id="password-form" class="dn-form" novalidate>
+          <label for="new-password-input">New password</label>
+          <input id="new-password-input" type="password" autocomplete="new-password" minlength="6" required />
+          <label for="confirm-password-input">Confirm new password</label>
+          <input id="confirm-password-input" type="password" autocomplete="new-password" minlength="6" required />
+          <button type="submit" class="btn secondary" id="password-submit">Update password</button>
+          <p class="avatar-error" id="password-message" role="status" hidden></p>
+        </form>
+      </section>
 
       <h2>Your photos</h2>
       <div id="gallery-grid" class="gallery-grid"></div>
@@ -112,6 +126,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     .avatar-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
     .avatar-actions label.btn { cursor: pointer; }
     .avatar-error { color: #b3261e; font-size: 13px; margin: 0; }
+    .password-success { color: var(--green-dark); font-size: 13px; margin: 0; }
     .gallery-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin: 12px 0 16px;
     }
@@ -125,6 +140,9 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     .gallery-remove:hover { background: rgba(0,0,0,.75); }
     #gallery-add-label { cursor: pointer; }
     .dn-form { display: flex; flex-direction: column; gap: 4px; margin: 16px 0 32px; max-width: 420px; }
+    .password-section { margin: 24px 0 32px; }
+    .password-section h2 { margin-bottom: 4px; }
+    .password-hint { color: var(--ink-on-photo-2); margin: 0; font-size: 14px; }
     .dn-form label { font-size: 13px; font-weight: 600; color: var(--ink-on-photo-2); margin-top: 12px; }
     .dn-form label:first-child { margin-top: 0; }
     .dn-form input, .dn-form textarea {
@@ -164,7 +182,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     .friend-requests-section { margin: 0 0 16px auto; max-width: 320px; }
     .friend-requests-section[hidden] { display: none; }
     .liked-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0 24px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; margin: 16px 0 24px; align-items: start;
     }
     .liked-card {
       display: block; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--card);
@@ -178,6 +196,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
 
   <script>
     import { supabase, supabaseConfigured } from '../lib/supabase';
+    import { gotoCardHtml, type GotoVenue } from '../lib/goto-card';
     import { paintAvatar } from '../lib/avatar';
     import { createDropdownPicker } from '../lib/dropdown';
     import { paintGoing } from '../lib/going';
@@ -188,6 +207,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
     const page = document.getElementById('profile-page') as HTMLElement | null;
     const venueIndex: VenueRef[] = JSON.parse(page?.dataset.venues || '[]');
     const venueBySlug = new Map(venueIndex.map((v) => [v.slug, v]));
+    const gotoBySlug = new Map((JSON.parse(page?.dataset.goto || '[]') as GotoVenue[]).map((v) => [v.slug, v]));
 
     const signedOutEl = document.getElementById('profile-signed-out');
     const signedInEl = document.getElementById('profile-signed-in');
@@ -225,6 +245,9 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
       const GALLERY_MAX = 12;
       const usernameViewLink = document.getElementById('username-view-link') as HTMLAnchorElement | null;
       const profileSaveError = document.getElementById('profile-save-error') as HTMLElement | null;
+      const passwordForm = document.getElementById('password-form') as HTMLFormElement | null;
+      const passwordMessage = document.getElementById('password-message') as HTMLElement | null;
+      const passwordSubmit = document.getElementById('password-submit') as HTMLButtonElement | null;
       const friendRequestsSection = document.getElementById('friend-requests-section') as HTMLElement | null;
       const friendRequestsList = document.getElementById('friend-requests-list') as HTMLElement | null;
       const friendsList = document.getElementById('friends-list') as HTMLElement | null;
@@ -595,9 +618,8 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         const slugs = (likes || []).map((l: { venue_slug: string }) => l.venue_slug);
         if (likedGrid) {
           likedGrid.innerHTML = slugs.map((slug: string) => {
-            const v = venueBySlug.get(slug);
-            if (!v) return '';
-            return `<a class="liked-card" href="/venues/${v.slug}/"><span class="lc-name">${v.name}</span><span class="lc-meta">${v.city} · ${v.type}</span></a>`;
+            const v = gotoBySlug.get(slug);
+            return v ? gotoCardHtml(v) : '';
           }).join('');
         }
         if (likedEmpty) likedEmpty.hidden = slugs.length > 0;
@@ -660,6 +682,39 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
         // Saving is the last step of editing -- send them to see the result
         // on their own public page rather than leaving them on the form.
         location.href = `/u/?u=${encodeURIComponent(username)}`;
+      });
+
+      passwordForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPassword = (document.getElementById('new-password-input') as HTMLInputElement | null)?.value || '';
+        const confirmPassword = (document.getElementById('confirm-password-input') as HTMLInputElement | null)?.value || '';
+        if (passwordMessage) passwordMessage.hidden = true;
+        if (newPassword.length < 6) {
+          if (passwordMessage) {
+            passwordMessage.textContent = 'Your password must be at least 6 characters.';
+            passwordMessage.hidden = false;
+          }
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          if (passwordMessage) {
+            passwordMessage.textContent = 'Those passwords do not match.';
+            passwordMessage.hidden = false;
+          }
+          return;
+        }
+        if (passwordSubmit) passwordSubmit.disabled = true;
+        try {
+          const { error } = await supabase!.auth.updateUser({ password: newPassword });
+          if (passwordMessage) {
+            passwordMessage.textContent = error ? `Couldn't update password: ${error.message}` : 'Password updated.';
+            passwordMessage.className = error ? 'avatar-error' : 'password-success';
+            passwordMessage.hidden = false;
+          }
+          if (!error) passwordForm.reset();
+        } finally {
+          if (passwordSubmit) passwordSubmit.disabled = false;
+        }
       });
 
       avatarFileInput?.addEventListener('change', async () => {

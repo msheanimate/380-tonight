@@ -70,8 +70,13 @@ function eventsToShows(evs: typeof here): Show[] {
 }
 
 const venueShows: Show[] = [...(v.shows ?? []), ...eventsToShows(here)];
+// A bar hosting a game-day watch party isn't a show venue, so game-day events
+// alone don't switch the show calendar on.
+const hasRealShows = (v.shows ?? []).length > 0 || here.some((e) => e.category !== 'game-day');
 const showCalendar = v.type === 'music-venue' || v.type === 'theater' || v.type === 'arena'
-  || v.tags?.includes('live-music') || venueShows.length > 0;
+  || v.tags?.includes('live-music') || hasRealShows;
+// Happy hour as one bullet per window ("Mon–Fri 3 PM–6 PM · $3 wells").
+const hhLines = (v.happy_hour ?? '').split(/;\s*/).map((x) => x.trim()).filter(Boolean);
 
 // Compact "upcoming shows" quadrant on the dashboard -- next 5, soonest first.
 const WEEKDAY_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -217,7 +222,9 @@ const compactFacts = [
                 data-hh-slug={f.live === 'hh' ? v.slug : undefined}
                 data-specials-slug={f.live === 'specials' ? v.slug : undefined}>
                 <span class="vp-fact-label">{f.label}</span>
-                <span class="vp-fact-value hh-text">{f.value}</span>
+                {f.live === 'hh'
+                  ? <ul class="vp-fact-value hh-text hh-bullets">{hhLines.map((l) => <li>{l}</li>)}</ul>
+                  : <span class="vp-fact-value hh-text">{f.value}</span>}
               </div>
             ))}
           </div>
@@ -278,7 +285,7 @@ const compactFacts = [
     <div class="facts">
       <div class="fact"><b>Address</b>{v.address}</div>
       {v.hours_note && <div class="fact"><b>Hours</b>{v.hours_note}</div>}
-      <div class="fact" data-hh-slug={v.slug} hidden={!v.happy_hour}><b>Happy hour</b><span class="hh-text">{v.happy_hour}</span></div>
+      <div class="fact" data-hh-slug={v.slug} hidden={!v.happy_hour}><b>Happy hour</b><ul class="hh-text hh-bullets">{hhLines.map((l) => <li>{l}</li>)}</ul></div>
       <div class="fact"><b>Web</b>{site}</div>
     </div>
   )}

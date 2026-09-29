@@ -316,7 +316,9 @@ const bgChoices: Record<string, string | null> = {
             const d = deals[el.dataset.hhSlug!];
             if (!d || d.happy_hours === null) return;
             const t = el.querySelector('.hh-text') ?? el;
-            t.textContent = d.summary;
+            if (t.tagName === 'UL') {
+              t.replaceChildren(...d.lines.map((line) => Object.assign(document.createElement('li'), { textContent: line })));
+            } else t.textContent = d.summary;
             el.hidden = !d.summary;
           });
           const dow = new Date(todayCT() + 'T12:00:00').getDay();
@@ -659,6 +661,58 @@ const bgChoices: Record<string, string | null> = {
           });
         });
       }
+    </script>
+
+    <div class="page-loader" id="page-loader" hidden role="status" aria-live="polite">
+      <div class="page-loader-card">
+        <span class="page-loader-ring" aria-hidden="true"></span>
+        <p class="page-loader-title" id="page-loader-title">Loading…</p>
+        <p class="page-loader-note" id="page-loader-note"></p>
+      </div>
+    </div>
+    <script>
+      // Pages that pull live data (high school scores, schedules and standings
+      // from every Corridor school) can take a few seconds to arrive. When a
+      // link is clicked and the next page hasn't shown up within a moment,
+      // cover the old page with a loader so it doesn't look frozen.
+      const loader = document.getElementById('page-loader')!;
+      const title = document.getElementById('page-loader-title')!;
+      const note = document.getElementById('page-loader-note')!;
+      const COPY: [RegExp, string, string][] = [
+        [/^\/high-school\//, 'Loading high school sports', 'Pulling scores, schedules and standings for 24 schools.'],
+        [/^\/events\//, 'Loading events', 'Gathering shows, games and this week’s calendar.'],
+        [/^\/sports\//, 'Loading sports', 'Checking the latest scores.'],
+      ];
+      let timer = 0;
+      function show(path: string) {
+        const c = COPY.find(([re]) => re.test(path));
+        title.textContent = c ? c[1] : 'Loading…';
+        note.textContent = c ? c[2] : '';
+        note.hidden = !c;
+        loader.hidden = false;
+        requestAnimationFrame(() => loader.classList.add('on'));
+      }
+      function hide() {
+        clearTimeout(timer);
+        loader.classList.remove('on');
+        loader.hidden = true;
+      }
+      document.addEventListener('click', (e) => {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if ((e.target as HTMLElement).closest('button')) return;
+        const a = (e.target as HTMLElement).closest('a');
+        if (!a || !a.href || a.hasAttribute('download') || (a.target && a.target !== '_self')) return;
+        const url = new URL(a.href, location.href);
+        if (url.origin !== location.origin) return;
+        if (url.pathname === location.pathname && url.search === location.search) return; // same page / #hash
+        clearTimeout(timer);
+        // Slow pages get the loader almost at once; anything else only if it drags.
+        const slow = COPY.some(([re]) => re.test(url.pathname));
+        timer = window.setTimeout(() => show(url.pathname), slow ? 150 : 700);
+      });
+      // Coming back with the Back button restores this page as it was left.
+      window.addEventListener('pageshow', hide);
+      window.addEventListener('pagehide', () => clearTimeout(timer));
     </script>
   </body>
 </html>

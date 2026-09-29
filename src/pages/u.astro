@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import venuesIC from '../data/venues-iowa-city.json';
 import venuesCR from '../data/venues-cedar-rapids.json';
+import { gotoIndex } from '../lib/goto-index';
 import { games } from '../lib/data';
 import { hawkeyeGoing } from '../lib/game-going';
 
@@ -12,7 +13,7 @@ const venueIndex = [...venuesIC, ...venuesCR].map((v) => ({
 const seatgeekByKey = Object.fromEntries(games.filter((g) => g.seatgeek).map((g) => [hawkeyeGoing(g).key, g.seatgeek]));
 ---
 <Base title="Profile" description="A member profile on The 380.">
-  <div id="u-page" data-venues={JSON.stringify(venueIndex)} data-seatgeek={JSON.stringify(seatgeekByKey)}>
+  <div id="u-page" data-venues={JSON.stringify(venueIndex)} data-goto={JSON.stringify(gotoIndex())} data-seatgeek={JSON.stringify(seatgeekByKey)}>
     <div id="u-missing">
       <h1>No profile to show</h1>
       <p>This link is missing a username. <a href="/">Back to The 380</a>.</p>
@@ -124,7 +125,7 @@ const seatgeekByKey = Object.fromEntries(games.filter((g) => g.seatgeek).map((g)
     }
     /* .gallery-card now lives in global.css -- see note there (same reason). */
     .liked-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 16px 0 24px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; margin: 16px 0 24px; align-items: start;
     }
     /* .liked-card and its .lc-* children now live in global.css -- see note there. */
     .auth-unconfigured { color: var(--ink-on-photo-2); font-style: italic; }
@@ -156,6 +157,7 @@ const seatgeekByKey = Object.fromEntries(games.filter((g) => g.seatgeek).map((g)
 
   <script>
     import { supabase, supabaseConfigured } from '../lib/supabase';
+    import { gotoCardHtml, type GotoVenue } from '../lib/goto-card';
     import { paintAvatar } from '../lib/avatar';
     import { createDropdownPicker } from '../lib/dropdown';
     import { paintGoing } from '../lib/going';
@@ -191,6 +193,7 @@ const seatgeekByKey = Object.fromEntries(games.filter((g) => g.seatgeek).map((g)
     const page = document.getElementById('u-page') as HTMLElement | null;
     const venueIndex: VenueRef[] = JSON.parse(page?.dataset.venues || '[]');
     const venueBySlug = new Map(venueIndex.map((v) => [v.slug, v]));
+    const gotoBySlug = new Map((JSON.parse(page?.dataset.goto || '[]') as GotoVenue[]).map((v) => [v.slug, v]));
     const seatgeekByKey: Record<string, string> = JSON.parse(page?.dataset.seatgeek || '{}');
     // Tickets for a going post: the Hawkeye game's own SeatGeek page, or a SeatGeek
     // search for a concert. High school games sell tickets through their schools.
@@ -676,21 +679,10 @@ const seatgeekByKey = Object.fromEntries(games.filter((g) => g.seatgeek).map((g)
 
         if (likedVenuesEl) {
           likedVenuesEl.innerHTML = '';
-          (profile.liked_venues || []).forEach((slug) => {
-            const v = venueBySlug.get(slug);
-            if (!v) return;
-            const a = document.createElement('a');
-            a.className = 'liked-card';
-            a.href = `/venues/${v.slug}/`;
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'lc-name';
-            nameSpan.textContent = v.name;
-            const metaSpan = document.createElement('span');
-            metaSpan.className = 'lc-meta';
-            metaSpan.textContent = `${v.city} · ${v.type}`;
-            a.append(nameSpan, metaSpan);
-            likedVenuesEl.appendChild(a);
-          });
+          likedVenuesEl.innerHTML = (profile.liked_venues || []).map((slug) => {
+            const v = gotoBySlug.get(slug);
+            return v ? gotoCardHtml(v) : '';
+          }).join('');
         }
         if (likedWrap) likedWrap.hidden = (profile.liked_venues || []).length === 0;
 

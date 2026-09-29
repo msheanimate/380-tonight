@@ -331,6 +331,26 @@
     "menu_url": "https://mickysirishpub.com/iowa-city-menu/"
   },
   {
+    "name": "The Dublin Underground",
+    "slug": "dublin-underground",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "bar",
+    "address": "5 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "dive",
+      "late-night",
+      "game-day"
+    ],
+    "happy_hour": null,
+    "hours_note": "Mon–Sat 3 PM–2 AM, Sun 6 PM–2 AM. Cash only.",
+    "website": "https://www.facebook.com/p/The-Dublin-Underground-100057381313076/",
+    "blurb": "Down a flight of stairs off Dubuque Street, a snug little Irish pub with cold Guinness, Irish car bombs and a crowd that fills in on game days. Bring cash.",
+    "source": "https://thinkiowacity.com/listing/dublin-underground/",
+    "verify": true,
+    "phone": "(319) 337-7660"
+  },
+  {
     "name": "Elray's Live & Dive",
     "slug": "elrays-live-and-dive",
     "city": "Iowa City",
@@ -1161,6 +1181,28 @@
     "verify": true,
     "menu_url": "https://www.formosaiowacity.com/menu",
     "doordash_url": "https://www.doordash.com/search/store/Formosa%20Iowa%20City%2C%20IA/"
+  },
+  {
+    "name": "Masala Indian Cuisine",
+    "slug": "masala-indian-cuisine",
+    "city": "Iowa City",
+    "district": "downtown",
+    "type": "restaurant",
+    "address": "9 S Dubuque St, Iowa City, IA 52240",
+    "tags": [
+      "indian",
+      "vegetarian",
+      "lunch-buffet",
+      "takeout"
+    ],
+    "happy_hour": null,
+    "hours_note": "Mon–Thu 11 AM–2:30 PM & 5–9 PM, Fri–Sat until 9:30 PM; closed Sunday.",
+    "website": "https://masalaindiancuisine.site/",
+    "blurb": "Downtown's Indian standby a few steps off the Ped Mall: tandoori, curries, fresh naan and a deep vegetarian menu, with a lunch buffet at midday.",
+    "source": "https://downtowniowacity.com/listings/masala-indian-cuisine/",
+    "verify": true,
+    "phone": "(319) 338-6199",
+    "doordash_url": "https://www.doordash.com/store/masala-indian-cuisine-iowa-city-471346/"
   },
   {
     "name": "Englert Theatre",

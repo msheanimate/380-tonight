@@ -523,6 +523,8 @@ td.gd-going { text-align: right; white-space: nowrap; }
 .ah-timer small { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .ah-timer.on { background: var(--btn); color: var(--btn-ink); }
 .ah-timer.on small { color: rgba(255,255,255,.85); }
+.ah-timer.ah-timer-over { opacity: .85; }
+.ah-timer.ah-timer-over b { color: var(--ink-3); }
 .ah-body { display: flex; flex-direction: column; gap: 5px; padding: 30px 14px 14px; }
 .ah-name { font-size: 17px; font-weight: 800; line-height: 1.2; }
 .ah-addr { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
@@ -1258,3 +1260,72 @@ input[type="search"][data-contrast="light"]::placeholder { color: var(--ink-3) !
 
 /* happy-hour / specials lines that owners can switch on or off from /manage/ */
 [data-hh-slug][hidden], [data-specials-slug][hidden] { display: none !important; }
+
+/* Loader shown while a slow page (high school, events) is on its way */
+.page-loader {
+  position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px;
+  background: color-mix(in srgb, #0c0b0e 55%, transparent);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity .2s ease;
+}
+.page-loader.on { opacity: 1; }
+.page-loader[hidden] { display: none; }
+.page-loader-card {
+  display: grid; justify-items: center; gap: 6px; text-align: center; max-width: 320px;
+  background: var(--bg); color: var(--ink); border-radius: var(--radius); padding: 24px 28px;
+  border: 1px solid var(--line); box-shadow: 0 18px 50px rgba(0,0,0,.35);
+}
+.page-loader-ring {
+  width: 42px; height: 42px; border-radius: 50%; margin-bottom: 6px;
+  border: 4px solid color-mix(in srgb, var(--btn) 22%, transparent); border-top-color: var(--btn);
+  animation: page-loader-spin .8s linear infinite;
+}
+.page-loader-title { margin: 0; font-weight: 800; font-size: 18px; line-height: 1.2; }
+.page-loader-note { margin: 0; font-size: 14px; color: var(--ink-2); }
+@keyframes page-loader-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .page-loader-ring { animation-duration: 2.4s; }
+}
+
+/* like heart on the home page's happy hour / specials cards */
+.ah-card .card-like-btn { left: 10px; right: auto; }
+
+/* ── Go-to cards (profile + public profile) ─────────────────────────────── */
+.goto-card {
+  position: relative; display: grid; gap: 8px; align-content: start; padding: 14px 16px;
+  border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--shadow); color: var(--ink);
+}
+.goto-link { position: absolute; inset: 0; border-radius: inherit; z-index: 0; }
+.goto-link:focus-visible { outline: 2px solid var(--btn); outline-offset: 2px; }
+.goto-head { display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.goto-logo {
+  flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  background: #1C1A22; color: #fff; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.18);
+  font-size: 14px; font-weight: 800; letter-spacing: .02em;
+}
+.goto-logo > * { grid-area: 1 / 1; }
+.goto-logo img { width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.goto-title { display: grid; min-width: 0; }
+.goto-title strong { font-size: 17px; line-height: 1.2; }
+.goto-title small { font-size: 13px; color: var(--ink-3); }
+.goto-row, .goto-hours summary {
+  position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 8px;
+  font-size: 14px; line-height: 1.35; color: var(--ink-2); text-decoration: none; width: fit-content; max-width: 100%;
+}
+a.goto-row:hover span:last-child { text-decoration: underline; }
+.goto-ico { flex: 0 0 16px; width: 16px; height: 16px; margin-top: 1px; color: var(--ink-3); }
+.goto-ico svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.goto-hours { position: relative; z-index: 1; }
+.goto-hours summary { cursor: pointer; list-style: none; }
+.goto-hours summary::-webkit-details-marker { display: none; }
+.goto-hours summary::after { content: '▾'; font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.goto-hours[open] summary::after { content: '▴'; }
+.goto-status { font-weight: 700; color: var(--ink-2); }
+.goto-status.open { color: var(--accent-text); }
+.goto-hours ul { list-style: none; margin: 6px 0 0 24px; padding: 0; display: grid; gap: 2px; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.goto-hours li { display: grid; grid-template-columns: 38px 1fr; gap: 8px; }
+.goto-hours li.today { font-weight: 800; color: var(--ink); }
+
+/* happy hour as a bulleted list on venue pages (one line per happy hour) */
+ul.hh-bullets { margin: 2px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+ul.hh-bullets li::marker { color: var(--accent-text); }

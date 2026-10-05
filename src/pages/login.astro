@@ -80,6 +80,7 @@ import Base from '../layouts/Base.astro';
 }
     .auth-page > * { position: relative; z-index: 1; }
     @media (max-width: 719px) {
+      :global(.mobile-extra .mx-row:not(.mx-opt-row)) { display: none; }
       .auth-page {
         background: rgba(255, 255, 255, .88);
         box-shadow: none;

@@ -947,6 +947,8 @@ button#vg-prev{display:none}
 
 .vc-list { display: flex; flex-direction: column; gap: 8px; } /* small gap between comment bubbles */
 .vc-comment { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--shadow); }
+/* Clip Safari's blurred backing layer to the panel's rounded corners. */
+.vc-comment { clip-path: inset(0 round var(--radius-sm)); }
 .vc-comment .avatar { flex-shrink: 0; }
 .vc-comment-avatar { text-decoration: none; }
 .vc-comment-avatar:hover { filter: brightness(1.08); }
